@@ -1,0 +1,422 @@
+/*
+		Skin Name: Sommerbrise (responsive)
+		Skin Download: http://artphilia.de
+		Description: This is a grid based responsive layout.
+		Author: Nadia Volkrodt
+		Author E-Mail: nadia@artphilia.de
+*/
+ 
+
+/* import basic settings, IE-fixes and grids */
+@import url(base.css);
+
+/*---------------------------------------------------------------------
+   Basic styles
+------------------------------------------------------------------------*/
+html, body { 
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	}            
+
+body { 
+	background-color: #fff;
+	background-image: url();
+	background-repeat: repeat;
+	text-align: justify;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 11pt;
+	font-weight: 300;
+	color: #574D4F;
+	}
+
+table { 
+	text-align: justify;
+	}
+tr:nth-child(odd) {
+	background-color: transparent;
+	padding: 6px;
+	}
+tr:nth-child(even), td:nth-child(even) {
+	background-color: transparent;
+	padding: 6px;
+	}
+
+ul li {
+	list-style-type: none;
+	}
+a, a:active, a:visited {
+	font-weight: normal;
+	text-decoration: none;
+	text-transform: none;
+	color: #e8202f;
+	padding: 1px 3px;
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+	transition: 1s;
+	}
+a:hover {
+	color: #FFD952;
+	border-bottom: 1px solid #c8e8e5;
+	}
+
+h1 {
+  border-bottom: 1px solid #FFD952;
+  color: #89d7e1;
+	font-family: 'Courgette', cursive;
+	font-size: 30pt;
+	font-weight: normal;
+  margin-bottom: 30px;
+  position: relative;
+  text-align: center;
+}
+h1 span {
+  background-color: #fff;
+  padding: 0 15px;
+  margin: 5px;
+  position: relative;
+  top: 20px;
+}
+h2  {
+	color: #89d7e1;
+	font-family: 'Courgette', cursive;
+	font-size: 22pt;
+	font-weight: normal;
+	padding: 5px 0;
+	}
+h3 {
+	font-family: 'Courgette', cursive;
+	font-size: 18pt;
+	padding: 5px 0; 
+	color: #89d7e1;
+	text-align: center;
+	font-weight: normal;
+	text-transform: normal;
+	}
+
+h4, #pagetitle, .sectionheader {
+	font-size: 16pt;
+	font-family: 'Courgette', cursive;
+	font-weight: normal;
+	text-align: center;
+	padding: 10px 0;
+	color: #89d7e1;
+}
+		
+/*---------------------------------------------------------------------
+   General page alignment and width
+------------------------------------------------------------------------*/
+
+.container {
+	padding: 10px 20px;
+	margin-bottom: 20px;
+}
+
+.content {
+	margin: 0;
+	text-align: justify;
+	font-style: normal;
+	}
+	
+.login {
+	margin: 5px 10px 0 0;
+	text-align: right;
+	}
+
+.sidebar {
+	margin: 0 0 25px 0;
+	font-style: normal;
+	text-align: justify;
+	border-right: 1px solid #d8d8d8;
+	padding: 10px;
+	}
+	
+@media handheld, only screen and (max-width: 825px) {
+.sidebar {
+	margin: 5px 0 25px 0;
+	font-style: normal;
+	text-align: justify;
+	border-right: 0;
+	padding: 10px;
+	}
+}	
+
+
+.footer {
+	text-align: center;
+	margin-top: 20px;
+	padding: 10px;
+	}
+
+/*---------------------------------------------------------------------
+   General page alignment and width
+------------------------------------------------------------------------*/
+
+
+.label, label {
+	font-weight: bold;
+}
+
+hr {
+  height: 1px;
+  margin: 15px 0;
+  background: -webkit-gradient(linear, 0 0, 100% 0, from(rgba(0,0,0,0)), color-stop(0.5, #d8d8d8), to(rgba(0,0,0,0)));
+  background: -webkit-linear-gradient(left, rgba(0,0,0,0), #d8d8d8, rgba(0,0,0,0));
+  background: -moz-linear-gradient(left, rgba(0,0,0,0), #d8d8d8, rgba(0,0,0,0));
+  background: -o-linear-gradient(left, rgba(0,0,0,0), #d8d8d8, rgba(0,0,0,0));
+  background: linear-gradient(left, rgba(0,0,0,0), #d8d8d8, rgba(0,0,0,0));
+  border: 0;
+}
+hr:after { 
+  display: block; 
+  content:'';
+  height: 30px;
+  background-image: -webkit-gradient(radial, 50% 0%, 0, 50% 0%, 116, color-stop(0%, #f9f9f9), color-stop(100%, rgba(255, 255, 255, 0)));
+  background-image: -webkit-radial-gradient(center top, farthest-side, #f9f9f9 0%, rgba(255, 255, 255, 0) 100%);
+  background-image: -moz-radial-gradient(center top, farthest-side, #f9f9f9 0%, rgba(255, 255, 255, 0) 100%);
+  background-image: -o-radial-gradient(center top, farthest-side, #f9f9f9 0%, rgba(255, 255, 255, 0) 100%);
+  background-image: radial-gradient(farthest-side at center top, #f9f9f9 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+input, textarea, select {
+	background-color: #fff2c4;
+	border: 1px solid #FFD952;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 11pt;
+	color: #ffc700;
+	margin: 2px;
+	padding: 2px 6px;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+}
+.button, .button a {
+	margin: 0 auto;
+	text-align: center;
+	text-transform: none;
+	margin: 2px;
+	padding: 2px 6px;
+	cursor: pointer;
+	background-color: #fff2c4;
+	border: 1px solid #FFD952;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px;
+	color: #ffc700;
+}
+
+blockquote {
+	margin: 10px auto;
+	padding: 15px;
+	width: 90%;
+	border-top: 2px solid #c8e8e5;
+}
+
+/*---------------------------------------------------------------------
+  Style of story list
+------------------------------------------------------------------------*/
+.even, .odd, .comment {
+	margin-top: 0;
+	margin-right: auto;
+	margin-bottom: 0;
+	margin-left: auto;
+	padding: 5px;
+}
+.even:hover, .odd:hover {
+	background-position: top center;
+	background-image: url();
+	background-repeat: no-repeat;
+}
+
+/*---------------------------------------------------------------------
+   News
+------------------------------------------------------------------------*/
+#newsarchive, #sortform, .respond {
+	text-align: center;
+	}
+#newsbox {
+	background-position: top center;
+	background-image: url();
+	background-repeat: no-repeat;
+	margin: 0 auto;
+	padding: 20px;
+	}
+.newscom {
+	background-color: transparent;
+	font-weight: normal;
+  text-align: right;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 20px;
+	padding: 0;
+	margin: 0;
+	}
+.newssig {
+	font-family: 'Source Sans Pro', sans-serif;
+	font-style: none;
+	font-size: 9pt;
+	text-align: left;
+	padding: 4px 0;
+	margin: -5px 0 15px 0;
+	}
+
+/*---------------------------------------------------------------------
+   Categories
+------------------------------------------------------------------------*/	
+.category {
+	text-align: left;
+	width: 75%;
+	margin: 0 auto;
+	}
+.catimg {
+	float: left;
+	padding: 3px 6px 3px 0;
+	}
+.cat_description { 
+	padding: 5px;
+	text-align: left;
+	}
+	
+/*---------------------------------------------------------------------
+  Page links / Alphabet
+------------------------------------------------------------------------*/
+#pagelinks, #alphabet {
+	width: 100%;
+	text-align: center;
+	border-top: 1px solid #ebebeb;
+	}
+#pagelinks a, #alphabet a {
+	font-weight: normal;
+	text-decoration: none;
+	text-transform: none;
+	font-size: 14pt;
+	padding: 0 4px;
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+	transition: 1s;
+	}
+#pagelinks a:hover, #alphabet a:hover {
+	text-decoration: none;
+	background-color: transparent;
+	color: #d8d8d8;
+	border-top: 1px solid #d8d8d8;
+	}
+a#currentpage {
+	border-top: 1px solid #89d7e1;
+	color: #89d7e1;
+	background-color: transparent;
+	}
+/*---------------------------------------------------------------------
+   Misc Styles, used in multiple places throughout the page
+------------------------------------------------------------------------*/		
+
+#jumpmenu {
+	text-align: right;
+	}
+#story {
+	padding: 50px 10px;
+	text-align: justify;
+	}
+#login {
+	margin: 0;
+	}
+#columncontainer {
+	width: 90%;
+	text-align: justify;
+}
+.column, #columncontainer a {
+	font-size: 13pt;
+	}
+.copyright {
+	padding: 5px 0;
+	text-transform: uppercase;
+	font-size: 9pt;
+}
+
+/*---------------------------------------------------------------------
+  MENU
+------------------------------------------------------------------------*/
+#menu { 
+	width: 100%;
+	margin: 4px 0;
+	}
+#menu ul {
+	background-color: #FFD952;
+	text-align: center;
+	padding: 4px 2px;
+	}
+#menu li {
+	display: inline-block;
+	padding: 10px 16px;
+	margin: 0;
+	}
+#menu li:hover {
+	padding: 10px 16px;
+	background-color: #FFE999;
+	}
+#menu a {
+	font-family: 'Courgette', cursive;
+	font-size: 16pt;
+	letter-spacing: 0;
+	text-transform: none;
+	color: #ffffff;
+	-webkit-transition: 1s;
+	-moz-transition: 1s;
+	transition: 1s;
+	}
+#menu a:hover {
+	color: #FFD952;
+	border-bottom: 0 dashed #4D4A4B;
+	}
+
+/*---------------------------------------------------------------------
+  SITE NAME / SLOGAN
+------------------------------------------------------------------------*/
+#sitename {
+	color: #e8202f;
+	font-family: 'Courgette', cursive;
+	font-size: 40pt;
+	padding: 10px 0 0 0;
+	text-align: center;
+
+}
+#spacer {
+	border-top: 5px solid #c8e8e5;
+	width: 400px;
+	margin: 0 auto;
+}
+#slogan {
+	color: #574D4F;
+	font-family: 'Source Sans Pro', sans-serif;
+	font-size: 14pt;
+	font-weight: 300;
+	text-transform: uppercase;
+	margin: 5px 0 0 0;
+	text-align: center;
+	padding-bottom: 20px;
+}
+
+/*---------------------------------------------------------------------
+  FIELDSET
+------------------------------------------------------------------------*/
+
+fieldset {
+	margin: 5px 10px;
+	padding: 6px;
+	text-align: left;
+	border: 1px solid #dcdcdc;
+	background-color: transparent;
+	background-image: url();
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	border-radius: 4px; 
+}
+legend {
+	border: 0 solid #dcdcdc;
+	background-color: transparent;
+	margin: 0 0 0 30px;
+	padding: 6px;
+	text-transform: uppercase;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px; 
+}

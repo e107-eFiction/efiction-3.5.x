@@ -1,0 +1,328 @@
+/* Some definitions used everywhere */
+BODY { 
+	background: #000;
+	color: #FFF;
+	margin: 0;
+	padding: 0;
+}
+
+IMG { 
+	border: 0;
+	padding: 0;
+	margin: 0;
+}
+/* Header cells in tables throughout the site */
+TH { 
+	background: #000;
+	color: #FFF;
+	font-weight: bold;
+}
+/* links */
+A { 
+	color: #333;
+	font-weight: bold;
+	text-decoration: underline;
+}
+/* hovering links */
+A:hover {
+	text-decoration: underline overline;
+}
+/* the box at the top of the page */
+#banner {
+	text-align: center;
+	background: #000;
+}
+/* The appearance of your site's name in the banner area*/
+#sitename {
+	font-size: 44px;
+	font-weight: bold;
+	color: #CCC;
+}
+/* The appearance of your site's slogan in the banner area */
+#slogan {
+	font-size: 26px;
+	font-weight: bold;
+	color: #AAA;
+}
+/* The location of the div containing the skin change drop menu  in the banner area */
+#skin {
+	position: absolute;
+	right: 30px;
+	top: 25px;
+}
+/* The location of the div containing the RSS link in the banner area */
+#rss {
+	position: absolute;
+	right: 50px;
+	top: 55px; 
+}
+
+/* the following defines your menu below the banner div */
+/* the box around the menu and aligning the text to center */
+#menu { 
+ border-top: 3px double #000;
+ border-bottom: 3px double #000;
+ background: #CCC;
+ text-align: center; 
+}
+/* links in the menu */
+#menu a {
+ color: #333;
+ font-weight: bold;
+ text-decoration: none;
+ padding-left: 4px;
+ padding-right: 4px; 
+}
+/* Hovered links in the menu */
+#menu a:hover { 
+ background: #000; 
+ padding-left: 2px;
+ padding-right: 2px;
+ border-left: 2px solid #FFF;
+ border-right: 2px solid #FFF;
+ color: #FFF; 
+}
+/* The link for the currently displayed page in the menu */
+#menu #current {
+	text-decoration: underline;
+}
+/* end menu setup */
+
+/* the footer box at the bottom of the page */
+#footer {
+	border-top: 3px double #CCC;
+	background: #000;
+	color: #FFF;
+	padding: 10px;
+	clear: both;
+}
+
+/* End universal page setup */
+
+/* this is a carryover from 1.1.  Generally it is used around tables and table cells. */
+.tblborder { 
+	border: 1px solid #000;
+	padding: 6px;
+	border-collapse: collapse;
+	color: #000;
+}
+
+/* Main page surrounds the text between the header and the footer.  
+For IE, height is set to 650 to force the footer down to the bottom of the page where the content is short.  
+And the second declaration is for everyone else so that it will scroll if longer but be a minimum of 650px
+*/
+#mainpage {
+	height: 550px;
+	padding-bottom: 1em;
+	background: #FFF;
+	color: #000;
+}
+html>body #mainpage { 
+	height: auto;
+	min-height: 550px;
+}
+
+/* Most pages use pagetitle to format the page's title */
+#pagetitle { 
+	text-align: center;
+	font-size: 25px;
+	color: #333;
+	margin-top: 1em;
+}
+
+/* 
+Where there's a list of alphabet links #alphabet controls their look. 
+Just to make things simpler #pagelinks controls the look of the links at the bottom of multi-page results
+and will be set here too. Generally, they look alike.
+*/
+/* the box around the links */
+#alphabet, #pagelinks {
+	text-align: center;
+	word-spacing: -.3em;
+	margin: 1em;
+}
+/* each link */
+#alphabet A, #pagelinks A {
+	color: #FFF;
+	text-decoration: none;
+	font-weight: bold;
+	background: #000;
+	border: 1px solid #CCC;
+	border-collapse: collapse;
+	padding: 0 2px;
+}
+/* each link when hovered over */
+#alphabet A:hover, #pagelinks A:hover {
+	background: #CCC;
+	color: #333;
+}
+/* the currently selected letter and currently selected page */
+#alphabet #current_letter, #pagelinks #currentpage {
+	background: #FFF;
+	color: #333;
+	font-weight: bold;
+	border: 1px solid #CCC;
+	padding: 0 2px;
+}
+/* End alphabet and page link declarations */
+
+/* labels throughout the site in forms and in other places */
+LABEL, .classification {
+	color: #666;
+	font-weight: bold;
+}
+/* Admin options in various places.  */
+.adminoptions { 
+	color: #666;
+	font-weight: bold;
+}
+
+/* The listings of stories etc. */
+/* .sectionheader styles the headings "Stories" and "Series" */
+.sectionheader {
+	text-align: center;
+	font-size: 22px;
+	font-weight: bold;
+	color: #333;
+}
+
+/* The box around each individual story */
+.listbox {
+	margin: 1em 5%;
+	border: 1px solid #000;
+}
+
+/* The title bar for each story box. */
+.listbox .title {
+	background: #000;
+	padding: 6px;
+	color: #FFF;
+	font-weight: bold;
+}
+/* Because the background is black, the link colors need to be changed. */
+.listbox .title A {
+	color: #CCC;
+}
+/* The content of the box...summary, categories, etc. */
+.listbox .content {
+	padding: 6px;
+}
+
+/* The tail info published date etc. on the last line */
+.listbox .tail {
+	background: #000;
+	padding: 6px;
+	color: #FFF;
+}
+/* And again because of the black background change the color of the links. */
+.listbox .tail A {
+	color: #CCC;
+}
+
+/*End story/series listings */
+
+/* titleblock is used for the title information in series and challenges */
+#titleblock {
+	margin: 0 10%;
+}
+
+/* The pulldown jump menus on several pages. */
+.jumpmenu {
+	text-align: right;
+	margin-right: 1em;
+}
+
+/* On the story page, there's a jumpmenu at the bottom. It looks better centered, so this will replace the declaration above for that 
+drop down list ONLY */
+#pagelinks .jumpmenu {
+	text-align: center;
+}
+
+/* This is used on series and challenges and other places where a response is solicited */
+.respond { 
+	text-align: center;
+	padding: 6px;
+}
+
+/* The sort menu on the categories page */
+#sort { text-align: center; }
+
+
+/* On pages that don't use listings, the content is surrounded by a div labeled output to */
+#output { 
+	padding: 10px;
+}
+
+/* User Profile stuff */
+/* The top list of information */
+#profile {
+	margin: 1em 10%;
+}
+/* The sort menu in the profile */
+#profile #sort {
+	text-align: right;
+	font-weight: bold;
+	color: #666;
+ }
+/* The following declarations control the tabs */
+/* The outer tab box */
+#tabs {
+	background: #000;
+	border-top: 1px solid #000;
+	border-bottom: 1px solid #000;
+	text-align: center;
+	margin: 0;
+	padding: 0;
+}
+/* The individual tabs. */
+#tabs span {
+	font-size: 12px;
+	background: #CCC;
+	border: 1px solid #000;
+	padding: 3px;
+}
+/* Links in the tabs */
+
+#tabs #active {
+	background: #FFF;
+	color: #666;
+}
+
+/* This controls the look of the blocks on the index page.   */
+
+/* The box around the block */
+.block { 
+	margin: 1em;
+	border: 1px solid #000;
+}
+
+/* The block's title */
+.block .title {
+	background: #000;
+	color: #FFF;
+	font-weight: bold;
+	padding: 6px;
+}
+
+/* The block's content */
+.block .content {
+	padding: 6px;
+}
+
+#leftindex { 
+	width: 200px;
+	float: left;
+}
+html>body #leftindex {
+	margin-top: -1em;
+}
+
+#rightindex {
+	margin-left: 220px;
+}
+/* The next link at the bottom of a multi-chapter story */
+#next { float: right; }
+/* The previous link at the bottom of a multi-chapter story */
+#prev { float: left; }
+
+#browse #category_content { width: 95% !important; margin: 1em auto; }

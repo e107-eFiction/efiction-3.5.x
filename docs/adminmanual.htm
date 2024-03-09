@@ -1,0 +1,837 @@
+<ul>
+  <li>Installation 
+    <ul>
+      <li><a href="#newInstall">New Installation</a></li>
+      <li><a href="#upgrade20">Upgrade from 2.0.X</a></li>
+      <li><a href="../../../../../Documents%20and%20Settings/HP_Administrator/Desktop/upgrade11">Upgrade 
+        from 1.1</a></li>
+      <li><a href="#translate">Translating eFiction</a></li>
+    </ul>
+  </li>
+  <li>Administration 
+    <ul>
+      <li><a href="#initConfig">Initial Configuration</a></li>
+      <li><a href="#addNewSeries">Add New Series</a></li>
+      <li><a href="#addNewStory">Add New Story</a></li>
+      <li><a href="#featuredStories">Featured Stories</a></li>
+      <li><a href="#news">News</a></li>
+      <li><a href="#submissionQueue">Submissions</a></li>
+      <li><a href="#skins">Skins</a></li>
+      <li><a href="#categories">Categories</a></li>
+      <li><a href="#characters">Characters</a></li>
+      <li><a href="#ratings">Ratings</a></li>
+      <li><a href="#addClass">Classifications</a></li>
+      <li><a href="#members">Members</a></li>
+      <li><a href="#mailUsers">Mail Users</a></li>
+      <li><a href="#panels">Panels</a></li>
+      <li><a href="#settings">Settings</a></li>
+      <li><a href="#blocks">Blocks</a></li>
+      <li><a href="#customPages">Custom Pages</a></li>
+      <li><a href="#pageLinks">Page Links</a></li>
+      <li><a href="#admins">Admins</a></li>
+      <li><a href="#phpInfo">PHP Info</a></li>
+      <li><a href="#actionLog">Action Log</a></li>
+      <li><a href="#profileInfo">Profile Information</a></li>
+      <li><a href="#Modules">Modules</a></li>
+      <li><a href="#Maint">Archive Maintenance</a></li>
+    </ul>
+  </li>
+  <li>Skins 
+    <ul>
+      <li>Designing</li>
+      <li>Modifying</li>
+      <li>Upgrading from 2.0</li>
+      <li>Upgrading from 1.1</li>
+    </ul>
+  </li>
+  <li>Credits</li>
+  <li>Appendix
+    <ul>
+      <li><a href="#defaultPanels">Default Panels</a></li>
+    </ul>
+  </li>
+</ul>
+<p><strong><a name='newInstall'>New Installation</a></strong></p>
+<ol>
+  <li> If you intend to write the story texts to the server or allow image uploads 
+    CHMOD the folder you intend to store the stories in to 777. If this folder 
+    is missing the script will <strong>attempt</strong> to create it for you during 
+    the install.</li>
+  <li> Move config.php from the docs folder to the main eFiction folder. If the 
+    config.php is missing the install script will <strong>attempt</strong> to 
+    create it, but it's best if you move it.</li>
+  <li>CHMOD config.php to 666. </li>
+  <li>Using your web browser, go to the URL for your website(i.e. http://www.yoursite.com) 
+    to run the install and set up the admin login. </li>
+  <li>Login with the admin login and password set in step #4, and complete the 
+    configuration of your site through the Admin panel.</li>
+</ol>
+<p><strong>Upgrade from 2.0.X<a name="upgrade20"></a></strong></p>
+<p>BACK UP YOUR FILES AND YOUR DATABASE FIRST!! Upload the 3.0 files OVER your 
+  2.0 files. DO NOT DELETE YOUR 2.0 FILES UNTIL THE UPGRADE IS COMPLETE! Go to 
+  your site. The script will detect that the config.php file is for 2.0 and start 
+  the upgrade. </p>
+<p><strong>Note: </strong>You're encouraged to choose one of the skins provided 
+  with the 3.0 script until you can update your 2.0 skins.</p>
+<p><strong>Upgrade from 1.1<a name="upgrade11"></a></strong></p>
+<p>BACK UP YOUR FILES AND YOUR DATABASE FIRST!! Upload the 3.0 files OVER your 
+  1.1 files. DO NOT DELETE YOUR 2.0 FILES UNTIL THE UPGRADE IS COMPLETE! Go to 
+  your site. The script<br>
+  will detect that the config.php file is for 1.1 and start the upgrade. </p>
+<p><strong>Note: </strong>You're encouraged to choose one of the skins provided 
+  with the 3.0 script until you can update your 1.1 skins.</p>
+<p><strong>Note 2</strong>: Make sure your config.php file is CHMOD'd to 666.</p>
+<p><strong>Note 3:</strong> If you have installed blocks that did not come with 
+  the 2.0 package, turn them off before starting the upgrade. They will most likely 
+  be incompatible!</p>
+<p>Initial Configuration<a name="initConfig"></a></p>
+<p>After the install script has finished there are still a number of elements 
+  of the archive that you must configure before your archive will be operational. 
+</p>
+<ul>
+  <li><a href="#ratings">Ratings</a> - Ratings are a required element for story 
+    submission. Ratings are intended to show the intended audience for a story 
+    much as the MPAA ratings work for movies. <strong>Note:</strong> You are strongly 
+    advised not to use the MPAA ratings for your archive as they have threatened 
+    archives with legal action for doing so.</li>
+  <li><a href="#categories">Categories</a> (if you chose to have more than one) 
+    - How you categorize your archive is at your discretion. Some archives use 
+    categories for different fandoms. Others use categories for types of story 
+    within a fandom. </li>
+  <li><a href="#characters">Characters</a> - Characters is a list of characters 
+    used in your stories. Characters can be defined as sitewide or assigned to 
+    a specific category.</li>
+  <li><a href="#addClass">Classifications</a> - Classifications are other types 
+    of &quot;classifications&quot; you want to sort your stories into. In 1.1 
+    and 2.0, classifications were hard-coded as genres and warnings. To add new 
+    classifications or modify existing classifications required editing a number 
+    of core files. With 3.0, you can designate your own classifications. Other 
+    classifications that could be used are: spoilers, pairings, story type, language.</li>
+  <li><a href="#news">News</a> - It's a good idea to write an initial news story.</li>
+  <li><a href="#messageSettings">Message Settings</a> - The install script will 
+    load some default messages for your site. You will most likely wish to customize 
+    these messages to fit your site. </li>
+  <li><a href="#customPages">Custom Pages</a> - Four custom pages are defined 
+    in the installation. You will most likely wish to customize these pages to 
+    fit your site.</li>
+  <li><a href="#profileInfo">Additional User Profile Fields</a> - A number of 
+    optional user profile fields were installed though only a few were turned 
+    on. You will want to go to Admin-&gt;Profile Information and configure the 
+    user profile fields that you want on. If you want a custom profile field, 
+    now's the time to add that too.</li>
+</ul>
+<p><strong>Note: </strong>If you intend to bridge your eFiction site with another 
+  script. It's advisable to do it now before you open for business.</p>
+<p>Translating eFiction<a name="translate"></a></p>
+<p>You can modify most of the text that is displayed in the script by changing 
+  the language file in the languages/ folder for the language you selected. Copy 
+  the en.php and en_admin.php files and rename them to your chosen language. For 
+  instance, en.php would become es.php for Spanish or ru.php for Russian. Just 
+  change the text within the quotes for each line to whatever you want it to say. 
+  Some wording is included within the skin's files. If you have created a translation 
+  for eFiction, we encourage you to share it!</p>
+<p>Add New Series<a name="addNewSeries"></a></p>
+<p>Series are collections of related stories by the same or multiple authors. 
+  A story and its sequels, for example, would be a series. Series might also be 
+  used for a &quot;shared universe&quot; in which multiple authors write. The 
+  person who creates the series is considered the series &quot;owner&quot; and 
+  controls whether or not the series is &quot;open&quot; to contributions by other 
+  authors or not. Even if the series is &quot;closed&quot;, the series owner has 
+  the option to include stories from other authors in the series. This form is 
+  the same as members with an additional option to select the owner of the series. 
+</p>
+<p>Add New Story<a name="addNewStory"></a></p>
+<p>This form is the same as members use in the &quot;Account Info&quot; area except 
+  it has an additional option to select the author of the series. You will also 
+  see options to validate and mark the story as featured. </p>
+<p>Featured Stories<a name="featuredStories"></a></p>
+<p>This page allows administrators to manage the featured stories of the site. 
+  A story may initially be marked as featured:</p>
+<ol>
+  <li>From the add/edit story form.</li>
+  <li>By clicking on the &quot;Featured&quot; link in the &quot;Admin Options&quot; 
+    list for the story.</li>
+</ol>
+<p>Once a story has been marked it will appear in a table on this admin page. 
+  From here, site administrators may choose to &quot;retire&quot; the story or 
+  remove it's featured status entirely.</p>
+<p>News<a name="news"></a></p>
+<p>This page is used to add and administer the news stories for the site. </p>
+<p>Submissions<a name="submissionQueue"></a></p>
+<p>This page allows site adminstrators to manage the stories in the submission 
+  queue. This page is only used when automatic validation of stories is turned 
+  off and admistrators are manually validating stories. This page will list the 
+  stories waiting in the queue. </p>
+<p>Skins<a name="skins"></a></p>
+<p>This page lets site administrators &quot;hide&quot; skins from members. Administrators 
+  are advised to do this while they work on developing a new skin.</p>
+<p>Categories<a name="categories"></a></p>
+<p>This page is used to manage the site categories. To view a category's sub-categories 
+  in the list click on the &quot;+&quot; sign next to the name of the category.</p>
+<p>To add categories:</p>
+<ol>
+  <li>Goto Admin -&gt; Categories.</li>
+  <li>For a new top level category click &quot;Add New Top Level Category&quot; 
+    or for a new sub-category click on the &quot;Sub-Category&quot; link in the 
+    Options column for the parent category.</li>
+  <li>Enter the category information and click &quot;Submit&quot;. A locked category 
+    is a category where new story submissions are not accepted. It is generally 
+    used to &quot;lock&quot; top level categories and force submissions into sub-categories 
+    beneath the locked category.</li>
+</ol>
+<p>Characters<a name="characters"></a></p>
+<p>This page is used to manage the characters. Characters for a specific category 
+  can be added from the categories page or directly from this page. </p>
+<p>To add characters:</p>
+<ol>
+  <li>Choose on the category in which to place the characters (or &quot;Sitewide&quot; 
+    to make the characters accessible site wide). </li>
+  <li>Choose on the number of characters to add.</li>
+  <li>Click &quot;Submit&quot;.</li>
+  <li>You will now be presented with a form in which to enter the information 
+    about each character. A bio for the character is optional. If entered, it 
+    will appear at the top of the &quot;Browse&quot; page for that character.</li>
+</ol>
+<p>Ratings<a name="ratings"></a></p>
+<p><strong>Ratings are a required element for story submission.</strong> Ratings 
+  are intended to show the intended audience for a story much as the MPAA ratings 
+  work for movies. <strong>Note:</strong> You are strongly advised not to use 
+  the MPAA ratings for your archive as they have threatened archives with legal 
+  action for doing so. The story's rating can also be used to limit access to 
+  certain stories. </p>
+<ul>
+  <li>Rating - The text of the rating. This is limited to 60 characters.</li>
+  <li>Warning Pop-up - If this box is checked, a warning pop-up will be displayed 
+    for stories with this rating. The text of this warning is defined in the &quot;Warning 
+    text&quot; field. If warning pop-up's only once is selected in the settings, 
+    the site will remember whether or not this rating warning has appeared and 
+    will only display it once. If it is not selected, the warning pop-up will 
+    display each time.</li>
+  <li>Age Consent Required - If this box is checked, the visitor must have confirmed 
+    they are an adult (either via their preferences if they're logged in or via 
+    the warning pop-up) before they can view stories with this rating.</li>
+  <li>Registered Users Only - If this box is checked, the visitor must be logged 
+    in to view stories with this rating.</li>
+  <li>Warning text- The warning text that will be displayed to the user in the 
+    pop-up warning (if any).</li>
+</ul>
+<p> Classifications<a name="addClass"></a></p>
+<p>Classifications take the place of the genres and warnings from 1.1 and 2.0. 
+  The change lets you define your own classifications without hacking into the 
+  files. </p>
+<p>To add a new classifcation type:</p>
+<ol>
+  <li> Goto Admin -&gt; Classifications.</li>
+  <li>Click on &quot;Add New Classification Type&quot;.</li>
+  <li>Enter the name and title for the classification type such as &quot;genres&quot; 
+    or &quot;warnings&quot;. The title can be anything you like. The title will 
+    be what is displayed on screen. The name will be used in your skin template 
+    as a variable so it should be a unique one word description. As an example: 
+    enter the name as &quot;genre&quot; and the title as &quot;Genres&quot;.</li>
+  <li>Click &quot;Submit&quot;.</li>
+  <li>After you click submit you'll be taken back to the table listing your classification 
+    types. </li>
+  <li>Click on the classification type (&quot;Genres&quot; to continue the example). 
+    This will take you to the list of classifications within that type. </li>
+  <li>Click &quot;Add New Classifications&quot; to go to the form to add your 
+    classifications for that type. You'll have as many blanks on this form as 
+    you've set items per page.</li>
+  <li>Enter the classifications (to continue the example: romance, action/adventure, 
+    mystery) one in each text box.</li>
+  <li>Click submit.</li>
+</ol>
+<p>To edit a classification or classification type click &quot;Edit&quot; in the 
+  options in the table. To delete a classification click &quot;delete&quot; in 
+  the options.</p>
+<p>Members<a name="members"></a></p>
+<p>This page gives site administrators a number of options for managing the members 
+  of their site. <strong>Note: </strong>Some of these options may be unavailable 
+  if you have bridged your eFiction site to another application.</p>
+<p>At the top of the page are a number of options to sort members by:</p>
+<ul>
+  <li>All Members - lists all members</li>
+  <li>Admins - lists all administrators</li>
+  <li>Authors - lists only members who have submitted stories to the archive</li>
+  <li>Authors Input by Admins - lists authors who have been added by admins. <strong>Note: 
+    </strong>Will not function for bridged sites.</li>
+  <li>Non-validated Members - lists members who have not been validated. </li>
+  <li>Validated Members - lists members who have been validated</li>
+  <li>Locked Members - lists members whose accounts have been locked (banned)</li>
+  <li>Unlocked Members - lists members whose accounts are active (non-banned)</li>
+</ul>
+<p>Validated members are members whose stories by-pass the validation queue and 
+  are accepted automatically in archives where administrators are validating stories 
+  manually. By clicking on a members name in one of the last four lists, you are 
+  choosing to take that action on that member. For instance, if you click on a 
+  member's name in the Non-validated Members list, you will be taken to a page 
+  that will let you validate that member. The reverse is also true, if you click 
+  on a member's name in the Validated Members list, you will be taken to a page 
+  that will let you revoke the validated status for that member.</p>
+<p>An additional option, at the bottom of the page, for non-bridged sites is the 
+  ability to add new members. These are the members that appear in the &quot;Authors 
+  Input by Admins&quot; list. When clicking on a name in that list, administrators 
+  are given the option to release the author's account to their control.</p>
+<p>Mail Users<a name="mailUsers"></a></p>
+<p>Site administrators can use this option to mail all members of the site. Administrators 
+  may also limit the email to authors or admins in a certain category of the site.</p>
+<p>Modules<a name="Modules"></a></p>
+<p>This panel will let your control the modules installed on your site. The script 
+  comes with one module, challenges. You can find other modules created by others 
+  or create your own. Modules are add-on programs that add functionality to your 
+  site without you needing to edit the files.</p>
+<p>Panels<a name="panels"></a></p>
+<p>Panels are new in 3.0. The panels system has been implemented to make eFiction 
+  more configurable and easier to customize. Panels are used in a number of places 
+  throughout the site. Each panel is  assigned a type. The following types are 
+  defined as part of the basic eFiction site:</p>
+<ul>
+  <li>A - Admin panels</li>
+  <li>F - Favorites</li>
+  <li>S - Submissions</li>
+  <li>B - Browse</li>
+  <li>P - Member Profile</li>
+  <li>U - Member Account</li>
+  <li>L - Top 10 Lists</li>
+</ul>
+<p>Developers and site administrators also have the option of developing their 
+  own types of panels. <a href="#defaultPanels">See the list of default panels.</a></p>
+<p>To modify the panel order, select a panel type from the drop-down list at the 
+  top of the page then use the arrows to move the panels up and down in the list. 
+  To change panel from hidden to visible, click on the edit option to the right 
+  of the panel name. </p>
+<p>To add a new panel:</p>
+<ol>
+  <li>Click &quot;Add New Panel&quot;.</li>
+  <li>Enter the name of the panel. This should be one word alpha-numeric name 
+    used to identify the panel.</li>
+  <li>Enter the title of the panel. This will be the text displayed on the site 
+    for the panel.</li>
+  <li>Enter a URL to the panel. If no URL is supplied the script will look for 
+    a file with the name of the panel in the default location for that panel type. 
+    For instance, for the browse panel named &quot;recent&quot;, the script looks 
+    in the browse folder for a file named recent.php. You will need to supply 
+    a URL for panels located outside the default location or if you name the file 
+    differently than the panel. An example of this would be the browse panel for 
+    the challenges module, the URL is &quot;modules/challenges/browse.php&quot;. 
+    The file is both outside the default location (the browse/ folder) and also 
+    named differently than the panel. The panel is named &quot;challenges&quot;, 
+    but the file is named &quot;browse.php&quot;. <strong>Note: </strong>Panels 
+    are not interchangable. You cannot use a browse panel for a top ten list panel. 
+  </li>
+  <li>The panel level is used to determine who has access to that panel. This 
+    is most applicable to the admin and member account panels. In the admin panels 
+    the level is the admin level required to access the panel. In the member account 
+    panels, it is used to determine whether or not the visitor must be logged 
+    in to see the panel. 0 is for visitor access (registration, lost password, 
+    login) and 1 is for member access (everything else).</li>
+  <li>Check the hidden box of you want this panel to be hidden (not displayed 
+    in the list of panels).</li>
+  <li>Finally, enter the one letter code for the panel type. (See the above list)</li>
+  <li>Click &quot;Submit&quot;.</li>
+</ol>
+<p>Settings<a name="settings"></a></p>
+<p>In eFiction 3.0 the site settings have been grouped into sections to make the 
+  numerous options easier to manage.</p>
+<ul>
+  <li><a href="#siteInfo">Site Information</a></li>
+  <li><a href="#subSettings">Submission Settings</a></li>
+  <li><a href="#siteSettings">Site Settings</a></li>
+  <li><a href="#displaySettings">Display Settings</a></li>
+  <li><a href="#reviewSettings">Review Settings</a></li>
+  <li><a href="#userSettings">User Settings</a></li>
+  <li><a href="#emailSettings">E-mail Settings</a></li>
+  <li><a href="#langCensor">Language Censor</a></li>
+  <li><a href="#messageSettings">Message Settings</a></li>
+  <li><a href="#profileInfo">Profile Information</a></li>
+</ul>
+<p>Site Information<a name="siteInfo"></a></p>
+<p>This section of the settings defines general information about your site.</p>
+<ul>
+  <li>Site Key - You will have defined a site key during installation. <strong>DO 
+    NOT EDIT IT! </strong>If you edit the site key, you will need to manually 
+    update the site key information in your config.php file to match or your site 
+    will stop functioning.</li>
+  <li>Site Name - The name of your site. This will be displayed in the title of 
+    your site's pages.</li>
+  <li>Site Slogan - A slogan for your site. This will also be displayed in the 
+    title of your site's pages.</li>
+  <li>Site Url - The URL to your eFiction site. <strong>Note:</strong> This <strong>must 
+    </strong> be the URL to your eFiction site as the script uses this url in 
+    various places including emails sent to your members. It <strong>must not</strong> 
+    be the URL to any parent site.</li>
+  <li>Table Prefix - The prefix to your database tables. This was also set during 
+    installation and should also <strong>NEVER </strong> be changed or your site 
+    will cease to function. </li>
+  <li>Admin E-mail - The e-mail address used to send and receive e-mails from 
+    the site. This must be a valid email address!</li>
+  <li>Default Skin - The default skin displayed on the site. <strong>Note: </strong>When 
+    you change this as an administrator, your <strong>personal </strong>skin choice 
+    will still appear to you. You will most likely need to log out to see the 
+    site default you have chosen.</li>
+  <li>Language - The langauge the site will display in. The eFiction download 
+    comes with the English language files. <a href="#translating">See Translating 
+    eFiction.</a></li>
+</ul>
+<p>Submission Settings<a name="subSettings"></a></p>
+<p>This section of the settings defines various submission settings for the site.</p>
+<ul>
+  <li>Turn off unsolicited submissions - If &quot;yes&quot; is selected, submissions 
+    to the site can only be made by administrators through the &quot;Admin&quot; 
+    area. If &quot;no&quot; is selected members will have the option of submitting 
+    stories via the &quot;Account Info&quot; link.</li>
+  <li>Automatically validate all stories - If &quot;yes&quot; is selected, stories 
+    will automatically be displayed on the site. If &quot;no&quot; is selected, 
+    stories will be placed into a validation queue for administrators approval 
+    and stories will not appear on the site with this approval.</li>
+  <li>Co-authors allowed - This is a new feature in 3.0. By choosing &quot;yes&quot;, 
+    authors will be allowed to mark other members as co-authors of their stories 
+    in the submission process. Note that co-authors have the same rights to edit, 
+    add to, and delete the story as the author.</li>
+  <li>Allow round robins - Select &quot;yes&quot; if you wish to allow round robins 
+    in your archive.</li>
+  <li>Allow image uploads- Select &quot;yes&quot; if you wish to allow members 
+    to upload images to their account area. </li>
+  <li>Maximum image size 
+    <ul>
+      <li>Maximum image height - The maximum height for image uploads</li>
+      <li>Maximum image width - The maximum width for image uploads</li>
+    </ul>
+  </li>
+  <li>Stories saved in - The default is &quot;files&quot; on the server. You may 
+    also elect to save the text of the stories to the database. This is another 
+    setting that should not be altered after the inital setup of the site. Click 
+    on the checkbox next to the setting to activate it then use the drop down 
+    box to change the setting. <strong>Note: </strong> If your web server has 
+    safe_mode on, you should use the &quot;mysql&quot; option.</li>
+  <li>Stories path - The path to the folder on the server where your story files 
+    will be saved. This should be a relative path and should also not be changed 
+    after the initial setup of the archive. </li>
+  <li>Chapter word count limits - The maximum and minimum allowable word counts 
+    for chapters on the site. If you are storing your story text in the database, 
+    a maximum word count of 17000 is suggested. </li>
+</ul>
+<p>Site Settings<a name="siteSettings"></a></p>
+<p>This section of the settings defines various general settings used in multiple 
+  areas of the site.</p>
+<ul>
+  <li>Use tinyMCE WYSIWYG editor - The tinyMCE editor is a javascript text editor 
+    that gives limited &quot;word processor&quot; functionality to the textareas 
+    of forms. Members also have the option of turning this setting off (if the 
+    site administrator has turned it on) in their preferences.</li>
+  <li>Allowed Tags - The HTML tags that will be allowed in uploaded content (stories, 
+    reviews, bios) throughout the site. <strong>Note: </strong>If you use the 
+    tinyMCE editor, it will alter some tags. The &lt;i&gt; tag becomes &lt;em&gt;. 
+    The &lt;b&gt; tag becomes &lt;strong&gt;. These tags need to be included in 
+    the list for tinyMCE to work properly.</li>
+  <li>Number of categories - Whether or not your site has multiple categories. 
+  </li>
+  <li>Turn on News Comments - Whether comments are allowed on news stories.</li>
+  <li>Turn on Action Log - This option allows administrators to keep log of a 
+    variety of actions throughout the site.</li>
+  <li>Maintenance - This setting puts the site into maintenance mode. This prevents 
+    visitors from entering the site while the administrator works on it. </li>
+  <li>Display Debug Information - Turn this setting on will place various pieces 
+  of information in HTML comments that will help with fixing problems on the 
+  site.</li>
+  <li>Use captcha confirmation - Turn this setting on to require a security code 
+  confirmation at registration and for anonymous input such as challenges and 
+  reviews.</li>
+</ul>
+<p>Display Settings<a name="displaySettings"></a></p>
+<p>This section of the settings defines how various elements of the site are displayed.</p>
+<ul>
+  <li>Date format - The format dates will be displayed in throughout the site. 
+    There are a number of pre-made options or adminstrators may enter a custom 
+    option. The date format uses the format of the <a href="http://us2.php.net/manual/en/function.date.php">php 
+    date function</a>. <strong>Note:</strong> the shoutbox date and time format 
+    can be selected separately.</li>
+  <li>Time format - The format time will be displayed in throughout the site. 
+    The base eFiction script uses this only in the news items. The time format 
+    uses the format of the <a href="http://us2.php.net/manual/en/function.date.php">php 
+    date function</a>. <strong>Note:</strong> the shoutbox date and time format 
+    can be selected separately.</li>
+  <li>Display category path in listings - This setting defines whether or not 
+    the &quot;breadcrumb&quot; path to a category's parent category is displayed 
+    in the story listings.</li>
+  <li>Number of columns - The number of columns to display in information in. 
+    This will be used for the display of members lists and when browsing classifications, 
+    characters, categories, etc.</li>
+  <li>Default items per page - The number of items to display per page. This will 
+    also be the number of items to display per column in multi-column output.</li>
+  <li>Number of days to limit Most Recent - The number of days to limit the Most 
+    Recent list. Leave this empty to impose no limit. When a limit is imposed 
+    that limit will also be used for the &quot;New!&quot; indicator on story listings.</li>
+  <li>Default story sort - The default method of sorting stories.</li>
+  <li>Use Story Index - This setting defines whether clicking on a story takes 
+    the visitor to the story's index (table of contents) or the first chapter. 
+    <strong>Note: </strong>Members may override this setting in their preferences.</li>
+  <li>Display Profile - This setting defines whether or not the user's profile 
+    information appears at the top of every page within the profile or only on 
+    the &quot;Profile&quot; tab.</li>
+  <li>Style of Page links - There are three possible styles of page links. 
+    <ul>
+      <li>Next and Previous - A range of pages plus &quot;Next&quot; and &quot;Previous&quot; 
+        links. For Example: <a href="#prev">Previous</a> <a href="#3">3</a><a href="#4">4</a><a href="#5">5</a><a href="#6">6</a><a href="#7">7</a> 
+        <a href="#next">Next</a></li>
+      <li>First and Last Pages - A range of pages plus the first and last page. 
+        For Example: <a href="#1">1</a>...<a href="#3">3</a><a href="#4">4</a><a href="#5">5</a><a href="#6">6</a><a href="#7">7</a>...<a href="#10">10</a> 
+      </li>
+      <li>Both - A range of pages plus both first and last and next and previous 
+        links. For Example: <a href="#prev">Previous</a> <a href="#1">1</a>...<a href="#3">3</a><a href="#4">4</a><a href="#5">5</a><a href="#6">6</a><a href="#7">7</a>...<a href="#10">10</a> 
+        <a href="#next">Next</a></li>
+    </ul>
+  </li>
+  <li>Size of Range for Page Links - The number of pages in the range of page 
+    links to display. In the examples above, the range was 5 pages (3-7).</li>
+</ul>
+<p>Review Settings<a name="reviewSettings"></a></p>
+<p>This section of the settings defines how reviews are handled.</p>
+<ul>
+  <li>Turn on reviews - This defines whether or not reviews are allowed at all.</li>
+  <li>Allow anonymous reviews - This defines whether or not visitors must be logged 
+    in to be able to review.</li>
+  <li>Authors may delete reviews - This defines what reviews (if any) authors 
+    may delete for their stories.</li>
+  <li>Ratings system - This is different from the ratings you defined. This rating 
+    system allows reviewers to &quot;rate&quot; how much they liked or disliked 
+    a story. There are two systems of ratings built into eFiction. 
+    <ul>
+      <li>Stars - Five stars (and half stars) ratings</li>
+      <li>Like/Dislike - Thumbs up/Thumbs down system.</li>
+    </ul>
+  </li>
+  <li>Allow Ratings Only - Defines whether or not reviewers may leave only a rating 
+    for a story without a text review.</li>
+</ul>
+<p>User Settings<a name="userSettings"></a></p>
+<p>This section of the settings defines how the site interacts with users for 
+  certain things.</p>
+<ul>
+  <li>Alerts on - Defines whether or not members can receive e-mailed alerts when 
+    their favorite stories and authors are updated.</li>
+  <li>Warning pop-ups only once - Defines whether or not warning pop-ups appear 
+    only once for the session or each time the visitor clicks on a story for that 
+    rating.</li>
+  <li>Age statement in user profile - Defines whether or not an age-consent statement 
+    appears in the user preferences form. When a user confirms their age via the 
+    age-consent form, the warnings for age-restricted stories do not appear to 
+    him/her.</li>
+  <li>Password at Registration - Defines whether the password at registration 
+    is user defined or random.</li>
+</ul>
+<p>E-mail Settings<a name="emailSettings"></a></p>
+<p>This section defines how e-mails are sent out. If this information is supplied, 
+  the e-mail forms will use SMTP.</p>
+<ul>
+  <li>SMTP Host - The host for the SMTP server.</li>
+  <li>SMTP Username - The username for the SMTP server.</li>
+  <li>SMTP Password - The password for the SMTP server.</li>
+</ul>
+<p>Language Censor <a name="langCensor"></a></p>
+<p>This section is a list of words that will be forbidden in submissions to the 
+  site. They will be disallowed entirely in names and titles. They will be replaced 
+  with the first letter and trailing asterisks, a****, in summaries and the text 
+  of reviews. Seperate each word with a comma. Placing an asterisk before and/or 
+  after the word will act as a wildcard making the censor look for the entire 
+  word plus the word used as a suffix and/or prefix. For example, 'frog' will 
+  only find 'frog', '*frog' will find 'bullfrog' and 'frog' but not 'froglegs', 
+  'frog*' will find both 'frog' and 'froglegs' but not 'bullfrog', '*frog*' will 
+  find 'frog', 'bullfrog', and 'froglegs.' To disable the censor simply leave 
+  the list of words empty.</p>
+<p>Message Settings<a name="messageSettings"></a></p>
+<p>The links that follow this header in the settings area are to the default messages 
+  for the site. The installation script placed generic text for these messages 
+  into the database for you, but you will most likely wish to edit these messages 
+  to better reflect your site.</p>
+<ul>
+  <li>Welcome Message - The welcome message for your site. It is included in your 
+    skins using the {welcome} variable.</li>
+  <li>Copyright Footer - The footer message for your site. It is included in your 
+    skins using the {footer}variable.</li>
+  <li>Print Copyright Notice - This notice will be appended to the story text 
+    when the &quot;Printer Version&quot; is selected. </li>
+  <li>TinyMCE Configuration - If you wish to customize the configuration of the 
+    tinyMCE WYSIWYG editor you may enter your configuration information here.</li>
+  <li>Rejection Letter (default) - The default rejection letter for your site. 
+    You will have the option to customize this at the time each letter is sent.</li>
+  <li>Acceptance Letter (default) - The default acceptance letter for your site. 
+    You will have the option to customize this at the time each letter is sent.</li>
+</ul>
+<p>Blocks<a name="blocks"></a></p>
+<p>Blocks are another part of your eFiction site that let you configure the look 
+  and feel of your site. A number of blocks are included with eFiction. You can 
+  also create your own or add blocks others have created. The included blocks 
+  are as follows:</p>
+<ul>
+  <li>Categories - This block lists the top level categories on your site.</li>
+  <li>Featured - This block lists one or more of the featured stories of your 
+    site (depending on configuration).</li>
+  <li>Info - This block lists a variety of information about your site including 
+    the number of: members, authors, stories, words, reviews, and chapters. </li>
+  <li>Login - This block displays a login form allowing you to include a login 
+    form on the index page or every page should you choose.</li>
+  <li>Menu - This block builds a menu from the page links in your site. Configurable.</li>
+  <li>News- This block displays one or more of the news items on your site. </li>
+  <li>Online - This block displays who is presently online on your site.</li>
+  <li>Poll- This block lets you query your members using a multiple choice question. 
+    Also includes an archive of poll questions and results.</li>
+  <li>Random - This block displays a random story with each page load.</li>
+  <li>Recent - This block lists the most recently added/updated stories for your 
+    site. </li>
+  <li>Search - A simple search box for inclusion in your skins.</li>
+  <li>Shoutbox - A shoutbox for your site. Also includes an archive.</li>
+  <li>Skinchange - This block displays a drop down that will let visitors who 
+    aren't logged in select from the site's skins the one they wish to display.</li>
+</ul>
+<p>The first page here lists the blocks available to you. Some will have been 
+  pre-installed. The first column lists the name of the block and is not editable. 
+  The second column, which you can edit, displays the title of the block as it 
+  will be displayed on your site. The third column displays the block's status. 
+  There are three possible status options.</p>
+<ul>
+  <li>Inactive - The block is completely off.</li>
+  <li>Active - The block will load on <strong>every</strong> page.</li>
+  <li>Index Only - The block will load on the index (home) page <strong>only.</strong></li>
+</ul>
+<p>It is advisable that if the block does not display on every page, you set it 
+  to &quot;Index Only&quot; or &quot;Inactive&quot; as this will save on your 
+  site's resources. The one exception to this is the Online block. If you use 
+  this block, you <strong>must</strong> set it to &quot;Active&quot; for the block 
+  to work properly.</p>
+<p>The fourth column, gives you the option to admin the block if there are options 
+  to administer.</p>
+<p>You may also see the name of a block and the words &quot;Initialize Block&quot; 
+  instead of the last three columns. You will see this when a block is available 
+  to be installed, but has not been installed yet. The Online, Poll, Search and Shoutbox 
+  blocks are not installed by default. Click on &quot;Initialize Block&quot; then 
+  change the status of the block to &quot;Active&quot; or &quot;Index Only&quot; 
+  to activate it.</p>
+<p>Custom Pages<a name="customPages"></a></p>
+<p>This page allows you to add custom pages to your site. These pages may not 
+  contain php code, only HTML and plain text. Four custom pages are defined for 
+  you during the installation.</p>
+<ul>
+  <li>help - A help page for visitors.</li>
+  <li>tos - Terms of Service. This page is displayed on the registration page.</li>
+  <li>rules - Submission Rules. This page is displayed at the top of the story 
+    submission form and is also linked to the default help page.</li>
+  <li>maintenance - Maintenance Message. This is the message that is displayed 
+    to visitors when you place your site into maintenance mode.</li>
+</ul>
+<p>To add a custom page:</p>
+<ol>
+  <li>Goto Admin -&gt; Custom Pages</li>
+  <li>Click on &quot;Add New Custom Page&quot;</li>
+  <li>Enter the name of the page in the form. Note: The name for your page should 
+    contain letters, numbers, and the underscore character ONLY.</li>
+  <li>Enter the title for the page. The page title will also be the text of the 
+    link to the page in the page links.</li>
+  <li>Enter the text of your page. </li>
+  <li>Click the &quot;Submit&quot; button.<br>
+  </li>
+</ol>
+<p>The name you assign to your custom page will be the {NAME_link} variable for 
+  you to use in your skins. The script will append &quot;_link&quot; to the name 
+  to help prevent naming conflicts with other variables. The title will be the 
+  title of the page. For the URL of your custom page, you may use either viewpage.php?id=ID 
+  or viewpage.php?page=NAME where ID is the ID number of the page or NAME is the 
+  name of the page.</p>
+<p><strong>Note:</strong> The name for your page should contain letters, numbers, 
+  and the underscore character ONLY.</p>
+<p>Page Links<a name="pageLinks"></a></p>
+<p>This page controls the page links used in the menu block and available for 
+  use in the skin as individual links. </p>
+<p>Admins<a name="admins"></a></p>
+<p>This page is used to give admin privileges to a member of your site. The initial 
+  page lists all current admins and also gives you the option to add a new admin.</p>
+<p>To give a member admin privileges:</p>
+<ol>
+  <li>Click on &quot;Add New Admin&quot;</li>
+  <li>Select the member's penname from the drop-down list.</li>
+  <li>Select the level of admin privileges for this member.</li>
+  <li>Select the categories that member will oversee or leave blank to have them 
+    oversee all categories.</li>
+  <li>Check the box if you want this admin to receive e-mail notices of new stories 
+    to be validated.</li>
+  <li>Click &quot;Submit&quot;.</li>
+</ol>
+<p>PHP Info<a name="phpInfo"></a></p>
+<p>This page gives information about your server configuration. If you ever run 
+  into problems with your eFiction site, you may need to check these settings. 
+  This page is given as a courtesy. <strong>If you are upgrading from 1.1, </strong><strong>delete 
+  the phpinfo.php in the main folder</strong>. The phpinfo.php file included with 
+  1.1 was not secured and will allow hackers access to the same information it 
+  gives you. This admin page is only available to site administrators.</p>
+<p>Action Log<a name="actionLog"></a></p>
+<p>If you have turned the action log on for your site, this page is where those 
+  logs can be viewed. You can also purge the log here.</p>
+<p>Profile Information<a name="profileInfo"></a></p>
+<p> This admin panel lets you add/remove items from the member profile page. Right 
+  now, there are twelve items pre-loaded. </p>
+<ul>
+  <li>Live Journal</li>
+  <li>Web site</li>
+  <li>AOL</li>
+  <li>ICQ</li>
+  <li>MSN IM</li>
+  <li>Yahoo IM</li>
+  <li>Deviant Art</li>
+  <li>Beta-Reader</li>
+  <li>DeadJournal</li>
+  <li>Xanga</li>
+  <li>Gender</li>
+  <li>MySpace</li>
+</ul>
+<p>The majority of the pre-loaded items were in 2.0. To turn one of the pre-loaded 
+  items on/off. Click edit. Check the box next to &quot;Field enabled&quot; to 
+  turn the field on. On the same form you can change the name and title of the 
+  field. Just like the page links and custom pages, the name will be the variable 
+  for you to use in your .tpl files and the title will be what appears on screen 
+  in the registration/edit bio form and the profile.</p>
+<p>There are a number of types of fields defined.</p>
+<ul>
+  <li>URL - This is a url. The script will automatically turn this into a link 
+    when displaying it in the profile.</li>
+  <li>Select Box - A drop down select box to choose from a selection. In the form 
+    place each option in the box in a separate line.</li>
+  <li>Yes/No - Answer to a yes/no question.</li>
+  <li>ID with URL - These are like fanfiction or livejournal links where there 
+    is a base url with the user's id. Enter the url with {info} where the person's 
+    ID goes. For instance: http://{info}.livejournal.com. The registration/edit 
+    bio form will present a text box for the member to enter their id.</li>
+  <li>Custom code - This option lets you provide custom code to handle the entry 
+    and display of the item. The aol, icq, msn, and yahoo fields use custom code.</li>
+  <li>Text - This type gives the author a text box to enter information. The information 
+    is presented back as text as well. The limit on user text is 255 characters!</li>
+</ul>
+<p>Archive Maintenance<a name="Maint"></a></p>
+<p>This admin panel provides a number of functions for maintaining your site.&nbsp; </p>
+<ul>
+  <li>Recalculate Reviews - This function recalculates the number of reviews and 
+  the rating for the stories, series, and chapters on the site.</li>
+  <li>Fix Category Counts - This function has been moved from the Categories 
+  admin.&nbsp; It will recalculate the number of stories per category.</li>
+  <li>Optimize Database Tables - This function will optimize the tables in your 
+  database.&nbsp; Doing this occasionally will improve site performance.</li>
+  <li>Run Update - When you upload an update for the eFiction script, use this 
+  function to run any changes needed to the database.</li>
+</ul>
+<p>Default Panel List<a name="defaultPanels"></a></p>
+<p>Admin Panels:</p>
+<p>The admin panels control the different admin options for the site. In 2.0 the 
+  list was static. Putting the admin options into panels allows site owners the 
+  option of changing the access level for the various features. It also allows 
+  new options to be added without editing everything. The 0-4 levels in the panel 
+  are most applicable here. The levels 1 to 4 indicate the admin level required 
+  to access a certain feature.</p>
+<ul>
+  <li>Message Settings (1)</li>
+  <li> Rejection Letter (1)(2)</li>
+  <li> Validation Letter (1)(2)</li>
+  <li>Validate Submission (1)(2)</li>
+  <li> Censor (1)</li>
+  <li> Categories</li>
+  <li> Panels</li>
+  <li> Characters</li>
+  <li> Settings</li>
+  <li> Blocks</li>
+  <li> Ratings</li>
+  <li> Add New Story</li>
+  <li> Add New Series</li>
+  <li> Custom Pages</li>
+  <li> Classifications</li>
+  <li> News</li>
+  <li> Members</li>
+  <li> Featured Stories</li>
+  <li> Submissions</li>
+  <li> Page Links</li>
+  <li> Admins</li>
+  <li> Mail Users</li>
+  <li> Skins</li>
+  <li> PHP Info</li>
+  <li> Action Log</li>
+  <li> Profile Information</li>
+</ul>
+<p>Browse Panels:</p>
+<p>Browse panels control the &quot;Browse By&quot; area of the site. </p>
+<ul>
+  <li>Most Recent (1) </li>
+  <li>Featured Stories (1) </li>
+  <li>Classes (1)(2) </li>
+  <li>Categories</li>
+  <li> Characters</li>
+  <li> Ratings</li>
+  <li> Series</li>
+  <li> Titles</li>
+</ul>
+<p>Favorite Panels:</p>
+<p>The favorites panels are included both in the member &quot;Account Info&quot; 
+  page and the list of panels in the profile. In the &quot;Account Info&quot; 
+  area the panel must be set to level 1 to be visible in the list of options. 
+  Otherwise, they're used as part of the &quot;Manage Favorites&quot; panel.</p>
+<ul>
+  <li>Favorite Stories (1)</li>
+  <li> Favorite Series (1)</li>
+  <li> Favorite Authors (1)</li>
+  <li> {author}'s Favorites</li>
+</ul>
+<p>Top 10 List Panels:</p>
+<p>The Top 10 panel. They're all turned on my default. If you turn favorites off, 
+  it is suggested that you hide, not delete, the favorites panels. (You could 
+  change your mind later.)</p>
+<ul>
+  <li>10 Largest Series</li>
+  <li> 10 Smallest Series</li>
+  <li> 10 Most Reviewed Series</li>
+  <li> 10 Longest Stories</li>
+  <li> 10 Shortest Stories</li>
+  <li> 10 Most Reviewed Stories</li>
+  <li> 10 Most Read Stories</li>
+  <li> 10 Most Responded to Challenges</li>
+  <li> 10 Most Favorite Stories</li>
+  <li> 10 Most Prolific Reviewers</li>
+  <li> 10 Most Prolific Authors</li>
+  <li> 10 Most Reviewed Recommendations</li>
+</ul>
+<p>Profile Panels:</p>
+<p>These are the panels that will be displayed on the user's profile page along 
+  with the non-hidden favorites panels. </p>
+<ul>
+  <li>Contact (1)(2)</li>
+  <li> Stories by {author}</li>
+  <li> Series by {author}</li>
+  <li> Reviews by {author}</li>
+</ul>
+<p>Submissions Panels:</p>
+<p>The submission panels will only be displayed in the user panel if submissions 
+  are turned on. They were placed in a type seperate from the user panels so they 
+  would be turned on and off together based on the submission site settings.</p>
+<ul>
+  <li>Add New Story</li>
+  <li> Manage Stories</li>
+  <li> Add New Series</li>
+  <li> Manage Series</li>
+  <li> Manage Images</li>
+</ul>
+<p>User Account Panels:</p>
+<p>As an extra level of security here. The &quot;level&quot; of the panel should 
+  be set to either 0 or 1. Panels with level 0 will be displayed to anyone. Panels 
+  with level 1 will be displayed only to logged in members. The login, register, 
+  and lost password panels are currently the only panels set to level 0 for the 
+  user account area.</p>
+<ul>
+  <li>Login (1)</li>
+  <li>Your Reviews (1)</li>
+  <li> Reviews Received (1)</li>
+  <li> Review Response (1)(2)</li>
+  <li> Lost Password</li>
+  <li> Register</li>
+  <li> Edit Bio</li>
+  <li> Edit Preferences</li>
+  <li> View Your Statistics</li>
+  <li> Manage Favorites</li>
+  <li> Logout</li>
+</ul>
+<p>(1) Hidden by default.<br>
+  (2) System panels. You should not need to alter these settings and may cause 
+  errors if you do.</p>

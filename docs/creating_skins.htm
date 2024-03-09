@@ -1,0 +1,973 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Creating Skins</title>
+<style type="text/css">
+<!--
+.sample {
+	background-color: #CCCCCC;
+	margin: 1em;
+	border: 1px solid #000000;
+	padding: 1ex;
+}
+.sampleLabel {
+	margin-bottom: -1em;
+	margin-left: 1em;
+	font-weight: bold;
+}
+-->
+</style>
+</head>
+
+<body>
+
+<h2 align="center">Creating Skins - WIP</h2>
+<p>In theory, there is no limit to the number of skins you can create for your 
+site.&nbsp; If you have created skins for eFiction 1.1, you won't find many differences.&nbsp; The number and names of the .tpl files have changed 
+some though.&nbsp; 
+A complete skin will include the following files.</p>
+<div align="center">
+  <center>
+    <table border="1" cellpadding="5" cellspacing="0" 
+  style="border-collapse: collapse" bordercolor="#111111">
+      <tr> 
+        <th width="50%">.tpl file</th>
+        <th width="50%">Related pages</th>
+      </tr>
+      <tr> 
+        <td><a href="#browse">browse.tpl</a></td>
+        <td>Browse Pages</td>
+      </tr>
+      <tr> 
+        <td><a href="#categories">categories.tpl</a></td>
+        <td>Browse Categories</td>
+      </tr>
+      <tr> 
+        <td><p><a href="#comments">comments.tpl</a></p></td>
+        <td>News</td>
+      </tr>
+      <tr> 
+        <td><a href="#default">default.tpl</a></td>
+        <td>Most pages</td>
+      </tr>
+      <tr> 
+        <td><a href="#favcomment">favcomment.tpl</a></td>
+        <td>Favorites Lists</td>
+      </tr>
+      <tr> 
+        <td><a href="#footer">footer.tpl</a></td>
+        <td>All pages</td>
+      </tr>
+      <tr> 
+        <td><a href="#header">header.tpl</a></td>
+        <td>All pages</td>
+      </tr>
+      <tr> 
+        <td><a href="#index">index.tpl</a></td>
+        <td>Index</td>
+      </tr>
+      <tr> 
+        <td><a href="#listings">listings.tpl</a></td>
+        <td>Any page listing stories or series</td>
+      </tr>
+      <tr> 
+        <td><a href="#newsbox">newsbox.tpl</a></td>
+        <td>News &amp; news block</td>
+      </tr>
+      <tr> 
+        <td><a href="#printstory">printstory.tpl</a></td>
+        <td>View Story (Printable)</td>
+      </tr>
+      <tr> 
+        <td><a href="#profile">profile.tpl</a></td>
+        <td>User Profile</td>
+      </tr>
+      <tr> 
+        <td><a href="#reviewblock">reviewblock.tpl</a></td>
+        <td>Reviews</td>
+      </tr>
+      <tr> 
+        <td><a href="#reviews">reviews.tpl</a></td>
+        <td>Reviews</td>
+      </tr>
+      <tr> 
+        <td><a href="#seriestitle">series_title.tpl</a></td>
+        <td>View Series</td>
+      </tr>
+      <tr> 
+        <td><a href="#storyindex">storyindex.tpl</a></td>
+        <td>Story Table of Contents</td>
+      </tr>
+      <tr> 
+        <td><a href="#user">user.tpl</a></td>
+        <td>User Profile/Info</td>
+      </tr>
+      <tr>
+        <td><a href="#viewstory">viewstory.tpl</a></td>
+        <td>View Story</td>
+      </tr>
+    </table>
+  </center>
+</div>
+<p>Now, to quote Douglas Adams...Don't Panic!&nbsp; That's the most number of 
+  files a skin would use.&nbsp; Most skins will consist of quite a few less.&nbsp; 
+  If you install add-on modules, those modules may require additional .tpl files 
+  which will be included with the module. </p>
+<p>Within the script files is a folder called default_tpls.&nbsp; It includes 
+  a very basic complete skin that will be used if for whatever reason your site's 
+  default skin or your member's chosen skin are missing.&nbsp; If any of these 
+  .tpl files (except for header.tpl and footer.tpl) are missing the script will 
+  fall back on the files in the default_tpls folder.&nbsp; Many of the tpl files 
+  are generic enough that they can easily be left to the ones in default_tpls 
+  and styled using CSS.&nbsp; In addition to the .tpl files you will have a style.css 
+  file and optionally, a variables.php file.&nbsp; The variables.php file allows 
+  you to override certain universal settings for this skin such as where blocks 
+  load and the graphics used for your ratings and featured stories.</p>
+<p>A fewimportant things to pay attention to when modifying the template files:</p>
+<ol>
+  <li><b>Variables</b>: Items in curly brackets are variables, i.e. {output} or 
+    {authors}. This contains the actual content that will be printed out on the 
+    page. You can surround these attributes with any kind of html that you want 
+    -- font tags, tables, whatever. Some variables are required on some of the 
+    template pages and some are optional.&nbsp;</li>
+  <li><b>Blocks</b>: These are items that generate multiple instances of content 
+    in a loop -- for example, in your index.tpl template file, you only need to 
+    indicate where the news items should display on the page with the following:<br>
+    &lt;!-- INCLUDE BLOCK : newsbox --&gt;<br>
+    This line is telling the script to include the newsbox.tpl file, and the template 
+    files will understand that it should print out several news stories in a loop, 
+    with just that one line of code. Another kind of block you may see is the 
+    following:<br>
+    &lt;!-- START BLOCK : categoriesblock --&gt;<br>
+    <br>
+    Content goes here, which will also include attributes, such as {category} 
+    or {description}<br>
+    <br>
+    &lt;!-- END BLOCK : categoriesblock --&gt;<br>
+    This is similar to the included block, except that rather than pulling in 
+    the block from another file, as in the case of the newsbox.tpl, this one is 
+    just defining the block at this very moment. As you read through the individual 
+    template file instructions below and look at the actual templates, all of 
+    this will make more sense. <b>&nbsp;Block declarations should go on lines 
+    by themselves.</b></li>
+  <li><b>Blocks vs. Blocks:&nbsp; </b>The template blocks in the .tpl files are 
+    not the same as the blocks you configure in the admin panel.&nbsp; The blocks 
+    in the admin panel are &quot;blocks&quot; of code that generate content they 
+    place inside template variables.&nbsp; The blocks in the .tpl files are &quot;blocks&quot; 
+    of content.&nbsp; While there is some overlap, thinking of them as being separate 
+    from each other will help you keep things straight.&nbsp; Each &quot;code 
+    block&quot; will generate two &quot;content blocks&quot;: {blockname_title} 
+    and {blockname_content}.&nbsp; You may or may not include the {blockname_title} 
+    variable in your skin.&nbsp; It's up to you.&nbsp; However, using the {blockname_title} 
+    in your skin means if you ever want to change the title of the block you only 
+    have to do it in one place instead of in each skin.&nbsp; You assign where 
+    the block will be assigned to in the admin panel.&nbsp; There are 3 choices: 
+    <br>
+    &nbsp; 
+    <div align="center"> 
+      <center>
+        <table border="1" cellpadding="5" cellspacing="0" 
+    style="border-collapse: collapse" bordercolor="#111111">
+          <tr> 
+            <th width="50%">Status</th>
+            <th width="50%">&nbsp;Associated .tpl file</th>
+          </tr>
+          <tr> 
+            <td width="50%">Inactive</td>
+            <td width="50%">The block is off. </td>
+          </tr>
+          <tr> 
+            <td width="50%">Active</td>
+            <td width="50%">The block is on. Can appear on every page.</td>
+          </tr>
+          <tr> 
+            <td width="50%">Index Only</td>
+            <td width="50%">Appears on the index page only.</td>
+          </tr>
+        </table>
+      </center>
+    </div>
+    <p>You may also override these settings for an individual skin by placing 
+      information for that block in the variables.php file. More on that later.</li>
+  <li>The .tpl files do not have some of the usual tags at the beginning, such 
+    as &lt;head&gt; or &lt;title&gt;. That is because those tags are included 
+    in the header file. Most of the template files begin with the header block 
+    and end with the footer block except for a couple of the blocks (newsblock.tpl, 
+    comments.tpl and listings.tpl)</li>
+  <li>Using &quot;hooks&quot; various 3rd party and included modules (such as 
+    challenges) can add their own variables to these templates. Check the documentation 
+    for the modules for specific additions. &nbsp;</li>
+</ol>
+<p>Feel free to use the files in the default_tpls/ folder as templates for your 
+  own skins.&nbsp; Copy the files into a new skin folder and modify them there. 
+  <strong><font color="#FF0000">Do not modify the files in default_tpls/ if at 
+  all possible. They're often used for diagnostic purposes if the site isn't functioning 
+  as expected.</font></strong>&nbsp; <u>Also, you are in no way limited to CSS 
+  for the layout of your skins.&nbsp; Feel free to use tables to your heart's 
+  content.&nbsp; </u></p>
+<hr>
+<p><a name="browse"></a>browse.tpl</p>
+<p>This file controls the look of the browse pages (categories, classifications, 
+  etc.) The header, footer, and listing blocks are included in this file along 
+  with a block for the sort form that is displayed when there are story results. 
+  In addition you will want to include two other variables:</p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>{output} - Miscellaneous information on the pages including the page title.<br>
+  {otherresults} - The list of other results (challenges, series, etc.) that fit 
+  the criteria for the page.</p>
+<p>Within the sort form the following variables are used:</p>
+<p>{sortbegin} - the beginning of the sort menu form<br>
+  {charactermenu1} - A list of characters to choose from<br>
+  {charactermenu2} - A second list of characters<br>
+  {classmenu} - A dropdown list for each of the site's classification types (genres, 
+  warnings, etc.)<br>
+  {ratingmenu} - A list of ratings<br>
+  {sortmenu} - Choose how the stories will be sorted alphabetically or by most 
+  recently updated<br>
+  {completemenu} - Choose all stories or only completed stories<br>
+  {sortend} - the end of the sort menu form</p>
+<p>You may include all or none of these and in whatever order you wish, except 
+  the {sortbegin} and {sortend} variables must be at the beginning and end of 
+  the list of variables in the form.</p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  {output}{otherresults}<br>
+  &lt;!-- START BLOCK : sortform --&gt;<br>
+  &lt;div id=&quot;sortform&quot;&gt;{sortbegin}{categorymenu} {charactermenu1} 
+  {charactermenu2} {ratingmenu} {classmenu} {sortmenu} {completemenu} {sortend}&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : sortform --&gt;<br>
+  &lt;!-- INCLUDE BLOCK : listings --&gt;<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p><a name="categories"></a>categories.tpl</p>
+<p>The categories.tpl controls the look of the individual category on the categories 
+  browse page. <strong>Note:</strong> The appearance of the categories block is 
+  controlled separately through the block's admin panel. </p>
+<p>The block must start with:</p>
+<p class="sample">&lt;!-- START BLOCK : categoryblock --&gt;</p>
+<p>and end with:</p>
+<p class="sample">&lt;!-- END BLOCK : categoryblock --&gt;</p>
+<p>The following variables are available to use in the block:</p>
+<p>{image} - The image associated with that category. Note: The name of the image 
+  is set in the Categories admin panel. The image file must be in the skin's directory. 
+  If the script can't find the image it will display nothing. (In 1.1 a broken 
+  image was displayed.)<br>
+  {link} - The link to the category's browse page.<br>
+  {count} - The count of stories within that category.<br>
+  {description} - The category's description.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : categoryblock --&gt;<br>
+  {image} {link} {count} {description}<br>
+  &lt;!-- END BLOCK : categoryblock --&gt;</p>
+<p><a name="comments">comments.tpl</a></p>
+<p>This block controls the display of comments on the news.php page for a single 
+  story.&nbsp; </p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : commentbox --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : commentbox --&gt;</p>
+<p>This information should be placed on separate lines.&nbsp; Between these two 
+  lines the following variables should be included.</p>
+<p>{comment} - The comment from the member.<br>
+  {uname} - The member's name as a hyperlink to their profile.<br>
+  {date} - The date the comment was made.<br>
+  {adminoptions} - Options visible to the administrator when viewing the page.</p>
+<p>The variable {oddeven} is optional, you can use it to assign alternating styles 
+  to each comment.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : commentbox --&gt;<br>
+  &lt;div class=&quot;comment {oddeven}&quot;&gt;<br>
+  {comment}<br>
+  &lt;div class=&quot;commentsig&quot;&gt;- {uname} on {date}&lt;/div&gt;<br>
+  &lt;div class=&quot;adminoptions&quot;&gt; {adminoptions}&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : commentbox --&gt;</p>
+<p><a name="default">default.tpl</a></p>
+<p>The majority of pages use this for their layout.&nbsp; Most likely you won't 
+  need to include it in your skin at all.</p>
+<p>You must include the <a href="#header">header</a>, <a href="#listings"> listings</a>, 
+  and <a href="#footer">footer</a> block as seen below and include the {output} 
+  variable BEFORE the listings block.&nbsp; The {output} variable provides various 
+  text like the page title and alphabet list for titles. You will probably not 
+  need to replicate this file in your skin since there's nothing much to change 
+  really.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  {output}<br>
+  &lt;!-- INCLUDE BLOCK : listings --&gt;<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p></p>
+<p><a name="favcomments"></a>favcomment.tpl</p>
+<p>In eFiction 3.0 when favorites are turned on by the admin, members have the 
+  option of not only marking a story as a favorite, but also including a comment 
+  as to why it is their favorite. The favcomment.tpl us used to display these 
+  comments in the user's profile.</p>
+<p>The block must start with:</p>
+<p class="sample">&lt;!-- START BLOCK : comment --&gt;</p>
+<p>and end with:</p>
+<p class="sample">&lt;!-- END BLOCK : comment --&gt;</p>
+<p>In addition the following variables can be used within the block:</p>
+<p>{comment} - The member's comment<br>
+  {commentoptions} - Options concerning this comment for admin and the person 
+  who commented<br>
+  {oddeven} - This variable can be used to style alternating comments differently.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : comment --&gt;<br>
+  &lt;div class=&quot;comment{oddeven}&quot;&gt;<br>
+  {comment}<br>
+  {commentoptions}<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : comment --&gt;</p>
+<p><a name="footer">footer.tpl</a></p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : footer --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : footer --&gt;</p>
+<p>In addition to the <a href="#pagelinks">universal page links</a>, the footer.tpl 
+  also has one other variable assigned to it.&nbsp; </p>
+<p>{footer} - Your copyright statement.</p>
+<p>Content assigned to the footer in the admin panel or in the skin's variables.php 
+  file will also be included here.</p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- START BLOCK : footer --&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;div id=&quot;footer&quot;&gt;{footer}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;/body&gt;&lt;/html&gt;<br>
+  &lt;!-- END BLOCK : footer --&gt;</p>
+<p></p>
+<p><a name="header">header.tpl</a></p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : header --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : header --&gt;</p>
+<p>In addition to the <a href="#pagelinks">universal page links</a>, the 
+header.tpl also has two other variables assigned to it.&nbsp; The use of these 
+variables is optional.</p>
+<p>{sitename} - Your site name<br>
+{slogan} - Your site slogan</p>
+<p>Content assigned to the header in the admin panel or in the skin's 
+variables.php file will also be included here.</p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- START BLOCK : header --&gt;<br>
+  &lt;body&gt;<br>
+  &lt;div id=&quot;container&quot;&gt;<br>
+  &lt;div id=&quot;banner&quot;&gt;&lt;div style=&quot;font-size: 40pt; font-style: 
+  oblique;&quot;&gt;{sitename}&lt;/div&gt;&lt;div style=&quot;font-size: 13pt;&quot;&gt;{slogan}&lt;/div&gt;&lt;div 
+  id=&quot;skin&quot;&gt;{skinchange_content}&lt;div style=&quot;padding: 5px;&quot;&gt;{rss}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  {menu_content}<br>
+  &lt;div id=&quot;mainpage&quot;&gt;<br>
+  &lt;!-- END BLOCK : header --&gt;</p>
+<p><a name="index">index.tpl</a></p>
+<p>This file controls the look of your site's home/index page. </p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>In addition to the <a href="#pagelinks">universal page links</a>, the 
+index.tpl also has one other variable assigned to it.&nbsp; </p>
+<p>{welcome} - Your welcome message.</p>
+<p>Content assigned to &quot;index only&quot; in the admin panel or in the skin's 
+variables.php file will also be included here.&nbsp; The sample below creates a 
+two column index page via positioning.&nbsp; See the style.css in the 
+default_tpls for the leftindex and rightindex style declarations.</p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+&lt;div style=&quot;padding: 1em 0; margin-bottom: -2em;&quot; class=&quot;clearfix&quot;&gt;<br>
+&lt;div id=&quot;leftindex&quot;&gt;<br>
+&lt;div class=&quot;block&quot;&gt;<br>
+&lt;div class=&quot;title&quot;&gt;{info_title}&lt;/div&gt;<br>
+&lt;div class=&quot;content&quot;&gt;{welcome}{info_content}&lt;br&gt;&lt;div style=&quot;width: 130px; 
+text-align: center; margin: 0 25px;&quot;&gt;{login_content}&lt;/div&gt;&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;div class=&quot;block&quot;&gt;<br>
+&lt;div class=&quot;title&quot;&gt;{random_title}&lt;/div&gt;<br>
+&lt;div class=&quot;content&quot;&gt;{random_content}&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;div id=&quot;rightindex&quot;&gt;<br>
+&lt;div class=&quot;block&quot;&gt;<br>
+&lt;div class=&quot;title&quot;&gt;{categories_title}&lt;/div&gt;<br>
+&lt;div class=&quot;content&quot;&gt;&lt;div style=&quot;width: 95%&quot;&gt;{categories_content}&lt;/div&gt;&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;div class=&quot;block&quot;&gt;<br>
+&lt;div class=&quot;title&quot;&gt;{recent_title}&lt;/div&gt;<br>
+&lt;div class=&quot;content&quot;&gt;{recent_content}&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;div class=&quot;block&quot;&gt;<br>
+&lt;div class=&quot;title&quot;&gt;{news_title}&lt;/div&gt;<br>
+&lt;div class=&quot;content&quot;&gt;{news_content}&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+&lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p><a name="listings">listings.tpl</a></p>
+<p>This block is included in all pages where stories or series are listed such 
+as titles, categories, user's profile page, search results, etc.&nbsp; It is an 
+expansion of storyblock.tpl from 1.1.&nbsp; </p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : listings --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : listings --&gt;</p>
+<p> In addition, the following variable should be included just above the end 
+  line:</p>
+<p>{pagelinks} - If the results for the page require pagination, this variable 
+  will contain the list of page links.</p>
+<p>This block contains 2 inner blocks that control the appearance of the 
+individual series and stories.</p>
+<p>Both the seriesblock and storyblock should contain the following variables:</p>
+<p>{title} - Title of the story/series<br>
+  {author} - Author (Owner if it's an open series) of the story/series<br>
+  {score} - The story/series rating by members like/dislike or stars<br>
+  {reviews} - A link to the reviews for the story/series<br>
+  {numreviews} - the number of reviews linked to a listing of reviews for the 
+  story/series<br>
+  {summary} - The summary for the story/series<br>
+  {category} - The categories for the story/series<br>
+  {classifications} - The list of classifications for the story/series (genres, 
+  warnings, etc.)<br>
+  {characters} - The characters for the story/series<br>
+  {reportthis} - A link to report problems, errors, etc. with this story/series<br>
+  {addtofaves} - The option to add the story/series to favorites.<br>
+  {comment} - Will be used for favorite stories and also in certain reviews pages 
+  to display comments and reviews about the story/series</p>
+<p>Optional for both seriesblock and storyblock is the variable {oddeven}.&nbsp; 
+  This variable can be used to assign &quot;odd&quot; or &quot;even&quot; status 
+  to the block for CSS styling.</p>
+<p>The seriesblock will have the following additional variables:</p>
+<p> {adminoptions} - Options visible to the admin when viewing the page.&nbsp;<br>
+  {open} - Whether or not the series is open to contributions from others (like 
+  a round robin)<br>
+  {parentseries} - If the series is a sub-series of another, the parent series 
+  will be listed here.<br>
+  {numstories} - The number of stories within the series.<br>
+</p>
+<p>The storyblock will have the following additional variables:</p>
+<p>{adminlinks} - Options visible to the admin when viewing the page.<br>
+  {serieslinks} - If the story is part of a series this will contain a link to 
+  those series.<br>
+  {numchapters} - The number of chapters in the story.<br>
+  {completed} - Whether or not the story is complete.<br>
+  {wordcount} - The total number of words in the story (all chapters)<br>
+  {toc} - A link to the story's table of contents<br>
+  {count} - The count for the number of times the story has been viewed.<br>
+  {roundrobin} - If this story is a round robin an icon will be displayed showing 
+  this.<br>
+  {new} - If the site has set a &quot;recent&quot; date range new or updated stories 
+  falling within that range will be flagged a &quot;New!&quot; using this variable.<br>
+  {featuredstory} - If the story is listed as a featured story or a retired feature 
+  story an icon will be displayed showing this status.<br>
+  {published} - The date the story was published.<br>
+  {updated} - The date the story was last updated.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : listings --&gt;<br>
+  &lt;!-- START BLOCK : seriesblock --&gt;<br>
+  &lt;div class=&quot;listbox {oddeven}&quot;&gt;<br>
+  &lt;div class=&quot;title&quot;&gt;{title} by {author}{score} [{reviews} - {numreviews}]&lt;/div&gt;<br>
+  &lt;div class=&quot;content&quot;&gt;&lt;span class=&quot;label&quot;&gt;Summary: 
+  &lt;/span&gt;{summary}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Parent Series:&lt;/span&gt; {parentseries}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Categories:&lt;/span&gt; {category}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Characters: &lt;/span&gt;{characters}&lt;br 
+  /&gt;<br>
+  {classifications}<br>
+  &lt;span class=&quot;label&quot;&gt;Stories:&lt;/span&gt; {numstories}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Open:&lt;/span&gt; {open} {addtofaves} {reportthis}<br>
+  {adminoptions}&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  {comment}<br>
+  &lt;!-- END BLOCK : seriesblock --&gt;<br>
+  &lt;!-- START BLOCK : storyblock --&gt;<br>
+  &lt;div class=&quot;listbox {oddeven}&quot;&gt;<br>
+  &lt;div class=&quot;title&quot;&gt;{title} by {author} &lt;span class=&quot;label&quot;&gt;Rated:&lt;/span&gt; 
+  {rating} {roundrobin} {score} [{reviews} - {numreviews}] {new} &lt;/div&gt;<br>
+  &lt;div class=&quot;content&quot;&gt;&lt;span class=&quot;label&quot;&gt;Summary: 
+  &lt;/span&gt;{featuredstory}{summary}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Categories:&lt;/span&gt; {category} &lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Characters: &lt;/span&gt; {characters}&lt;br 
+  /&gt;<br>
+  {classifications}<br>
+  &lt;span class=&quot;label&quot;&gt;Series:&lt;/span&gt; {serieslinks}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Chapters: &lt;/span&gt; {numchapters} {toc}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Completed:&lt;/span&gt; {completed} <br>
+  &lt;span class=&quot;label&quot;&gt;Word count:&lt;/span&gt; {wordcount} &lt;span 
+  class=&quot;label&quot;&gt;Read Count:&lt;/span&gt; {count}<br>
+  {adminlinks}&lt;/div&gt;<br>
+  &lt;div class=&quot;tail&quot;&gt;&lt;span class=&quot;label&quot;&gt;{addtofaves} 
+  {reportthis} Published: &lt;/span&gt;{published} &lt;span class=&quot;label&quot;&gt;Updated:&lt;/span&gt; 
+  {updated}&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  {comment}<br>
+  &lt;!-- END BLOCK : storyblock --&gt;<br>
+  {pagelinks}<br>
+  &lt;!-- END BLOCK : listings --&gt;</p>
+<p><a name="newsbox">newsbox.tpl</a></p>
+<p>This block displays one news story, and will be called by the news block and 
+  is also used in the news archive page.</p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : newsbox --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : newsbox --&gt;</p>
+<p>At a minimum, the following variables should be included in the block.&nbsp; 
+</p>
+<p>{newstitle} - The title of the news story<br>
+  {newsstory} - The content of the news story<br>
+  {newsauthor} - The author of the news story<br>
+  {newsdate} - The date the news item was added to the site<br>
+  {newscomments} - The number of comments the story has received with a link to 
+  view the comments.</p>
+<p>Additionally, if you wish administrator options to appear when an admin views 
+  the story you should include:</p>
+<p>{adminoptions}</p>
+<p>Finally, if you want alternating stories to appear with different CSS options 
+  you can include:</p>
+<p>{oddeven} - Where this variable is placed the word &quot;even&quot; will appear 
+  in even numbered stories and the word &quot;odd&quot; will appear in odd numbered 
+  stories.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : newsbox --&gt;<br>
+  &lt;div class=&quot;newsbox_{oddeven}&quot;&gt;<br>
+  &lt;div class=&quot;newstitle&quot;&gt;{newstitle} {adminoptions}&lt;/div&gt;<br>
+  {newsstory}&lt;br /&gt;&lt;br /&gt;<br>
+  --{newsauthor} on {newsdate} {newscomments}<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : newsbox --&gt;</p>
+<p><a name="printstory"></a>printstory.tpl</p>
+<p>This template is used when the print story function is used. Generally this 
+  is another block that you can probably leave to the default_tpls. The following 
+  variables should be included in this template:</p>
+<p>{title} - The title of the story<br>
+  {author} - The author(s) of the story<br>
+  {featuredstory} - The featured/retired icon will be displayed here if the story 
+  is featured.<br>
+  {summary} - The summary of the story<br>
+  {category} - The story's categories<br>
+  {characters} - The story's character list<br>
+  {classifications} - The other classification information for the story (genres, 
+  warnings, etc.)<br>
+  {challengelinks} - The challenges to which this story is a response<br>
+  {serieslinks} - The list of series to which this story belongs<br>
+  {numchapters} - The number of chapters in the story<br>
+  {completed} - Whether or not the story is complete<br>
+  {wordcount} - The word count for the story<br>
+  {count} - The read count for the story<br>
+  {published} - The date the story was published<br>
+  {updated} - The date the story was updated<br>
+  {copyright} - The print version of the site's copyright notice<br>
+  {archivedat} - A statement of where the story is archived at.</p>
+<p>In addition to these variables there are several blocks included in this template. 
+  The storynotes block will be displayed if the story contains notes. It contains 
+  one variable, {storynotes}. The next block should be the storyindexblock. For 
+  multi-chapter stories, this will be the table of contents. The storyindexblock 
+  will be one chapter's worth of information about the story. The following variables 
+  can be included in the storyindexblock:</p>
+<p>{title} - The chapter's title<br>
+  {author} - The author of the chapter<br>
+  {chapternumber} - The chapter number.</p>
+<p>The next block will be the chapter information for each chapter. This block 
+  contains blocks inside it for the chapter notes and endnotes. The following 
+  variables can be included in the chapterblock:</p>
+<p>{chaptertitle} - The title of the chapter<br>
+  {chapterauthor} - The author of the chapter<br>
+  {chaptertext} - The text of the chapter<br>
+  {back2top} - An anchor back to the top of the document.</p>
+<p>The notes block contains a single variable {notes} and the endnotes block contains 
+  a single variable {endnotes}. These blocks plus the storynotes block are placed 
+  in blocks so that html can be used around the blocks if the information is present 
+  and hidden when not.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;div id=&quot;pagetitle&quot;&gt;{title} by {author}&lt;/div&gt;<br>
+  &lt;div class=&quot;infobox&quot;&gt;<br>
+  &lt;div class=&quot;content&quot;&gt;{featuredstory}&lt;span class=&quot;label&quot;&gt;Summary: 
+  &lt;/span&gt;{summary}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Categories:&lt;/span&gt; {category} &lt;span 
+  class=&quot;label&quot;&gt;Characters: &lt;/span&gt; {characters}&lt;br /&gt;<br>
+  {classifications}<br>
+  &lt;span class=&quot;label&quot;&gt;Challenges:&lt;/span&gt; {challengelinks}&lt;br 
+  /&gt; &lt;span class=&quot;label&quot;&gt;Series:&lt;/span&gt; {serieslinks}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Chapters: &lt;/span&gt; {numchapters} &lt;span 
+  class=&quot;label&quot;&gt;Completed:&lt;/span&gt; {completed} <br>
+  &lt;span class=&quot;label&quot;&gt;Word count:&lt;/span&gt; {wordcount} &lt;span 
+  class=&quot;label&quot;&gt;Read:&lt;/span&gt; {count}<br>
+  &lt;span class=&quot;label&quot;&gt; Published: &lt;/span&gt;{published} &lt;span 
+  class=&quot;label&quot;&gt;Updated:&lt;/span&gt; {updated} &lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;!-- START BLOCK : storynotes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;Story 
+  Notes:&lt;/span&gt;&lt;/div&gt;&lt;div class='noteinfo'&gt;{storynotes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : storynotes --&gt;<br>
+  &lt;!-- START BLOCK : storyindexblock --&gt;<br>
+  &lt;p&gt;&lt;b&gt;{chapternumber}.&lt;/b&gt; {title} by {author}&lt;/p&gt;<br>
+  &lt;!-- END BLOCK : storyindexblock --&gt;<br>
+  &lt;!-- START BLOCK : chapterblock --&gt;<br>
+  &lt;div class='chaptertitle'&gt;{chaptertitle} by {chapterauthor}&lt;/div&gt;<br>
+  &lt;!-- START BLOCK : notes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;Author's 
+  Notes:&lt;/div&gt;&lt;div class='noteinfo'&gt;{notes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : notes --&gt;<br>
+  &lt;div class='chapter'&gt;{chaptertext}&lt;/div&gt;<br>
+  &lt;!-- START BLOCK : endnotes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;End 
+  Notes:&lt;/div&gt;&lt;div class='noteinfo'&gt;{endnotes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : endnotes --&gt;<br>
+  &lt;div class='toplink'&gt;{back2top}&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : chapterblock --&gt;<br>
+  &lt;div id=&quot;copyright&quot;&gt;{copyright}&lt;/div&gt;<br>
+  &lt;div id=&quot;archivedat&quot;&gt;{archivedat}&lt;/div&gt;</p>
+<p><a name="profile"></a>profile.tpl</p>
+<p>This template is used in the author's profile page. It's been separated out 
+  of the user.tpl so that it can be re-used in other panels if needed.</p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : profile --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : profile --&gt;</p>
+<p>The following variables can be included in this file:</p>
+<p>{realname} - The member's real name<br>
+  {userpenname} - The member's penname<br>
+  {membersince} - The date the member joined the site<br>
+  {userlevel} - The member's user level Member or Admin (if the person viewing 
+  the page is an admin they will see the admin level)<br>
+  {image} - The member's image from their bio information<br>
+  {bio} - The autor's bio<br>
+  {authorfields} - The list of admin defined author fields. i.e. aol, icq, etc.<br>
+  {adminoptions} - A list of admin options about the member (visible only to admins)<br>
+  {reportthis} - A report this link for the members profile</p>
+<p>For each active authorfield, you will also have a variable for that information. 
+  For instance, if you've activated the AOL authorfield, the variable {aol} will 
+  also output the aol information for the member. </p>
+<p>Note: this is for a non-bridged site. If you've bridged your site, the variables 
+  available to your profile will depend on how your bridge is set up.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : profile --&gt;<br>
+  &lt;div id=&quot;profile&quot;&gt;<br>
+  &lt;div id=&quot;bio&quot;&gt;<br>
+  &lt;div id=&quot;biotitle&quot;&gt;&lt;span class=&quot;label&quot;&gt;Penname: 
+  &lt;/span&gt;{userpenname} &lt;span class=&quot;label&quot;&gt;Real name: &lt;/span&gt;{realname}&lt;/div&gt;<br>
+  &lt;div id=&quot;biocontent&quot;&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Member Since: &lt;/span&gt;{membersince}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Membership status:&lt;/span&gt; {userlevel}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Bio:&lt;/span&gt;&lt;br&gt;{image}{bio}&lt;br 
+  /&gt;<br>
+  {authorfields} <br>
+  &lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  {adminoptions} {reportthis}<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : profile --&gt;</p>
+<p><a name="reviewblock"></a>reviewblock.tpl</p>
+<p>This block controls the display of an individual review. It's been separated 
+  from the reviews.tpl file so it can be re-used in other panels.</p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK : reviewsblock --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : reviewsblock --&gt;</p>
+<p>The following variables can be included in this file:</p>
+<p>{reviewer} - The name of the reviewer<br>
+  {member} - The words Signed or Anonymous depending on whether the reviewer was 
+  a member<br>
+  {rating} - The thumbs up/down or star rating the reviewer gave<br>
+  {reportthis} - A link to report trouble with this review<br>
+  {reviewdate} - The date the review was given<br>
+  {chapter} - The title of the item being reviewed (chapter if it's a story and 
+  the chapter is named)<br>
+  {review} - The text of the review<br>
+  {adminoptions} - Admin options for the review</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : reviewsblock --&gt;<br>
+  &lt;div class=&quot;listbox&quot;&gt;<br>
+  &lt;div class=&quot;content{oddeven}&quot;&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Reviewer: &lt;/span&gt;{reviewer} &lt;span 
+  class=&quot;label&quot;&gt;{member}&lt;/span&gt; {rating} {reportthis}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Date: &lt;/span&gt;{reviewdate}<br>
+  &lt;span class=&quot;label&quot;&gt;Title: &lt;/span&gt;{chapter}<br>
+  &lt;p&gt;{review}&lt;/p&gt;<br>
+  {adminoptions}<br>
+  &lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : reviewsblock --&gt;</p>
+<p><a name="reviews">reviews.tpl</a></p>
+<p>This block controls the display of the reviews page.&nbsp; This .tpl includes 
+an inner block that formats the individual reviews on the page.&nbsp; The 
+following variables are included in the reviews.tpl</p>
+<p>{pagetitle} - The title of the page<br>
+  {output} - Used for error and confirmation messages.&nbsp; Should probably be 
+  included just below {pagetitle}<br>
+  {jumpmenu} - Displays the jump menu for reviews pages that require it.<br>
+  {reviewpagelinks} - Used for pagination.&nbsp; Should be included AFTER the 
+  reviewsblock<br>
+  {reviewslink} - Link inviting visitor to submit a review (Optional can use {reviewsform} 
+  instead) <br>
+  {reviewsform} - The review form. (Optional can use {reviewslink} instead)</p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  {pagetitle}<br>
+  &lt;div class=&quot;respond&quot;&gt;{reviewslink}&lt;/div&gt;<br>
+  &lt;div class=&quot;jumpmenu&quot;&gt;{jumpmenu}&lt;/div&gt;<br>
+  {output}<br>
+  &lt;!-- INCLUDE BLOCK : reviewsblock --&gt;<br>
+  {reviewpagelinks}<br>
+  {reviewform}<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p><a name="seriestitle"></a>series_title.tpl</p>
+<p>This template displays the title block information on a series page. </p>
+<p>You must start the file with:</p>
+<p class="sample">&lt;!-- START BLOCK: series --&gt;</p>
+<p>and end it with:</p>
+<p class="sample">&lt;!-- END BLOCK : series --&gt;</p>
+<p>The following variables can be included in this file:</p>
+<p>{pagetitle} - This will be the series title and author links<br>
+  {rating} - The thumbs up/down or star rating for the series<br>
+  {summary} - The series' summary<br>
+  {category} - The category information for the series<br>
+  {characters} - The characters for the series<br>
+  {classifications} - The other classification information for the series (genres, 
+  warnings, etc.)<br>
+  {parentseries} - If this series has a parent, this will be a link to the parent 
+  series<br>
+  {numstories} - The number of stories in the series<br>
+  {open} - The open status of the series <br>
+  {adminoptions} - The admin options for the series<br>
+  {addtofaves} - The link to add the series to favorites<br>
+  {jump} - The dropdown list of options for the series.</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- START BLOCK : series --&gt;<br>
+  &lt;div id=&quot;pagetitle&quot;&gt;{pagetitle} {rating}&lt;/div&gt;<br>
+  &lt;div id=&quot;titleinfo&quot;&gt; [{reviews} - {numreviews}]&lt;/div&gt;<br>
+  &lt;div id=&quot;titleblock&quot;&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Summary:&lt;/span&gt; {summary}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Categories:&lt;/span&gt; {category}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Characters:&lt;/span&gt; {characters}&lt;br 
+  /&gt;<br>
+  {classifications}<br>
+  &lt;span class=&quot;label&quot;&gt;Parent Series:&lt;/span&gt; {parentseries}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Stories:&lt;/span&gt; {numstories}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Open Series:&lt;/span&gt; {open}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;{adminoptions}{addtofaves}&lt;br /&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;div class=&quot;jumpmenu&quot;&gt;{jump}&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : series --&gt;</p>
+<p><a name="storyindex"></a>storyindex.tpl</p>
+<p>This template controls the story index (table of contents) for an individual 
+  story. </p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>The following variables may be included in this template:</p>
+<p>{title} - The title of the story<br>
+  {author} - The author(s) of the story<br>
+  {reviews} - A link to the reviews for the story with the word &quot;Reviews&quot; 
+  as text<br>
+  {numreviews} - A link to the reviews for the story with the number of reviews 
+  as the text<br>
+  {score} - The thumbs up/down or star rating for a story<br>
+  {jumpmenu} - The dropdown menu of chapters in the story<br>
+  {featuredstory} - The featured/retired icon<br>
+  {summary} - The summary of the story<br>
+  {rating} - The story's content rating<br>
+  {category} - The story's categories<br>
+  {characters} - The list of characters for the story<br>
+  {classifications} - The other classifications for the story (genres, warnings, 
+  etc.)<br>
+  {serieslinks} - The list of series to which the story belongs<br>
+  {numchapters} - The number of chapters in the story<br>
+  {completed} - Yes or No depending on the status of the story<br>
+  {wordcount} - The total word count for the story<br>
+  {count} - The read count for the story<br>
+  {published} - The date the story was published<br>
+  {updated} - The date the story was last updated<br>
+  {adminlinks} - The admin options for the story<br>
+  {addtofaves} - The option to add this story to favorites<br>
+  {roundrobin} - The option to contribute to the round robin<br>
+  {jumpmenu2} - The drop down menu of options concerning the story<br>
+  {reviewform} - A form to submit a review of the story<br>
+  {reviewslink} - A link to review the story</p>
+<p>In addition there are two included blocks. The first is storynotes which includes 
+  one variable {storynotes} for the story notes. The second is the storyindexblock. 
+  The following information can be included in the storyindexblock for each chapter 
+  of the story:</p>
+<p>{chapternumber} - The chapter number<br>
+  {title} - The title of the chapter<br>
+  {author} - The author of the chapter<br>
+  {reviews} - The reviews link for reviews for that chapter<br>
+  {numreviews} - The number of reviews that chapter has received<br>
+  {ratingpics} - The thumbs up/down or star rating for that chapter<br>
+  {wordcount} - The word count for that chapter<br>
+  {chapternotes} - The chapter notes for that chapter (end notes are not displayed)<br>
+  {adminoptions} - Admin options for that chapter</p>
+<p class="sampleLabel">Sample:</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  &lt;div id=&quot;pagetitle&quot;&gt;{title} by {author}&lt;/div&gt;<br>
+  &lt;div id=&quot;sort&quot;&gt; [{reviews} - {numreviews}] {score}{printicon}&lt;/div&gt;<br>
+  &lt;div id=&quot;output&quot;&gt;<br>
+  &lt;div class=&quot;jumpmenu&quot;&gt;{jumpmenu}&lt;/div&gt;<br>
+  &lt;div class=&quot;listbox&quot;&gt;<br>
+  &lt;div class=&quot;content&quot;&gt;{featuredstory}&lt;span class=&quot;label&quot;&gt;Summary: 
+  &lt;/span&gt;{summary}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Rated:&lt;/span&gt; {rating}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Categories:&lt;/span&gt; {category} &lt;span 
+  class=&quot;label&quot;&gt;Characters: &lt;/span&gt; {characters}&lt;br /&gt;<br>
+  {classifications}<br>
+  &lt;span class=&quot;label&quot;&gt;Challenges:&lt;/span&gt; {challengelinks}&lt;br 
+  /&gt; &lt;span class=&quot;label&quot;&gt;Series:&lt;/span&gt; {serieslinks}&lt;br 
+  /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt;Chapters: &lt;/span&gt; {numchapters} &lt;span 
+  class=&quot;label&quot;&gt;Completed:&lt;/span&gt; {completed} &lt;br /&gt; 
+  <br>
+  &lt;span class=&quot;label&quot;&gt;Word count:&lt;/span&gt; {wordcount} &lt;span 
+  class=&quot;label&quot;&gt;Read:&lt;/span&gt; {count}&lt;br /&gt;<br>
+  &lt;span class=&quot;label&quot;&gt; Published: &lt;/span&gt;{published} &lt;span 
+  class=&quot;label&quot;&gt;Updated:&lt;/span&gt; {updated} &lt;/div&gt;<br>
+  {adminlinks}<br>
+  &lt;/div&gt;<br>
+  &lt;div style='text-align: center;'&gt;{addtofaves}&lt;/div&gt;<br>
+  &lt;!-- START BLOCK : storynotes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;Story 
+  Notes:&lt;/span&gt;&lt;/div&gt;&lt;div class='noteinfo'&gt;{storynotes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : storynotes --&gt;<br>
+  &lt;!-- START BLOCK : storyindexblock --&gt;<br>
+  &lt;p&gt;&lt;b&gt;{chapternumber}. {title} &lt;/b&gt;by {author} [{reviews} 
+  - {numreviews}] {ratingpics} ({wordcount} words)&lt;br /&gt;<br>
+  {chapternotes}{adminoptions}&lt;/p&gt;<br>
+  &lt;!-- END BLOCK : storyindexblock --&gt;<br>
+  &lt;div id=&quot;pagelinks&quot;&gt;&lt;div class=&quot;jumpmenu&quot;&gt;{jumpmenu2}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;div class=&quot;respond&quot;&gt;{roundrobin}&lt;/div&gt;<br>
+  {reviewform}<br>
+  &lt;/div&gt;<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt; </p>
+<p><a name="user">user.tpl</a></p>
+<p>This page displays the user profile page.&nbsp; </p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>In addition you will want to include the profile block as well.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : profile --&gt;</p>
+<p>The user.tpl file includes one other block used to form the &quot;tabs&quot; 
+  for the profile panels. You can build these tabs any way you wish. The sample 
+  below places them inside a div with each individual tab as a span. Another idea 
+  is to use an unordered list. Within this block you can use the following variables:</p>
+<p>{class} - The class for that &quot;tab&quot; used to differentiate the current/active 
+  tab from the inactive tabs.<br>
+  {link} - The link to the tab<br>
+  {count} - The count of items in the tab (may be empty)<br>
+  {linkcount} - The link to the tab with the count of items in the tab included 
+  in the link</p>
+<p>In addition to these blocks, the following variables can be included:</p>
+<p>{adminoptions} - Options regarding this member's account<br>
+  {sort} - Gives the sort for when displaying the user's stories.<br>
+  {output} - Used for various messages and errors in panels.</p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  &lt;div id=&quot;profile&quot;&gt;<br>
+  &lt;!-- INCLUDE BLOCK : profile --&gt;<br>
+  {adminoptions}<br>
+  &lt;div id=&quot;sort&quot;&gt;{sort}&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;div id=&quot;tabs&quot;&gt;<br>
+  &lt;!-- START BLOCK : paneltabs --&gt;<br>
+  &lt;span {class}&gt;{link} {count}&lt;/span&gt;<br>
+  &lt;!-- END BLOCK : paneltabs --&gt;<br>
+  &lt;div class='cleaner' style='clear: both;'&gt;&amp;nbsp;&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  {output}<br>
+  &lt;!-- INCLUDE BLOCK : listings --&gt;<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p><a name="viewstory">viewstory.tpl</a></p>
+<p>This page displays the story/chapter text.&nbsp; </p>
+<p>You will need to start by including the header block.</p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>And end by including the footer block.</p>
+<p class="sample"> &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>Three included blocks are used to display the story notes, chapter notes, and 
+  chapter end notes.</p>
+<p>In addition, the following variables may be included:</p>
+<p>{title} - The title of the story<br>
+  {author} - The author(s) of the story<br>
+  {reviews} - A link to the reviews for the story with the word &quot;Reviews&quot; 
+  as text<br>
+  {numreviews} - A link to the reviews for the story with the number of reviews 
+  as the text<br>
+  {score} - The thumbs up/down or star rating for a story<br>
+  {jumpmenu} - The dropdown menu of chapters in the story<br>
+  {featuredstory} - The featured/retired icon<br>
+  {summary} - The summary of the story<br>
+  {rating} - The story's content rating<br>
+  {category} - The story's categories<br>
+  {characters} - The list of characters for the story<br>
+  {classifications} - The other classifications for the story (genres, warnings, 
+  etc.)<br>
+  {serieslinks} - The list of series to which the story belongs<br>
+  {numchapters} - The number of chapters in the story<br>
+  {completed} - Yes or No depending on the status of the story<br>
+  {wordcount} - The total word count for the story<br>
+  {count} - The read count for the story<br>
+  {published} - The date the story was published<br>
+  {updated} - The date the story was last updated<br>
+  {adminlinks} - The admin options for the story<br>
+  {addtofaves} - The option to add this story to favorites<br>
+  {roundrobin} - The option to contribute to the round robin<br>
+  {jumpmenu2} - The drop down menu of options concerning the story<br>
+  {reviewform} - A form to submit a review of the story<br>
+  {reviewslink} - A link to review the story</p>
+<p></p>
+<p class="sampleLabel">Sample: </p>
+<p class="sample">&lt;!-- INCLUDE BLOCK : header --&gt;<br>
+  &lt;div id=&quot;pagetitle&quot;&gt;{title} by {author}&lt;/div&gt;<br>
+  &lt;div class=&quot;storyinfo&quot;&gt; [{reviews} - {numreviews}]&lt;br /&gt;<br>
+  {toc} {reportthis}&lt;br /&gt;<br>
+  {printicon} &lt;br /&gt;<br>
+  {adminlinks} &lt;/div&gt;<br>
+  &lt;div class=&quot;jumpmenu&quot;&gt;{textsizer}{jumpmenu}&lt;/div&gt;<br>
+  &lt;!-- START BLOCK : storynotes --&gt;<br>
+  &lt;div class='notes'&gt;<br>
+  &lt;div class='title'&gt;&lt;span class='label'&gt;Story Notes:&lt;/span&gt;&lt;/div&gt;<br>
+  &lt;div class='noteinfo'&gt;{storynotes}&lt;/div&gt;<br>
+  &lt;/div&gt;<br>
+  &lt;!-- END BLOCK : storynotes --&gt;<br>
+  &lt;!-- START BLOCK : notes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;Author's 
+  Chapter Notes:&lt;/span&gt;&lt;/div&gt;&lt;div class='noteinfo'&gt;{notes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : notes --&gt;<br>
+  &lt;div id=&quot;story&quot;&gt;{story}&lt;/div&gt;<br>
+  &lt;!-- START BLOCK : endnotes --&gt;<br>
+  &lt;div class='notes'&gt;&lt;div class='title'&gt;&lt;span class='label'&gt;Chapter 
+  End Notes:&lt;/span&gt;&lt;/div&gt;&lt;div class='noteinfo'&gt;{endnotes}&lt;/div&gt;&lt;/div&gt;<br>
+  &lt;!-- END BLOCK : endnotes --&gt;<br>
+  &lt;div id=&quot;prev&quot;&gt;{prev}&lt;/div&gt;&lt;div id=&quot;next&quot;&gt;{next}&lt;/div&gt;<br>
+  {storyend}{last_read}<br>
+  &lt;div class=&quot;jumpmenu2&quot;&gt;{jumpmenu2}&lt;/div&gt;<br>
+  &lt;div class=&quot;respond&quot;&gt;{addtofaves} {roundrobin}&lt;/div&gt;<br>
+  {reviewform}<br>
+  &lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p><br>
+  &nbsp;</p>
+<p>&nbsp;</p>
+
+<p>&nbsp;</p>
+</body>
+
+</html>

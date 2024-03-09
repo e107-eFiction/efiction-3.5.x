@@ -1,0 +1,46 @@
+- Ability to remove Featured Story status from Admin panel as well as retire a Featured Story.  You can also now 
+do this when editing a story.
+- Ability to edit and delete news comments from news archive page.
+- Time format in settings.  Removed separate news date format.
+- Added pagination in news.php
+- Ability to set your own classifications in addition to warnings and genres (i.e. Spoilers, Episode Related, 
+Pairings, Language, Story Length, Story Type)
+- Ability to add custom pages from the admin panel.
+- You can now customize the up and down arrows used throughout the script in the same way the other graphics 
+(stars, etc) can be customized.  The variables are $up and $down
+- Added pagination to individual series page.
+- Story counts are back. :)
+- Moved the javascript into header.php so no more problems with the formselect.js not regenerating.  The info will 
+get pulled each time the page loads.
+- Added Table of Contents link to the storyblock and viewstory page for stories.
+- Changed admin links for featured stories in story block to let you either remove or retire the feature.
+- Co-authors :)  Yes. plural.
+- Chapter end notes.
+- Story notes.
+- The validation function in the admin panel now uses storyblock.php for a more consistent look of story information 
+across the site.
+- When previewing a story in the the add/edit story functions, the script now uses storyblock.php for a more consistent 
+look for story information across the site.
+- The default yes and no letters (subject and text) when validating stories can now be customized using {variables} for:
+	{sitename}- the name of the site;
+	{adminname} - the penname of the admin sending the letter (text of letter only)
+	{rules} - a link to the submission rules (text of letter only)
+	{storytitle} - the title of the story
+	{chaptertitle} - the title of the chapter within the story
+- You can now add custom admin panels.
+- The main admin page will now tell you how many stories are in the validation queue. So does the info block.
+- Session and cookie variables will now use a sitekey so that multiple sites on the same domain won't have problems with crossed login info.
+- News comments are now saved under uid instead of penname so that changes in penname will carry over to comment info.
+- TinyMCE can now be toggled on/off on the page.
+- Members can now turn tinyMCE and story indexes on/off for themselves
+- Members can choose the default story sort for themselves.
+- Challenges have been made into an optional module you can install and uninstall as you choose
+- Admins can now decide whether or not to allow anonymous challenges
+- The number of responses to a challenge is now listed in the information for the challenge.
+- Maintenance mode.
+- Action log.
+- Stories updated within the time frame of your "recent days" setting will now also be marked as "New!" (you can also define your own text or assign a graphic using $new in variables.php)
+- You can now define what "Top 10's" lists to include and add your own through the admin panel.
+- You can now "hide" skins from regular members through the admin panel.
+- Customized fields in the author profile page.
+

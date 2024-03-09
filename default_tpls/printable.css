@@ -1,0 +1,15 @@
+BODY { font: 12pt "Times New Roman", "Times NR", Times, serif; color: black; background: white; }
+// Gives the page a 1 inch margin when printed.
+@page { margin: 1in; }
+hr { width: 70%; color: #000; background: #000;  margin: 1em auto;}
+.infobox { border: 1px solid #336; margin: 1em 10%; padding: 1em;}
+#pagetitle { font-size: 140%; text-align: center; }
+.label { font-weight: bold; }
+A { font-weight: bold; color: #336; text-decoration: none; }
+.chaptertitle { page-break-before: always; page-break-after: avoid; font-size: 125%; text-align: center; text-decoration: underline; margin-bottom: 1em;}
+.notes { border: 1px solid #336;  margin: 1em 10%;}
+.notes .title { padding: 5px; border-bottom: 1px solid #336; }
+.notes .noteinfo { padding: 5px; }
+#copyright { margin: 1em 10%; border: 1px solid #336; padding: 1ex;}
+#archivedat { text-align: center; }
+.toplink { text-align: right; }

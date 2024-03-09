@@ -1,0 +1,274 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Converting 1</title>
+</head>
+
+<body>
+
+<p align="center">Converting 1.1 skins to 3.0 skins.</p>
+<p>This file is a work in progress.&nbsp; We'll flesh it out later as we all get 
+  more expertise with converting 1.1 skins to the 3.0 format.</p>
+<p>1.&nbsp; Open a new folder for your converted skin.</p>
+<p>2.&nbsp; Open the default.tpl file in the skin you wish to convert.&nbsp; 
+Everything <i><b>before</b></i> {output} transfer into header.tpl in your new 
+folder then enclose it with start and close tags for the header block.&nbsp; A sample header.tpl might look like this.</p>
+<pre></pre>
+
+</div>
+
+<p style="margin: 0 5%; border: 1px solid #000;">&nbsp;&lt;!-- START BLOCK : header --&gt;<br>
+&lt;body&gt;<br>
+&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;<span style="background-color: #FFFF00">{</span><span 
+style="background-color: #FFFF00">page_id</span><span 
+style="background-color: #FFFF00">}</span>&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;header&quot;&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;banner&quot;&gt;<br>
+&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;skin&quot;&gt;<span style="background-color: #FFFF00">{</span><span 
+style="background-color: #FFFF00">skinchange_content</span><span 
+style="background-color: #FFFF00">}</span>&lt;span style=&quot;padding: 15px;&quot;&gt;<span 
+style="background-color: #FFFF00">{</span><span 
+style="background-color: #FFFF00">rss</span><span 
+style="background-color: #FFFF00">}</span>&lt;/span&gt;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;menu_container&quot;&gt;<br>
+<span style="background-color: #FF00FF">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+{home}&amp;nbsp;{recent}&amp;</span><span style="background-color: #FF00FF">nbsp;{catslink</span><span 
+style="background-color: #FF00FF">}&amp;nbsp;{authors}&amp;nbsp;{titles}&amp;nbsp;{help}<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+&amp;nbsp;{search}&amp;nbsp;{login}&amp;nbsp;{logout}&amp;nbsp;{adminarea}</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;mainpage&quot;&gt;<br>
+&lt;!-- END BLOCK : header --&gt;</p>
+<p>The {page_id} variable was new to 2.0.&nbsp; This variable gives you a unique 
+  name to use in the css for each page.&nbsp; In the example above it's used as 
+  a containing tag.&nbsp; 
+<p>The {rss} variable 
+defines where the orange rss image link appears.
+<p>The other variable highlighted in yellow is a mod some people had previously 
+  installed.&nbsp; If you have previously added the skin change mod change {skinform} 
+  to {skinchange_content} to include that block.&nbsp; You will also need to activate 
+  that block and set it to the correct status in the blocks page in the admin 
+  area.
+<p>The links highlighted in pink are still available in 3.0.&nbsp; You can convert 
+  these links to the new menu block if you wish or leave them as is.
+<p>3. From your original default.tpl again, select everything <i>
+<b>after</b></i> {output} and place it in your footer.tpl<p>&nbsp;<p style="margin: 0 5%; border: 1px solid #000;">&lt;!-- START BLOCK : 
+footer --&gt;<br>
+&nbsp;&nbsp;&nbsp;
+&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;footer&quot;&gt;<span style="background-color: #FF00FF">{footer}</span>&lt;/div&gt;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+&lt;div id=&quot;footermenu&quot;&gt;<span style="background-color: #FFFF00">{</span><span 
+style="background-color: #FFFF00">tos}{rules}{contactus</span><span 
+style="background-color: #FFFF00">}</span>&lt;/div&gt;<br>
+&lt;!-- END BLOCK : footer --&gt;<p>The {footer} variable is the same as in 1.1<p>
+The other three variables you see in yellow are new page links added in 2.0. <p>&nbsp;<div 
+align="center">
+  <center>
+  <table border="1" cellpadding="3" cellspacing="0" 
+  style="border-collapse: collapse" bordercolor="#111111">
+    <tr>
+      <th width="100%" colspan="2">New Page Links in 2.0</th>
+    </tr>
+    <tr>
+      <td width="50%">{tos}</td>
+      <td width="50%">Terms of Service</td>
+    </tr>
+    <tr>
+      <td width="50%">{rules}</td>
+      <td width="50%">Submission Rules</td>
+    </tr>
+    <tr>
+      <td width="50%">{contactus}</td>
+      <td width="50%">Contact Us</td>
+    </tr>
+    <tr>
+      <td width="50%">{featured}</td>
+      <td width="50%">Featured Stories</td>
+    </tr>
+    <tr>
+      <td width="50%">{members}</td>
+      <td width="50%">Members</td>
+    </tr>
+    <tr>
+      <td width="50%">{series}</td>
+      <td width="50%">Series</td>
+    </tr>
+    <tr>
+      <td width="50%">{challenges}</td>
+      <td width="50%">Challenges</td>
+    </tr>
+    <tr>
+      <td width="50%">{tens}</td>
+      <td width="50%">The Tens</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>&nbsp;<div align="center">
+  <center>
+  <table border="1" cellpadding="3" cellspacing="0" 
+  style="border-collapse: collapse" bordercolor="#111111">
+    <tr>
+      <th width="100%" colspan="2">Changed from 1.1</th>
+    </tr>
+    <tr>
+      <td width="50%">{authors}</td>
+      <td width="50%">Authors (was members list)</td>
+    </tr>
+  </table>
+  </center>
+</div>
+<p>3.&nbsp; In your new skin folder create a new file called variables.php.&nbsp; 
+As this is a conversion from 1.1 to 2.0 you will want to set some options in the 
+blocks settings.</p>
+<p style="margin: 1em 5%; border: 1px solid #000;">&lt;?php<br>
+$blocks[&quot;info&quot;][&quot;status&quot;] = '1'; <br>
+$blocks[&quot;info&quot;][&quot;style&quot;] = '1';<br>
+$blocks[&quot;login&quot;][&quot;status&quot;] = '1';<br>
+$blocks[&quot;news&quot;][&quot;status&quot;] = '1';<br>
+$blocks[&quot;news&quot;][&quot;tpl&quot;] = '1';<br>
+$blocks[&quot;recent&quot;][&quot;status&quot;] = '1';<br>
+$blocks[&quot;recent&quot;][&quot;tpl&quot;] = '1';<br>
+$blocks[&quot;categories&quot;][&quot;status&quot;] = '1';<br>
+$blocks[&quot;categories&quot;][&quot;columns&quot;] = '0';<br>
+$blocks[&quot;categories&quot;][&quot;tpl&quot;] = '1';<br>
+$blocks[&quot;featured&quot;][&quot;tpl&quot;] = '1';<br>
+$blocks[&quot;featured&quot;][&quot;status&quot;] = '1';<br>
+?&gt;</p>
+<p>Technically, this is probably overkill.&nbsp; You will definitely want to set 
+&quot;tpl&quot; to 1 for categories, recent, and featured if your skin uses them.&nbsp;If 
+in the past you used {totalstories} and {totalauthors}, activate the info block 
+and set the style to 2.&nbsp; Note that this will also give you {totalmembers} 
+to include.&nbsp; All of these blocks should be set to a &quot;status&quot; of 1 to 
+include them only on the index page.&nbsp;&nbsp; 
+If your skin doesn't use them, I suggest you set the status to 0.&nbsp; It will 
+make the page load a tiny bit faster, but for busy sites tiny bits will add up.</p>
+<p>4. Copy the 1.1 index.tpl skin into your new folder and open it.&nbsp; Locate 
+the point where your header information stops.&nbsp; Delete everything before 
+that and replace it with:</p>
+<p>&lt;!-- INCLUDE BLOCK : header --&gt;</p>
+<p>Find where your footer information starts and replace everything below it with</p>
+<p>&lt;!-- INCLUDE BLOCK : footer --&gt;</p>
+<p>We took care of all the blocks except news in the previous step.&nbsp; Find 
+where your news is included in the index.tpl&nbsp; and replace the block with {news_content}&nbsp; 
+You can also remove {newspageprev} and {newspagenext} as those are replaced by 
+the newsarchive link and are included in {news_content}.&nbsp; To style the news 
+archive link use #newsarchive in your style.css.&nbsp; The #newsarchive id is a 
+div around the archive link.</p>
+
+<p>5. Copy your newsbox.tpl file into the new folder.&nbsp; No changes need to 
+be made to that.&nbsp; Note however that the style will be carried over to the 
+news archive.</p>
+
+<p>6. Open your style.css and style the following elements.&nbsp; The 
+information after the dash is suggested styles to match 1.1 where possible or 
+just general ideas</p>
+
+<p>#pagetitle - text-align: center; font-size: 150%; margin: 1ex;<br>
+#alphabet, #pagelinks - text-align: center; margin: 1em;<br>
+LABEL - font-weight: bold;<br>
+#sort - text-align: center; margin: 1ex;&nbsp; (Sort options on categories.php)<br>
+#profile #sort - text-align: right;&nbsp;&nbsp; (Sort options on the viewuser 
+page)</p>
+
+<p>.sectionheader - text-align: center; font-weight: bold;&nbsp; (this is the 
+&quot;Series&quot; and &quot;Stories&quot; sub-headers)<br>
+#titleblock&nbsp; - margin: 0 10%; border: 1px solid #000;&nbsp; <br>
+(this is the title block at the top of the series and challenges pages when a 
+single series/challenge is listed)</p>
+
+<p>To convert the tabs in the viewuser page from 1.1 to 2.0 you'll need to add 
+the #tabs style group to your style.css.&nbsp; This is the tabs information for 
+the skin in default_tpls. It's a good place to start.&nbsp; 2.0 gives you more 
+options in styling this section of the viewuser page, but this styling will be 
+close to what you previously used in 1.1 with some tweaking.&nbsp; The #active 
+styling is the tab currently active in the window.&nbsp; In 1.1 this would have 
+been the table cell with the background color.</p>
+
+<p>#tabs {<br>
+padding: 0;<br>
+margin: 0;<br>
+clear: both;<br>
+border-top: 3px double #000;<br>
+border-bottom: 3px double #000;<br>
+}<br>
+<br>
+#tabs DIV{ <br>
+width: 33%;<br>
+float: left;<br>
+color: #000;<br>
+text-align: center;<br>
+background: #CCC; <br>
+font-size: 11pt;<br>
+}<br>
+<br>
+#tabs #centertab {<br>
+background: transparent;<br>
+border-right: 3px double #000;<br>
+border-left: 3px double #000;<br>
+width: 98%;<br>
+}<br>
+<br>
+#tabs a { color: #000; }<br>
+#tabs a:active, a:hover { text-decoration: none; color: #555; }<br>
+<br>
+#tabs #active { background: #555; width: 34%; color: #FFF; }<br>
+#tabs #active a { color: #FFF; }<br>
+#tabs #active a:active, a:hover { text-decoration: none; color: #555; }</p>
+
+<p>7. The last thing you'll probably need to do is convert your storyblock.tpl.&nbsp; 
+If you wish, you can rely on the default and set the appearance of both the 
+stories and series blocks through your style.css.&nbsp; The default uses the .listbox 
+class with child classes of .title, .tail, .adminoptions, .content, and 
+.classification.&nbsp; You can also use .odd and .even to alternate style of 
+blocks every other one.</p>
+
+<p>/* Formatting for the divs for series and stories.&nbsp; */<br>
+.listbox { margin: 0 5%; border: 2px solid #900; margin-bottom: 1em; background: 
+#FFF; background-position: 0 5px;}<br>
+.listbox .title { font-weight: bold; padding: 4px; color: #900; border-bottom: 
+3px double #900;}<br>
+.listbox .title a:link { color: #900; text-decoration: underline;}<br>
+.listbox .title a:visited { color: #C66; text-decoration: underline;}<br>
+.listbox .title a:hover { color: #900; text-decoration: underline overline; }<br>
+.listbox .content { padding: 5px; padding-top: 10px; padding-bottom: 10px;}<br>
+.listbox .tail, .listbox .respond { border-top: 3px double #900;}<br>
+.listbox .classfication { font-weight: bold; }<br>
+/* End listbox formatting. */</p>
+
+<p>If you don't want to use the default, I suggest you copy listings.tpl from 
+the default_tpls folder then paste the contents of your storyblock.tpl into the 
+storyblock section then replicate it for the series section.&nbsp; Pay attention 
+to the additional information for the story block.&nbsp; You may now include 
+challenges and series information.&nbsp; There are also adminoptions to be 
+included as well.&nbsp; If you don't use the default you will also need to 
+separately style the challenges block (if you choose to use challenges on your 
+site).&nbsp; 
+Copy challenges.tpl from the default_tpls folder and style it as you wish.&nbsp;
+<u>Do<b><i> NOT </i></b>save it back to default_tpls. </u><b>&nbsp;</b>Save it 
+to your skin's folder.</p>
+
+<p>That's a basic conversion from 1.1 to 2.0.&nbsp; You can further define other 
+areas of the script such as the title blocks in series and challenges.&nbsp; If 
+you wish to change the look of these areas, copy the applicable .tpl from 
+default_tpls and make your changes.&nbsp; Then save that .tpl to your skin 
+folder NOT back to the default_tpls.&nbsp; </p>
+
+</body></html>

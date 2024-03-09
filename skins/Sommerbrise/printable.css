@@ -1,0 +1,32 @@
+body {
+	font-family: 'Cambria', 'Times New Roman', 'Garamond', serif;
+	font-size: 11px;
+	color: #000000;
+	background-color: #ffffff;
+	}
+
+/* Gives the page a 1 inch margin when printed. */
+@page { margin: 1in; }
+
+hr { width: 70%; color: #000000; background-color: #000000;  margin: 2em auto; }
+
+.infobox, .notes, #copyright { border: 1px solid #efefef; margin: 10%; padding: 50px; }
+
+h1 { margin-top: 15px; font-size: 200%; font-weight: normal; font-style: italic; text-align: center; }
+
+b { font-weight: bold; }
+
+a { font-weight: normal; color: #fcbb00; text-decoration: none; }
+
+.chaptertitle {
+	page-break-before: always;
+	page-break-after: avoid;
+	font-size: 140%;
+	text-align: center;
+	text-decoration: underline;
+	font-style: italic;
+	margin-bottom: 1em;
+	}
+
+.title { padding: 5px; border-bottom: 1px dashed #efefef; }
+.noteinfo { padding: 5px; }

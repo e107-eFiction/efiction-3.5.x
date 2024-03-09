@@ -1,0 +1,110 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Language" content="en-us">
+<meta name="GENERATOR" content="Microsoft FrontPage 5.0">
+<meta name="ProgId" content="FrontPage.Editor.Document">
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<title>Creating Blocks</title>
+</head>
+
+<body>
+
+<h2 align="center">Creating Blocks</h2>
+<p>For those that want to create their own blocks to share with others or just 
+  tweak the ones included already, here's the basics.&nbsp; There are two files 
+  needed for each block: blockname.php an init.php.&nbsp; Technically, if you 
+  added the block manually, you wouldn't need the init.php file.&nbsp; It is only 
+  used when the block is first initialized, and can be deleted afterward.&nbsp; 
+  Though I would suggest keeping a backup somewhere, just in case.</p>
+<p>The init.php file is very simple composed simply of a mysql statement that 
+  adds the block tot he database.&nbsp; As in the example below.</p>
+<p>&lt;?php<br>
+  dbquery(&quot;INSERT INTO &quot;.TABLEPREFIX.&quot;fanfiction_blocks(`block_name`, 
+  `block_title`, `block_status`, `block_file`, `block_variables`) VALUES('categories', 
+  'Main Categories', '0', 'categories/categories.php', '');&quot;);<br>
+  ?&gt;</p>
+<p>This also shows the basic parameters needed for a block: name, title, status, 
+  file, and variables.&nbsp; The title can be an empty string if you don't need 
+  a title for that particular block. If the block doesn't need any variables, 
+  that too can be left empty. The file should be a subfolder/file of the blocks 
+  folder for the sake of consistency. The status should generally start off as 
+  0 for inactive.&nbsp; There are 3 status options for blocks: </p>
+<div align="center">
+  <center>
+  <table border="1" cellpadding="5" cellspacing="0" 
+  style="border-collapse: collapse" bordercolor="#111111">
+    <tr>
+      <th colspan="2">Status</th>
+      <th>&nbsp;Associated .tpl file</th>
+      <th>Appears</th>
+    </tr>
+    <tr>
+      <td>0</td>
+      <td>Inactive</td>
+      <td>The block is off. </td>
+      <td>nowhere</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>Active</td>
+      <td>The block is on.</td>
+      <td>anywhere</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Index only</td>
+      <td>index page only.</td>
+      <td>anywhere on the index page.</td>
+    </tr>
+    </table>
+  </center>
+</div>
+<p>&nbsp; </p>
+<p>Any default configuration you want for the block can be included in the init.php 
+  as well.&nbsp; The variables are an array encoded using PHP's serialize function. 
+  For instance, the categories block currently has two options: one column and 
+  multiple columns.&nbsp; The default is a single column lists.&nbsp; If I were 
+  to change the init file as follows, the default would then become a multiple 
+  column list.</p>
+<p>&lt;?php<br>
+  dbquery(&quot;INSERT INTO &quot;.TABLEPREFIX.&quot;fanfiction_blocks(`block_name`, 
+  `block_title`, `block_status`, `block_file`, `block_variables`) VALUES('categories', 
+  'Main Categories', '0', 'categories/categories.php', '&quot;.serialize(array(&quot;columns&quot; 
+  =&gt; &quot;1&quot;)).&quot;');&quot;);<br>
+  ?&gt;</p>
+<p> When you change any of the settings for the blocks from the admin panel the 
+  information stored in the database about the block is updated.</p>
+<p>The block.php file creates the content that is placed inside the {blockname_content} 
+variable.&nbsp; This content is placed inside a variable $content which is then 
+assigned to {blockname_content}&nbsp; So a very simple example of a block would 
+be:</p>
+<p>&lt;?php<br>
+$content = &quot;Hello World!&quot;;<br>
+?&gt;</p>
+<p>There are two other optional files.&nbsp; The first is an admin file which 
+will be called from the admin panel to make changes to the settings in the 
+block.&nbsp; Creating one of those is for another day. </p>
+<p>The second file (or multiple files) is a language file that defines any text 
+you use in your block.&nbsp; These files take the same format as the main 
+language file in the languages folder and are named similarly.&nbsp; So for 
+instance, an English language file would be named en.php.&nbsp; For Spanish, it 
+would be es.php. </p>
+<p>Most often, you might need to define some wording for your admin.php file.&nbsp; 
+If you need to add a language file, use the following code in either admin.php 
+or blockname.php</p>
+<p>if(file_exists(&quot;blocks/categories/{$language}.php&quot;)) include_once(&quot;blocks/categories/{$language}.php&quot;);</p>
+<p>The if(...) isn't technically necessary, but it will prevent errors if the 
+  file ends up missing.&nbsp; For instance, the site's language is set to Russian, 
+  but the block doesn't have a Russian translation.&nbsp; You might also want 
+  to include an else statement to load a default language file you have created 
+  if the site's chosen language is missing.</p>
+<p>if(file_exists(&quot;blocks/categories/{$language}.php&quot;)) include_once(&quot;blocks/categories/{$language}.php&quot;);<br>
+  else include_once(&quot;blocks/categories/en.php&quot;);</p>
+<p>To keep your block files secure from hackers you are strongly encouraged to 
+  include this line at the top of each file just under the &lt;?php</p>
+<p>if(!defined(&quot;_CHARSET&quot;)) exit( );</p>
+<p>&nbsp;</p>
+</body>
+
+</html>
