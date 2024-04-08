@@ -1,5 +1,12 @@
 <?php
-
+$image_list_path = STORIESPATH . "/" . USERUID . "/images/imagelist.js";
+$image_list_exists = file_exists($image_list_path); 
+ 
+if (USERUID && $image_list_exists)
+{
+echo "
+<script src='".STORIESPATH . "/" . USERUID . "/images/imagelist.js"."'></script>";
+} 
 echo "
 	<script language=\"javascript\" type=\"text/javascript\"><!--";
 	$tinylanguage = $language;
@@ -19,30 +26,28 @@ echo "
   		menubar: false,
 		language: '$tinylanguage',
   		theme: 'modern',
+		invalid_styles: 'color,font-size,margin,line-height,font-family,margin-top,margin-bottom',
+		plugins: 'wordcount emoticons fullscreen anchor code hr image link paste ',
 		skin: 'lightgray',
 		min_height: 200,
-		plugins: [
-		    'autolink lists link image charmap paste preview hr anchor pagebreak',
-		    'searchreplace wordcount visualblocks visualchars code fullscreen',
-		    'insertdatetime media nonbreaking save table contextmenu directionality',
-		    'emoticons template textcolor colorpicker textpattern imagetools toc textcolor table'
-		],
+	    browser_spellcheck: true,
+		relative_urls: false,
+		remove_script_host: false,
+    	convert_urls: true,
 		paste_word_valid_elements: 'b,strong,i,em,h1,h2,u,p,ol,ul,li,a[href],span,color,font-size,font-color,font-family,mark,table,tr,td',
-		paste_retain_style_properties : 'all',
-		paste_strip_class_attributes: 'none',
-		toolbar1: 'undo redo | insert styleselect | bold italic underline strikethrough | link image | alignleft aligncenter alignright alignjustify code pastetext',
-		toolbar2: 'preview | bullist numlist | forecolor backcolor emoticons | fontselect |  fontsizeselect wordcount', 
-		image_advtab: true,
-		templates: [
-		    { title: 'Test template 1', content: 'Test 1' },
-		    { title: 'Test template 2', content: 'Test 2' }
-		],
-		content_css: [
-		    '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
-		    '//www.tinymce.com/css/codepen.min.css'
-		],";
-		if(USERUID) 
-			echo "		external_image_list_url : '".STORIESPATH."/".USERUID."/images/imagelist.js',";
+		toolbar1: 'bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist | undo redo | fullscreen code | link unlink | emoticons image anchor hr ',	image_advtab: true,
+     	paste_word_valid_elements: 'b,strong,i,em,p,span,u,strike,br',
+    	paste_retain_style_properties: 'text-decoration,text-align',
+	    menu: {
+			file: { title: 'File', items: 'newdocument' },
+			edit: { title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall' },
+			insert: { title: 'Insert', items: 'link media | template hr' },
+			view: { title: 'View', items: 'visualaid' },
+			table: { title: 'Table', items: 'inserttable tableprops deletetable | cell row column' },
+			tools: { title: 'Tools', items: '' }
+    	},";
+		if (USERUID && $image_list_exists)
+			echo "	image_list: tinyMCE4ImageList ,";
 		echo "
 		theme_modern_resizing: true,".($current == "adminarea" ? "\n\t\tentity_encoding: 'raw'" : "\n\t\tinvalid_elements: 'script,object,applet,iframe'")."
    });

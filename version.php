@@ -1,6 +1,6 @@
 <?php
 if(!defined("_CHARSET")) exit( );
-$version = "3.5.6";
+$version = "3.5.7";
 
 /* shortcut 
 $tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'date'"));

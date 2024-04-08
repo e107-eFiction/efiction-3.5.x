@@ -30,7 +30,11 @@ function buildImageList( ) {
 		$dir = opendir(STORIESPATH."/".USERUID."/images/");
 		while($file = readdir($dir)) {
 			if(!in_array($file, array(".", "..", "/", "index.php", "imagelist.js"))) {
-				$image_files[] = "[\"".STORIESPATH."/".USERUID."/images/$file\", \"".STORIESPATH."/".USERUID."/images/$file\"]";
+				$path =  STORIESPATH . "/" . USERUID . "/images/".$file;
+				$image_files[] = "[\"" . STORIESPATH . "/" . USERUID . "/images/$file\", \"" . STORIESPATH . "/" . USERUID . "/images/$file\"]";
+
+				$image4_files[] = '{ "title": "'. $file. '", "value": "'.$path.'" }';
+		 
 			}
 		}
 		if(isset($image_files)) {
@@ -39,6 +43,12 @@ function buildImageList( ) {
 			$text .= implode(", \n", $image_files);
 			$text .= ");\n\n";
 			fwrite($handle, $text);
+
+			$text = "var tinyMCE4ImageList = [\n";
+			$text .= implode(", \n", $image4_files);
+			$text .= "];\n\n";
+			fwrite($handle, $text);
+
 			fclose($handle);
 		}
 }

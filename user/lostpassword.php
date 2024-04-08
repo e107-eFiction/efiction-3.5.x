@@ -66,7 +66,7 @@ if(isMEMBER) accessDenied( );
 				}
 				else $output .=  write_message(_EMAILFAILED);
 				if($logging) 
-					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_LOST_PASSWORD, $penname, $uid, ($result ? _YES : _NO)))."', '$uid', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'LP', " . time() . ")");
+					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_LOST_PASSWORD, $penname, $uid, ($result ? _YES : _NO)))."', '$uid', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'LP', " . time() . ")");
 			}
 
 		}

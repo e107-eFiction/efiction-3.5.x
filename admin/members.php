@@ -168,7 +168,7 @@ $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 			if(preg_match("!^[a-z0-9_ ]{3,30}$!i", $_POST['penname'])) {
 				dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))."(penname, realname, email, admincreated, date) VALUES ('".escapestring(descript($_POST['penname']))."', '".escapestring(descript($_POST['realname']))."', '".escapestring(descript($_POST['email']))."', '1', now())");
 				$newuid = dbinsertid( );
-				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_REG, descript($_POST['penname']), $newuid, USERPENNAME, USERUID, $_SERVER['REMOTE_ADDR']))."', '".USERUID."', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RG', " . time() . ")");
+				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_REG, descript($_POST['penname']), $newuid, USERPENNAME, USERUID, $_SERVER['REMOTE_ADDR']))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RG', " . time() . ")");
 				if(!$skin) {
 					$skinquery = dbquery("SELECT skin FROM ".$settingsprefix."fanfiction_settings WHERE sitekey ='".SITEKEY."'");
 					list($skin) = dbrow($skinquery);

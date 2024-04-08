@@ -1,3 +1,21 @@
+# efiction v3.5.7
+
+minimum requirements:  MySQL 5.6.3  or MariaDB 10.5.0 
+
+
+### Database changes:
+
+- all IP adress fields - from integer to 46 chars
+
+### Other changes:
+
+- tinymce4 settings fix
+- INET6 support needed
+- file uploading fixed for PHP 8.1
+- national characters fix in search form 
+
+
+
 # efiction v3.5.6
 
 non official version of 3.5.x efiction software

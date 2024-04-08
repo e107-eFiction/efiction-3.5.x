@@ -306,4 +306,3 @@ function displayTypeOpts() {
 	document.getElementById('opt_' + type).style.display = 'block';
 	if(window.tinyMCE) tinyMCE.execCommand('mceResetDesignMode'); 
 }
-

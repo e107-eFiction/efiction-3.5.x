@@ -219,8 +219,8 @@ else if($action == "edit" || $action == "add") {
 					}
 				}
 				$reviewname = $reviewer."(".$_SERVER['REMOTE_ADDR'].")";
-				if($action == "add") dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REVIEW, $reviewname, truncate_text($review), $title))."', '0', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RE', " . time() . ")");
-				else dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_EDIT_REVIEW, USERPENNAME, USERUID, $title, $reviewid))."', '0', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RE', " . time() . ")");
+				if($action == "add") dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REVIEW, $reviewname, truncate_text($review), $title)). "', '0', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RE', " . time() . ")");
+				else dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_EDIT_REVIEW, USERPENNAME, USERUID, $title, $reviewid)). "', '0', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RE', " . time() . ")");
 			}
 		}
 	}

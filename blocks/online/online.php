@@ -5,7 +5,7 @@ if(!defined("_CHARSET")) exit( );
 	if(file_exists(_BASEDIR."blocks/online/{$language}.php")) include(_BASEDIR."blocks/online/{$language}.php");
 	else include(_BASEDIR."blocks/online/en.php");
 
-	$where = "online_uid=" . (USERUID ? USERUID : "0 AND online_ip = INET_ATON('" . $_SERVER['REMOTE_ADDR'] . "')");
+	$where = "online_uid=" . (USERUID ? USERUID : "0 AND online_ip = INET6_ATON('" . $_SERVER['REMOTE_ADDR'] . "')");
  
 	$result = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_online WHERE $where");
  
@@ -24,7 +24,7 @@ if(!defined("_CHARSET")) exit( );
 		}
 		
 		dbquery("INSERT INTO " . TABLEPREFIX . "fanfiction_online(online_uid, online_ip, online_timestamp)
-		 VALUES('" . (USERUID ? USERUID : 0) . "', INET_ATON('" . $ip . "'), '" . time() . "')");
+		 VALUES('" . (USERUID ? USERUID : 0) . "', INET6_ATON('" . $ip . "'), '" . time() . "')");
 	} 
  
 	$result = dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_online WHERE online_timestamp < ".(time()-60));

@@ -21,7 +21,7 @@ $x = 0;
 $find = array ('"', chr(150), chr(147), chr(148), chr(146));
 $replace = array ('\"', "-", "\"", "\"", "'");
 while($char = dbassoc($characters)) {
-	echo "characters[$x] = new Array(".$char['charid'].", \"".urlencode(str_replace($find, $replace, stripslashes($char['charname'])))."\");\r\n";
+	echo "characters[$x] = new Array(".$char['charid'].", \"". str_replace($find, $replace, stripslashes($char['charname'])) ."\");\r\n";
 	$x++;
 }
 ?>

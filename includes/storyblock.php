@@ -34,11 +34,12 @@ if(!defined("_CHARSET")) exit( );
 		$stories['coauthors'] = $array_coauthors;
 		unset($array_coauthors);
 	}
-	else if(empty($stories['coauthors'])) $stories['coauthors'] = array( );	
+	else  $stories['coauthors'] = array( );	
+ 
 	$tpl->assign("title"   , stripslashes(title_link($stories)) );
 	$tpl->assign("author"   , author_link($stories));
 	$tpl->assign("summary", stripslashes($stories['summary']) );
-	$tpl->assign("rating"   , !empty($ratingslist) ? $ratingslist[$stories['rid']]['name'] : "");
+    $tpl->assign("rating"   , !empty($ratingslist) &&  !empty($stories['rid'] && key_exists('name', $ratingslist) )  ? $ratingslist[$stories['rid']]['name'] : "");
 	$tpl->assign("score", ratingpics($stories['rating']) );
 	$tpl->assign("count", $stories['count'] ? $stories['count'] : "0");
 	$allclasslist = "";

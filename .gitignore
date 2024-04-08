@@ -396,3 +396,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+languages/sk.php
+languages/sk_admin.php
+/modules/storybanner

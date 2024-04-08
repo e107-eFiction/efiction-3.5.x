@@ -27,9 +27,9 @@ if(!defined("_CHARSET")) exit( );
 
 
 dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_blocks(`block_name`, `block_title`, `block_status`, `block_file`, `block_variables`) VALUES('online', 'Who\'s Online', '0', 'online/online.php', '');");
-dbquery("CREATE TABLE IF NOT EXISTS `".TABLEPREFIX."fanfiction_online` (
+dbquery("CREATE TABLE IF NOT EXISTS `".TABLEPREFIX. "fanfiction_online` (
   `online_uid` int(11) NOT NULL default '0',
-  `online_ip` int(11) NOT NULL default '0',
+  `online_ip` VARBINARY(16) NOT NULL default '0',
   `online_timestamp` int(11) NOT NULL default '0'
 ) ENGINE=MyISAM;");
 ?>

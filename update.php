@@ -47,61 +47,93 @@ location = \"maintenance.php\";
 	exit();
 }
 $oldVersion = explode(".", $settings['version']);
-
+ 
 if ($oldVersion[0] <= 3 && $oldVersion[1] <= 5 && $oldVersion[2] < 5)
 {
 	header("Location: update355.php");
 	exit();
 }
-
-$fanfiction_poll_exists = 0;  /* poll tables maybe be not installed */
-$fanfiction_poll_table = TABLEPREFIX . "fanfiction_poll";
-$fanfiction_poll_exists =  dbassoc(dbquery("
-			SELECT *
-			FROM information_schema.tables
-			WHERE table_schema = '{$dbname}'
-				AND table_name = '{$fanfiction_poll_table}'
-			;"));
-
+$set_355 = false;
+ 
 $set_355 = do_version_check_355();
+ 
 if($set_355) {
+	$output .= write_message("Table <b>" . $set_355 . "</b> needs a update.");
+
 	dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '3.5.5' WHERE sitekey = '" . SITEKEY . "'");
+
 	$settings['version'] = '3.5.5';
 }
+else {
+	$set_356 = do_version_check_356();
+ 
+	if ($set_356)
+	{
+		$output .= write_message("Table <b>" . $set_356 . "</b> needs a update.");
+		dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '3.5.6' WHERE sitekey = '" . SITEKEY . "'");
+		$settings['version'] = '3.5.6';
+	}
+}
+
 $oldVersion = explode(".", $settings['version']);
-
+ 
 $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
-$oldconfirm = isset($_GET['oldconfirm']) ? $_GET['oldconfirm'] : false;
-
+ 
 if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 3))
 {
 	write_message("This version is working only for 3.5.5 database. If you have only database, there is way how to do it.");
 	exit;
 }
-
-
-
+ 
+ 
 if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 {
 	if ($confirm == "yes")
 	{
 		if ($oldVersion[0] == 3 &&  $oldVersion[1] == 5 && $oldVersion[2] < 6)
 		{
-			/****************************************************************************************************************/
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_authors LIKE 'date'"));
-			if ($tmp['Type'] == "datetime")
-			{ 
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_authors LIKE 'date_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_authors` ADD `date_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
 
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_authors` SET `date_tmp` = UNIX_TIMESTAMP( `date` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_authors` CHANGE `date` `date` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_authors` set date = date_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_authors` DROP `date_tmp`");
-			}
+			// List of DB tables (key) and field (value) which need changing to accommodate datetime field
+			$date_upgrade = array(
+				'fanfiction_authors' => 'date',
+				'fanfiction_comments'  => 'time',
+				'fanfiction_reviews' => 'date',
+				'fanfiction_stories'  => 'date',
+				'fanfiction_stories' => 'updated',
+				'fanfiction_news' => 'time',
+				'fanfiction_poll' => 'poll_start',
+				'fanfiction_poll' => 'poll_end',
+			);
+
+			// Tables where IP address field needs updating to accommodate IPV6
+			// Set to varchar(45) - just in case something uses the IPV4 subnet (see http://en.wikipedia.org/wiki/IPV6#Notation)
+			foreach ($date_upgrade as $t => $f)
+			{
+				if (isTable($t))
+				{
+
+					// Check for table - might add some core plugin tables in here
+					if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
+					{ 
+						if (strtolower($field_info['Type']) == 'datetime')
+						{
+
+							$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}_tmp'"));
+							if (!$updated)
+							{
+								dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` ADD `{$f}_tmp` int(10) unsigned NOT NULL default '0' ");
+							}
+
+							dbquery("UPDATE `" . TABLEPREFIX . $t .  "` SET `{$f}_tmp` = UNIX_TIMESTAMP( `{$f}` )");
+							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` INT NOT NULL"); 
+							dbquery("UPDATE  `" . TABLEPREFIX . $t .  "` set {$f} = {$f}_tmp");
+							dbquery("ALTER TABLE  `" . TABLEPREFIX . $t .  "` DROP `{$f}_tmp`");
+						}
+					}
+				}
+			}	
+
+ 
 			/****************************************************************************************************************/
 			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_log LIKE 'log_timestamp'"));
 
@@ -118,131 +150,20 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_log` set log_timestamp = log_timestamp_tmp");
 				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_log` DROP `log_timestamp_tmp`");
 			}
-			/****************************************************************************************************************/
-			/* fanfiction_comments   `time` datetime NOT NULL default '0000-00-00 00:00:00'  */
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_comments LIKE 'time'"));
-			if ($tmp['Type'] == "datetime")
-			{
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_comments LIKE 'time_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_comments` ADD `time_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
 
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_comments` SET `time_tmp` = UNIX_TIMESTAMP( `time` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_comments` CHANGE `time` `time` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_comments` set time = time_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_comments` DROP `time_tmp`");
+			$set_355 = false;
+			$set_355 = do_version_check_355();
+			if($set_355) {
+				$output .= write_error(_ERROR);
 			}
-			/****************************************************************************************************************/
-			/* fanfiction_reviews   `date` datetime NOT NULL default '0000-00-00 00:00:00', */
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_reviews LIKE 'date'"));
-			if ($tmp['Type'] == "datetime")
-			{
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_reviews LIKE 'date_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_reviews` ADD `date_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
-
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_reviews` SET `date_tmp` = UNIX_TIMESTAMP( `date` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_reviews` CHANGE `date` `date` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_reviews` set date = date_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_reviews` DROP `date_tmp`");
+			else {
+				$update = dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '" . $version . "' WHERE sitekey = '" . SITEKEY . "'");
+				if ($update) $output .= write_message(_ACTIONSUCCESSFUL);
 			}
-			/****************************************************************************************************************/
-			/* fanfiction_stories `date` datetime NOT NULL default '0000-00-00 00:00:00',   */
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'date'"));
-			if($tmp['Type'] == "datetime") {
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'date_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_stories` ADD `date_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
-
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_stories` SET `date_tmp` = UNIX_TIMESTAMP( `date` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_stories` CHANGE `date` `date` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_stories` set date = date_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_stories` DROP `date_tmp`");
-			}
-
-			/****************************************************************************************************************/
-			/* fanfiction_stories `updated` datetime NOT NULL default '0000-00-00 00:00:00', */
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'updated'"));
-			if ($tmp['Type'] == "datetime")
-			{				
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'updated_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_stories` ADD `updated_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
-
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_stories` SET `updated_tmp` = UNIX_TIMESTAMP( `updated` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_stories` CHANGE `updated` `updated` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_stories` set updated = updated_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_stories` DROP `updated_tmp`");
-			}
-
-			/****************************************************************************************************************/
-			/* fanfiction_news `time` datetime default NULL,  */
-			$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_news LIKE 'time'"));
-			
-			if ($tmp['Type'] == "datetime")
-			{		
-				$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_news LIKE 'time_tmp'"));
-				if (!$updated)
-				{
-					dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_news` ADD `time_tmp` int(10) unsigned NOT NULL default '0' ");
-				}
-
-				dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_news` SET `time_tmp` = UNIX_TIMESTAMP( `time` )");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_news` CHANGE `time` `time` INT NOT NULL");
-				dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_news` set time = time_tmp");
-				dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_news` DROP `time_tmp`");
-			}
-
-			/****************************************************************************************************************/
-			if ($fanfiction_poll_exists)
-			{
-				$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_start'"));
-
-				if ($tmp['Type'] == "datetime")
-				{
-					$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_start_tmp'"));
-					if (!$updated)
-					{
-						dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_poll` ADD `poll_start_tmp` int(10) unsigned NOT NULL default '0' ");
-					}
-
-					dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_poll` SET `poll_start_tmp` = UNIX_TIMESTAMP( `poll_start` )");
-					dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_poll` CHANGE `poll_start` `poll_start` INT NOT NULL");
-					dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_poll` set poll_start = poll_start_tmp");
-					dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_poll` DROP `poll_start_tmp`");
-				}
-
-				$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_end'"));
-
-				if ($tmp['Type'] == "datetime")
-				{
-					$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_end_tmp'"));
-					if (!$updated)
-					{
-						dbquery("ALTER TABLE 	`" . TABLEPREFIX . "fanfiction_poll` ADD `poll_end_tmp` int(10) unsigned NOT NULL default '0' ");
-					}
-
-					dbquery("UPDATE 		`" . TABLEPREFIX . "fanfiction_poll` SET `poll_end_tmp` = UNIX_TIMESTAMP( `poll_end` )");
-					dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_poll` CHANGE `poll_end` `poll_end` INT NOT NULL");
-					dbquery("UPDATE `" . TABLEPREFIX . "fanfiction_poll` set poll_end = poll_end_tmp");
-					dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_poll` DROP `poll_end_tmp`");
-				}
-
-			}	
-
+ 
 		}
 	
-		$update = dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '" . $version . "' WHERE sitekey = '" . SITEKEY . "'");
-		if ($update) $output .= write_message(_ACTIONSUCCESSFUL);
-		else $output .= write_error(_ERROR);
+
 	}
 	else if ($confirm == "no")
 	{
@@ -255,6 +176,65 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 		else $output .= write_message("Are you ready to update? <a href='update.php?confirm=yes'>" . _YES . "</a> " . _OR . " <a href='update.php?confirm=no'>" . _NO . "</a>");
 	}
 }
+elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 7))  //3.5.6
+{
+	if ($confirm == "yes")
+	{
+		if ($oldVersion[0] == 3 &&  $oldVersion[1] == 5 && $oldVersion[2] < 7)
+		{
+			// List of DB tables (key) and field (value) which need changing to accommodate IPV6 addresses
+			$ip_upgrade = array(
+				'fanfiction_log' 	=> 'log_ip',
+				'fanfiction_online' => 'online_ip'
+			);
+
+			// Tables where IP address field needs updating to accommodate IPV6
+			// Set to varchar(45) - just in case something uses the IPV4 subnet (see http://en.wikipedia.org/wiki/IPV6#Notation)
+			foreach ($ip_upgrade as $t => $f)
+			{
+				if (isTable($t))
+				{
+			 
+					// Check for table - might add some core plugin tables in here
+					if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
+					{
+						//print_r($field_info);
+						if (strtolower($field_info['Type']) != 'VARBINARY(16)')
+						{
+
+							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` MODIFY `$f` VARBINARY(16) NOT NULL DEFAULT '';");
+ 
+						}
+					}
+
+				}
+			}	 
+		}
+
+		$set_356 = false;
+		$set_356 = do_version_check_356();
+		if ($set_356)
+		{
+			$output .= write_error(_ERROR);
+		}
+		else
+		{
+			$update = dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '" . $version . "' WHERE sitekey = '" . SITEKEY . "'");
+			if ($update) $output .= write_message(_ACTIONSUCCESSFUL);
+		}
+	}
+	else if ($confirm == "no")
+	{
+		$output .= write_message(_ACTIONCANCELLED);
+	}
+	else
+	{
+		if ($oldVersion[0] == 3 && ($oldVersion[1] < 4 || $oldVersion[1] == 4 && (!isset($oldVersion[2]) || $oldVersion[2] < 7)))
+		$output .= write_message(_CONFIRMUPDATE . "<br /> <a href='update.php?confirm=yes'>" . _YES . "</a> " . _OR . " <a href='update.php?confirm=no'>" . _NO . "</a>");
+		else $output .= write_message("Are you ready to update? <a href='update.php?confirm=yes'>" . _YES . "</a> " . _OR . " <a href='update.php?confirm=no'>" . _NO . "</a>");
+	}
+
+}
 else $output .= write_message(_ALREADYUPDATED);
 
 /* until database is fully fixed, not update efiction version */
@@ -262,82 +242,115 @@ function do_version_check_355() {
 	global $fanfiction_poll_exists;
 
 	$check_355 = false;
- 
-	/* do double check or return version back if it is needed */
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_authors LIKE 'date'"));
-	if ($tmp['Type'] == "datetime")
+
+	// List of DB tables (key) and field (value) which need changing date from datetime/timestamp to int
+	$date_upgrade = array(
+		'fanfiction_authors' => 'date',
+		'fanfiction_comments'  => 'time',
+		'fanfiction_reviews' => 'date',
+		'fanfiction_stories'  => 'date',
+		'fanfiction_stories' => 'updated',
+		'fanfiction_news' => 'time',
+		'fanfiction_poll' => 'poll_start',
+		'fanfiction_poll' => 'poll_end',
+	);
+
+	foreach ($date_upgrade as $t => $f)
 	{
-		$check_355 = true;
-		return $check_355;
+
+		if (isTable($t))
+		{
+
+			// Check for table - might add some core plugin tables in here
+			if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
+			{
+
+				if (strtolower($field_info['Type']) != 'int' 
+				&& strtolower($field_info['Type']) != 'int(10)'
+				&& strtolower($field_info['Type']) != 'int(11)' 
+				&& strtolower($field_info['Type']) != 'int unsigned'
+				&& strtolower($field_info['Type']) != 'int(10) unsigned')
+				{
+					// echo "<pre>"; print_r($field_info); echo "</pre>";
+					$check_355 = $t . " - field:  " . $f;
+					return $check_355;
+				}
+			}
+		}
+		
 	}
+
 	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_log LIKE 'log_timestamp'"));
 
 	if ($tmp['Type'] == "timestamp")
 	{
-		$check_355 = true;
+		$check_355 = $t . " - field:  " . $f;;
 		return $check_355;
 	}
-
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_comments LIKE 'time'"));
-	if ($tmp['Type'] == "datetime")
-	{
-		$check_355 = true;
-		return $check_355;
-	}
-
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_reviews LIKE 'date'"));
-	if ($tmp['Type'] == "datetime")
-	{
-		$check_355 = true;
-		return $check_355;
-	}
-
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'date'"));
-	if ($tmp['Type'] == "datetime")
-	{
-		$check_355 = true;
-		return $check_355;
-	}
-
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_stories LIKE 'updated'"));
-	if ($tmp['Type'] == "datetime")
-	{
-		$check_355 = true;
-		return $check_355;
-	}
-
-	$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_news LIKE 'time'"));
-
-	if ($tmp['Type'] == "datetime")
-	{
-			$check_355 = true;
-			return $check_355;
-	}
-
-	if ($fanfiction_poll_exists)
-	{
-		$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_start'"));
-
-		if ($tmp['Type'] == "datetime")
-		{
-			$update = dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '3.5.5' WHERE sitekey = '" . SITEKEY . "'");
-		}
-
-
-		$tmp = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_poll LIKE 'poll_end'"));
-
-		if ($tmp['Type'] == "datetime")
-		{
-			$update = dbquery("UPDATE " . $settingsprefix . "fanfiction_settings SET version = '3.5.5' WHERE sitekey = '" . SITEKEY . "'");
-		}
-	}
-	
 
 	return $check_355;
 }
- 
 
+function do_version_check_356()
+{
+	$check_356 = false;
+ 
+	// List of DB tables (key) and field (value) which need changing to accommodate IPV6 addresses
+	$ip_upgrade = array(
+		'fanfiction_log' 	=> 'log_ip',
+		'fanfiction_online' => 'online_ip'
+	);
+
+	foreach ($ip_upgrade as $t => $f)
+	{
+ 
+		if (isTable($t))
+		{
+			// Check for table - might add some core plugin tables in here
+			if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t ." LIKE '{$f}'")) )
+			{
+
+			
+				if (strtolower($field_info['Type']) != 'varbinary(16)')
+				{
+					$check_356 = $t . " - field:  " . $f;;
+			 
+					return $check_356;	 
+				}
+			}
+	 
+		}
+		
+	}
+ 
+	return $check_356;
+}
 
 $tpl->assign("output", $output);
 $tpl->printToScreen();
 dbclose();
+
+
+// new functions for easier db manipulation 3.6. 
+function db_mySQLtableList()
+{
+	global  $debug, $dbconnect, $dbname, $settingsprefix;
+
+	$table = array();
+
+	if ($res = dbquery("SHOW TABLES FROM " . $dbname . " LIKE '" . $settingsprefix . "%' "))
+
+		$length = strlen($settingsprefix);
+	while ($rows = dbrow($res))
+	{
+		$t = substr($rows[0], $length);
+		$table[] = $t;
+	}
+	return  $table;
+}
+
+function isTable($table)
+{
+	$mySQLtableList = db_mySQLtableList();
+	return in_array($table, $mySQLtableList);
+}

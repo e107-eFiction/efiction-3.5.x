@@ -28,6 +28,7 @@ if(!defined("_CHARSET")) exit( );
 if(!isset($catid)) $catid = array( );
 
 $output .= "<div style='width: 99.9%; float: left;'>\r\n
+<div style=\"text-align: center;\"><b>"._MULTIPLESELECT."</b></div>\r\n
 		<div style='width: 40%; float: left;'><label for='catoptions'>"._CATOPTIONS."</label> <br />
 		<select name='catoptions' id='catoptions' multiple='multiple' size='8' onchange='resetCats(\"catoptions\");' style='width: 100%;'>";
 $selectedCats = "";

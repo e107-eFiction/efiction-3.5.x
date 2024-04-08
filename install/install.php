@@ -650,7 +650,7 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_authorprefs` (
   `log_id` int(11) NOT NULL auto_increment,
   `log_action` varchar(255) default NULL,
   `log_uid` int(11) NOT NULL,
-  `log_ip` int(11) UNSIGNED default NULL,
+  `log_ip` VARBINARY(16) NOT NULL,
   `log_timestamp` int(10) unsigned NOT NULL default '0',
   `log_type` varchar(2) NOT NULL,
   PRIMARY KEY  (`log_id`)

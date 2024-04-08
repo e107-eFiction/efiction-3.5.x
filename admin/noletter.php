@@ -42,7 +42,7 @@ $chapid = isset($_GET['chapid']) && isNumber($_GET['chapid']) ? $_GET['chapid'] 
 		if($logging) {
 			$storyquery = dbquery("SELECT story.title, chapter.title as chapter, author.email, author.penname, chapter.uid, chapter.inorder FROM ".TABLEPREFIX."fanfiction_stories as story, ".TABLEPREFIX."fanfiction_chapters as chapter, ".TABLEPREFIX."fanfiction_authors as author WHERE chapter.uid = author.uid AND chapter.chapid = '$chapid' AND chapter.sid = story.sid LIMIT 1");
 			$story = dbassoc($storyquery);
-			dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REJECTION, USERPENNAME, USERUID, $title, $sid, $uid, $penname, $inorder, $letter))."', '".USERUID."', INET_ATON('".$_ENV['REMOTE_ADDR']."'), 'RJ', ". time() . ")");
+			dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REJECTION, USERPENNAME, USERUID, $title, $sid, $uid, $penname, $inorder, $letter))."', '".USERUID. "', INET6_ATON('".$_ENV['REMOTE_ADDR']."'), 'RJ', ". time() . ")");
 		}
 
 	}

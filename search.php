@@ -265,7 +265,7 @@ else {
 		<div style=\"font-size: 8pt; text-align: right;\"><a href=\"search.php?searchtype=advanced\">"._ADVANCED."</a></div></div></form></div>";
 	}
 	else {
-		$output .= "<div id=\"pagetitle\">"._ADVANCED."</div><div>
+		$output .= "<div id=\"pagetitle\">"._ADVANCED. "</div><div>
 			<form method=\"POST\" name=\"form\" enctype=\"multipart/form-data\" action=\"search.php?searchtype=advanced\">
 			<div class=\"tblborder\" style=\"width: 90%; margin: 0 auto; padding: 10px;\">";
 		if($multiplecats) {
@@ -292,7 +292,6 @@ else {
 			$output .= "</select></div>";
 		}
 		$output .= "<div style=\"clear: both;\">&nbsp;</div>";
-		$output .= " <div style=\"text-align: center;\">"._MULTIPLESELECT."</div>";
 		$result = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_classtypes ORDER BY classtype_name");
 		while($type = dbassoc($result)) {
 			$result2 = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_classes WHERE class_type = '".$type['classtype_id']."' ORDER BY class_name");

@@ -108,7 +108,7 @@ function preview_story($stories) {
 						sendemail($favuser['penname'], $favuser['email'], $sitename, $siteemail, $subject, $mailtext, "html");
 					}				
 				}
-				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_VALIDATE_STORY, USERPENNAME, USERUID, $title, $sid, $author, $authoruid))."', '".USERUID."', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'VS', " . time() . ")");
+				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_VALIDATE_STORY, USERPENNAME, USERUID, $title, $sid, $author, $authoruid))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'VS', " . time() . ")");
 				dbquery("UPDATE ".TABLEPREFIX."fanfiction_stats SET stories = stories + 1");
 			}
 			else if($alertson) {
@@ -122,7 +122,7 @@ function preview_story($stories) {
 				while($favuser = dbassoc($favorites)) { 
 					sendemail($favuser['penname'], $favuser['email'], $sitename, $siteemail, $subject, $mailtext, "html");
 				}
-				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_VALIDATE_CHAPTER, USERPENNAME, USERUID, $title, $sid, $author, $authoruid, $inorder))."', '".USERUID."', INET_ATON('".$_SERVER['REMOTE_ADDR']."'), 'VS', " . time() . ")");
+				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_VALIDATE_CHAPTER, USERPENNAME, USERUID, $title, $sid, $author, $authoruid, $inorder))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'VS', " . time() . ")");
 			}
 			dbquery("UPDATE ".TABLEPREFIX."fanfiction_chapters SET validated = '1' WHERE chapid = '$_GET[chapid]'");
 			dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET updated = '" . time() . "' WHERE sid = '$sid'");

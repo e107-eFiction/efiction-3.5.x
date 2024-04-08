@@ -32,6 +32,9 @@ $headerSent = false;
 // Defines the character set for your language/location
 define ("_CHARSET", "utf-8");
 
+//default values to avoid ajax issue when notice error are on
+$allowed_tags = '';
+
 // Prevent possible XSS attacks via $_GET.
 foreach ($_GET as $v) {
 	if(preg_match('@<script[^>]*?>.*?</script>@si', $v) ||
@@ -101,10 +104,10 @@ if(isset($globalskin)) $skin = $globalskin;
 
 if(isset($_GET['action'])) $action = strip_tags($_GET['action']);
 else $action = false;
-
+ 
 if(file_exists(_BASEDIR."languages/{$language}.php")) include (_BASEDIR."languages/{$language}.php");
 else include (_BASEDIR."languages/en.php");
-
+ 
 include_once(_BASEDIR."includes/queries.php");
 include_once(_BASEDIR."includes/corefunctions.php");
 
@@ -189,8 +192,7 @@ if(isset($_SESSION[SITEKEY."_viewed"])) $viewed = $_SESSION[SITEKEY."_viewed"];
 if(isset($_GET['ageconsent'])) $_SESSION[SITEKEY."_ageconsent"] = 1;
 if(isset($_GET['warning'])) $_SESSION[SITEKEY."_warned"][$_GET['warning']] = 1;
 
-if(file_exists("languages/{$language}.php")) require_once ("languages/{$language}.php");
-else require_once ("languages/en.php");
+
 if(is_dir(_BASEDIR."skins/$siteskin")) $skindir = _BASEDIR."skins/$siteskin";
 else if(is_dir(_BASEDIR."skins/".$settings['skin'])) $skindir = _BASEDIR."skins/".$defaultskin;
 else $skindir = _BASEDIR."default_tpls";
@@ -228,7 +230,7 @@ if($current == "viewuser" && isNumber($uid)) {
 	list($penname) = dbrow($author);
 	$titleinfo = "$sitename :: $penname";
 }
-echo _DOCTYPE."<html><head>";
+echo _DOCTYPE."<html lang={$language}><head>";
 echo "<meta charset='utf-8' />";
 if(!isset($titleinfo)) $titleinfo = "$sitename :: $slogan";
 if(isset($metaDesc)) echo "<meta name='description' content='$metaDesc'>";
@@ -240,10 +242,11 @@ if (file_exists(_BASEDIR."favicon.ico"))
 	echo "<link rel='icon' href='"._BASEDIR."favicon.ico' type='image/x-icon' />\n<link rel='shortcut icon' href='"._BASEDIR."favicon.ico' type='image/xicon' />\n";
 }
  
-echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset="._CHARSET."\">";
+//A document must not include both a “meta” element with an “http-equiv” attribute whose value is “content-type”, and a “meta” element with a “charset” attribute.
+//echo "<meta http-equiv=\"Content-Type\" content=\"text/html; charset="._CHARSET."\">";
 if (!isset($_GET['action']) || $_GET['action'] != "printable")
 {
-	echo "<script language=\"javascript\" type=\"text/javascript\" src=\"" . _BASEDIR . "includes/javascript.js\"></script>
+	echo "<script  src=\"" . _BASEDIR . "includes/javascript.js\"></script>
 <link rel=\"alternate\" type=\"application/rss+xml\" title=\"$sitename RSS Feed\" href=\"" . _BASEDIR . "rss.php\">";
 }
 
@@ -252,18 +255,18 @@ if (!isset($_GET['action']) || $_GET['action'] != "printable")
 	if (!empty($tinyMCE))
 	{
 		if($tinyMCE == 1) {
-			echo "<script language=\"javascript\" type=\"text/javascript\" src=\"" . _BASEDIR . "tinymce/jscripts/tiny_mce/tiny_mce.js\"></script>";
+			echo "<script src=\"" . _BASEDIR . "tinymce/jscripts/tiny_mce/tiny_mce.js\"></script>";
 			include(_BASEDIR . "tinymce/init.php");
 		}
 		else {
-			echo "<script language=\"javascript\" type=\"text/javascript\" src=\"" . _BASEDIR . "tinymce4/js/tinymce/tinymce.min.js\"></script>";
+			echo "<script src=\"" . _BASEDIR . "tinymce4/js/tinymce/tinymce.min.js\"></script>";
 			include(_BASEDIR . "tinymce4/init.php");		
 		}
 	}
 }
 if(isset($displayform) && $displayform == 1) {
-echo "<script language=\"javascript\" type=\"text/javascript\" src=\""._BASEDIR."includes/xmlhttp.js\"></script>";
-echo "<script language=\"javascript\" type=\"text/javascript\">
+echo "<script src=\""._BASEDIR."includes/xmlhttp.js\"></script>";
+echo "<script>
 lang = new Array( );
 
 lang['Back2Cats'] = '"._BACK2CATS."';
@@ -301,9 +304,9 @@ if(file_exists("$skindir/extra_header.php")) include_once("$skindir/extra_header
 if(!$displaycolumns) $displaycolumns = 1;
 $colwidth = floor(100/$displaycolumns);
 if(!empty($_GET['action']) && $_GET['action'] == "printable") {
-	if(file_exists("$skindir/printable.css")) echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$skindir/printable.css\">";
-	else echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"default_tpls/printable.css\">";
-	echo "<script type='text/javascript'>
+	if(file_exists("$skindir/printable.css")) echo "<link rel=\"stylesheet\"  href=\"$skindir/printable.css\">";
+	else echo "<link rel=\"stylesheet\"  href=\"default_tpls/printable.css\">";
+	echo "<script>
 <!--
 if (window.print) {
     window.print() ;  
@@ -316,7 +319,7 @@ document.body.insertAdjacentHTML('beforeEnd', WebBrowser);
 </script>";
 }
 else {
-echo "<style type=\"text/css\">
+echo "<style>
 #columncontainer { margin: 1em auto; width: auto; padding: 5%;}
 #browseblock, #memberblock { width: 100%; padding: 0; margin: 0; float: left; border: 0px solid transparent; }
 .column { float: left; width: ".($colwidth - 1)."%; }
