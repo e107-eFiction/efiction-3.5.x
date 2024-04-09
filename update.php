@@ -202,7 +202,7 @@ elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 7))  //3.
 						if (strtolower($field_info['Type']) != 'VARBINARY(16)')
 						{
 
-							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` MODIFY `$f` VARBINARY(16) NOT NULL DEFAULT '';");
+							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` MODIFY `$f` varbinary(16) DEFAULT NULL;");
  
 						}
 					}

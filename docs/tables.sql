@@ -268,7 +268,7 @@ CREATE TABLE `fanfiction_log` (
   `log_id` int(11) NOT NULL auto_increment,
   `log_action` varchar(255) default NULL,
   `log_uid` int(11) NOT NULL default '0',
-  `log_ip` int(11) default NULL,
+  `log_ip` varbinary(16) DEFAULT NULL,
   `log_timestamp` int(10) unsigned NOT NULL default '0',
   `log_type` char(2) NOT NULL default '',
   PRIMARY KEY  (`log_id`)
