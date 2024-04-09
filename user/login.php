@@ -93,7 +93,10 @@
 		}
 		$debug = $tempdebug;
 	}
-	else if(!isMEMBER) {
+	else {
+		require_once("header.php");
+		if(!isMEMBER) {
+		
 		$output .= "<div id=\"pagetitle\">"._MEMBERLOGIN."</div>";
 		$output .= "<div style=\"width: 250px; margin: 0 auto; text-align: center;\"><form method=\"POST\" enctype=\"multipart/form-data\" action=\"user.php?action=login".(isset($_GET['sid']) && isNumber($_GET['sid']) ? "&amp;sid=".$_GET['sid'] : "")."\">
 		<div class=\"label\" style=\"float: left;  width: 30%; text-align: right;\"><label for=\"penname\">"._PENNAME.":</label></div><INPUT type=\"text\" class=\"textbox\" name=\"penname\" id=\"penname\"><br />
@@ -109,4 +112,5 @@
 		}
 		$output .= "<div style='text-align: center;'>".$pagelinks['register']['link']." | ".$pagelinks['lostpassword']['link']."</div>";
 	}
+}
 ?>
