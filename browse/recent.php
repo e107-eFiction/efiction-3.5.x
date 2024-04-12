@@ -22,7 +22,14 @@
 // ----------------------------------------------------------------------
 if(!defined("_CHARSET")) exit( );
 
-$output .= "<div id=\"pagetitle\">".($recentdays ? _RECENTSTORIES : _MOSTRECENT)." ".$pagelinks['rss']['link']."</div>";
+if (isset($pagelinks['rss']))
+{
+    $output .= "<div id=\"pagetitle\">" . ($recentdays ? _RECENTSTORIES : _MOSTRECENT) . " " . $pagelinks['rss']['link'] . "</div>";
+}
+else {
+    $output .= "<div id=\"pagetitle\">" . ($recentdays ? _RECENTSTORIES : _MOSTRECENT);
+}
+
 
 $update_date = time() - $recentdays * 24 * 60 * 60;
 $countquery .= ($recentdays ? " AND updated > '" . $update_date . "'" : "");
