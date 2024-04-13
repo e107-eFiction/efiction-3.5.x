@@ -94,27 +94,53 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 		{
 
 			// List of DB tables (key) and field (value) which need changing to accommodate datetime field
+			// List of DB tables (key) and field (value) which need changing date from datetime/timestamp to int
 			$date_upgrade = array(
-				'fanfiction_authors' => 'date',
-				'fanfiction_comments'  => 'time',
-				'fanfiction_reviews' => 'date',
-				'fanfiction_stories'  => 'date',
-				'fanfiction_stories' => 'updated',
-				'fanfiction_news' => 'time',
-				'fanfiction_poll' => 'poll_start',
-				'fanfiction_poll' => 'poll_end',
+				array('table' => 'fanfiction_authors', 'field' => 'date'),
+				array(
+					'table' =>
+					'fanfiction_comments', 'field'  => 'time'
+				),
+				array(
+					'table' =>
+					'fanfiction_reviews', 'field' => 'date'
+				),
+				array(
+					'table' =>
+					'fanfiction_stories', 'field'  => 'date'
+				),
+				array(
+					'table' =>
+					'fanfiction_stories', 'field' => 'updated'
+				),
+				array(
+					'table' =>
+					'fanfiction_news', 'field' => 'time'
+				),
+				array(
+					'table' =>
+					'fanfiction_poll', 'field' => 'poll_start'
+				),
+				array(
+					'table' =>
+					'fanfiction_poll', 'field' => 'poll_end'
+				),
 			);
 
 			// Tables where IP address field needs updating to accommodate IPV6
 			// Set to varchar(45) - just in case something uses the IPV4 subnet (see http://en.wikipedia.org/wiki/IPV6#Notation)
-			foreach ($date_upgrade as $t => $f)
+			foreach ($date_upgrade as $tmp)
 			{
+
+				$t = $tmp['table'];
+				$f = $tmp['field'];
 				if (isTable($t))
 				{
 
 					// Check for table - might add some core plugin tables in here
 					if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
 					{ 
+
 						if (strtolower($field_info['Type']) == 'datetime')
 						{
 
@@ -244,27 +270,46 @@ function do_version_check_355() {
 	$check_355 = false;
 
 	// List of DB tables (key) and field (value) which need changing date from datetime/timestamp to int
-	$date_upgrade = array(
-		'fanfiction_authors' => 'date',
-		'fanfiction_comments'  => 'time',
-		'fanfiction_reviews' => 'date',
-		'fanfiction_stories'  => 'date',
-		'fanfiction_stories' => 'updated',
-		'fanfiction_news' => 'time',
-		'fanfiction_poll' => 'poll_start',
-		'fanfiction_poll' => 'poll_end',
+	$date_upgrade = array(	
+		array('table'=>'fanfiction_authors', 'field' => 'date'),
+		array(
+			'table' =>
+			'fanfiction_comments', 'field'  => 'time'),
+			array(
+			'table' =>
+			'fanfiction_reviews', 'field' => 'date'),
+				array(
+			'table' =>
+			'fanfiction_stories', 'field'  => 'date'),
+					array(
+			'table' =>
+			'fanfiction_stories', 'field' => 'updated'),
+						array(
+			'table' =>
+			'fanfiction_news', 'field' => 'time'),
+							array(
+			'table' =>
+			'fanfiction_poll', 'field' => 'poll_start'),
+								array(
+			'table' =>
+			'fanfiction_poll', 'field' => 'poll_end'),
 	);
 
-	foreach ($date_upgrade as $t => $f)
+	foreach ($date_upgrade as $tmp)
 	{
 
+		$t = $tmp['table'];
+		$f = $tmp['field'];
 		if (isTable($t))
 		{
 
 			// Check for table - might add some core plugin tables in here
 			if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
 			{
-
+				// echo "<pre>";
+				// print_r($t);
+				// print_r($field_info);
+				// echo "</pre>";
 				if (strtolower($field_info['Type']) != 'int' 
 				&& strtolower($field_info['Type']) != 'int(10)'
 				&& strtolower($field_info['Type']) != 'int(11)' 
