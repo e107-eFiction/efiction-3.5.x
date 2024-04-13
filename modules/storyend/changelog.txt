@@ -1,0 +1,6 @@
+4/07/07 -
+
+- Added {seriesinfo} to .tpl 
+- Added series definitions to en.php
+- Added to storyend.php a section to build information about the series the story is a 
+part of with links to the previous and next parts of the series.
