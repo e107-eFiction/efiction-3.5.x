@@ -15,12 +15,12 @@ if(!defined("_CHARSET")) exit( );
 	}
 	else {
 		$ip = $_SERVER['REMOTE_ADDR'];
-		if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4))
+		if (filter_var($ip, FILTER_VALIDATE_IP, array(FILTER_FLAG_IPV4, FILTER_FLAG_IPV6)))
 		{
 
 		} 
 		else {
-			$ip = 0;	
+			$ip = "0";	
 		}
 		
 		dbquery("INSERT INTO " . TABLEPREFIX . "fanfiction_online(online_uid, online_ip, online_timestamp)
