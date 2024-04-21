@@ -86,8 +86,8 @@ if(isset($_POST['submit'])) {
 			$sitename = escapestring(descript(strip_tags($_POST['newsitename'])));
 			$slogan = escapestring(descript(strip_tags($_POST['newslogan'])));
 			$url = escapestring(descript(strip_tags($_POST['newsiteurl'])));
-			// if the http:// is missing add it.
-			if(substr($url, 0, 7) != "http://") $url = "http://".$url;
+			// if the https:// is missing add it.
+			if(substr($url, 0, 8) != "https://" && substr($url, 0, 7) != "http://") $url = "https://".$url;
 			// we also want to check for a trailing slash.
 			if(substr($url, -1, 1) == "/") $url = substr($url, 0, strlen($url) - 1);
 			$tableprefix = escapestring(descript(strip_tags($_POST['newtableprefix'])));
