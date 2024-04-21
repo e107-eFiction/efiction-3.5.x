@@ -1,3 +1,9 @@
+# efiction v3.5.8
+
+- added notification module
+- changed files: user/editbio.php and user/lostpassword.php 
+
+
 # efiction v3.5.7
 
 minimum requirements:  MySQL 5.6.3  or MariaDB 10.5.0 

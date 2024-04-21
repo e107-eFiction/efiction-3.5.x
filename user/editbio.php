@@ -42,6 +42,7 @@ function random_string ($charset_string, $length)
 }
 
 }
+ 
 	$uid = isset($_REQUEST['uid']) ? $_REQUEST['uid'] : false;
 	if(!$uid) $uid = USERUID;
 
@@ -88,6 +89,9 @@ function random_string ($charset_string, $length)
 						list($skin) = dbrow($skinquery);
 					}
 					else $skin = $siteskin;
+
+
+
 					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_authorprefs(uid, userskin, storyindex, sortby, tinyMCE) VALUES('".$useruid."', '$skin', '$displayindex', '$defaultsort', '$tinyMCE')");
 /* The section adds fields from the authorfields table to the authorinfo table allowing dynamic additions to the bio/registration page */
 					$fields = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_authorfields WHERE field_on = '1'");
@@ -107,6 +111,27 @@ function random_string ($charset_string, $length)
 					if(!$pwdsetting) $mailtext .= _SIGNUPWARNING;
 					include("includes/emailer.php");
 					sendemail($penname, $email, $sitename, $siteemail, $subject, $mailtext, "html");
+
+					/* registration notice */
+					if (isset($notifications))
+					{
+						$notifications = unserialize($notifications);
+					}
+
+					if(isset($notifications['registration_notify'])  && $notifications['registration_notify'])  {
+						if (isset($notifications['registration_toemail'])  && $notifications['registration_toemail'])
+						{
+							$RegSubject = "Registration Notice";
+							$RegIP = $_SERVER['REMOTE_ADDR'];
+							$RegHost = gethostbyaddr($RegIP);			
+							$RegNoticeTo = $notifications['registration_toemail'];
+							$RegMessage = "Username: $penname" . "\r\n" . "Email: $email" . "\r\n" . "IP: $RegIP" . "\r\n" . "Host: $RegHost";
+							$RegMessage .= " registered on your site";
+							sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+						}
+					}
+					/* registration notice end */
+
 					dbquery("UPDATE ".TABLEPREFIX."fanfiction_stats SET newestmember = '".$useruid."', members = members + 1");
 					if(defined("AUTHORPREFIX")) dbquery("UPDATE ".AUTHORPREFIX."fanfiction_stats SET newestmember = '".$useruid."', members = members + 1");
 					unset($_POST['submit']);
@@ -172,11 +197,13 @@ function random_string ($charset_string, $length)
 		if((isADMIN && uLEVEL == 1) || $action == "register")
 			$output .= "<INPUT name=\"newpenname\" type=\"text\" class=\"textbox\" maxlength=\"200\" value=\"".(isset($user) ? $user['penname'] : "")."\"><INPUT name=\"oldpenname\" type=\"hidden\" value=\"".(isset($user) ? $user['penname'] : "")."\"><font color=\"red\">*</font> ";
 		else if(isset($user)) $output .= " ".$user['penname'];
+		
 		$output .= "</div>
 	 	<div><label for='realname'>"._REALNAME.": </label><INPUT type=\"text\" class=\"textbox=\" name=\"realname\" maxlength=\"200\" value=\"".(isset($user) ? $user['realname'] : "")."\"></div>
 	 	<div><label for='email'>"._EMAIL.":</label><INPUT  type=\"text\" class=\"textbox=\" name=\"email\" value=\"".(isset($user) ? $user['email'] : "")."\" maxlength=\"200\" size=\"35\"><font color=\"red\">*</font></div>
 	 	<div><label for='bio'>"._BIO.":</label></div>
-		<div style='width: 450px; margin: 0 auto;'><textarea class=\"textbox\" name=\"bio\" cols=\"50\" rows=\"6\">".(isset($user) ? stripslashes($user['bio']) : "")."</TEXTAREA></div>";
+		<div style='width: 450px; margin: 0 auto;'>
+		  <textarea class=\"textbox\" name=\"bio\" cols=\"50\" rows=\"6\">".(isset($user['bio']) ? stripslashes($user['bio']) : "")."</TEXTAREA></div>";
 /* The section adds fields to the form from the authorfields table to the authorinfo table allowing dynamic additions to the bio/registration page */
 		$authorfields = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_authorfields WHERE field_on = '1'");
 		while($field = dbassoc($authorfields)) {

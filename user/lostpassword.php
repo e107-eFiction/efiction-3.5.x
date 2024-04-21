@@ -67,6 +67,28 @@ if(isMEMBER) accessDenied( );
 				else $output .=  write_message(_EMAILFAILED);
 				if($logging) 
 					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_LOST_PASSWORD, $penname, $uid, ($result ? _YES : _NO)))."', '$uid', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'LP', " . time() . ")");
+
+
+				/* lost password notice */
+				if (isset($notifications))
+				{
+					$notifications = unserialize($notifications);
+				}
+	 
+				if (isset($notifications['lostpassword_notify'])  && $notifications['lostpassword_notify'])
+				{
+				
+					if (isset($notifications['registration_toemail'])  && $notifications['registration_toemail'])
+					{
+						$RegSubject = "Lost Password Notice";
+						$RegIP = $_SERVER['REMOTE_ADDR'];
+						$RegHost = gethostbyaddr($RegIP);
+						$RegNoticeTo = $notifications['registration_toemail'];
+						$RegMessage = "Username: $penname" . "\r\n" . "Email: $email" . "\r\n" . "IP: $RegIP" . "\r\n" . "Host: $RegHost";
+						$RegMessage .= " Asked for new password";
+ 						sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+					}
+				}	 
 			}
 
 		}
