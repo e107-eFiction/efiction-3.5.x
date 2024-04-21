@@ -86,6 +86,8 @@ if(isMEMBER) accessDenied( );
 						$RegNoticeTo = $notifications['registration_toemail'];
 						$RegMessage = "Username: $penname" . "\r\n" . "Email: $email" . "\r\n" . "IP: $RegIP" . "\r\n" . "Host: $RegHost";
 						$RegMessage .= " Asked for new password";
+						$RegMessage .= "<br>Profile link: " . "<a href='".$url."/viewuser.php?uid=" . $uid . "'>" . $penname . "</a>";
+
  						sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
 					}
 				}	 

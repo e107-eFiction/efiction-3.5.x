@@ -81,7 +81,7 @@ function random_string ($charset_string, $length)
 						$pass = $_POST['password2'];
 						$encryppass = md5($pass);
 					}
-					dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." (penname, realname, bio, email, date, password) VALUES ('".escapestring($penname)."', '".escapestring(strip_tags($_POST['realname']))."', '".strip_tags(escapestring($_POST['bio']), $allowed_tags)."', '$email', now(), '$encryppass')");
+					dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." (penname, realname, bio, email, date, password) VALUES ('".escapestring($penname)."', '".escapestring(strip_tags($_POST['realname']))."', '".strip_tags(escapestring($_POST['bio']), $allowed_tags)."', '$email'," . time() . ", '$encryppass')");
 					$useruid = dbinsertid();
 					if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REGISTER, $penname, $useruid, $_SERVER['REMOTE_ADDR']))."', '".$useruid. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RG', " . time() . ")");
 					if(empty($siteskin)) {
@@ -127,6 +127,7 @@ function random_string ($charset_string, $length)
 							$RegNoticeTo = $notifications['registration_toemail'];
 							$RegMessage = "Username: $penname" . "\r\n" . "Email: $email" . "\r\n" . "IP: $RegIP" . "\r\n" . "Host: $RegHost";
 							$RegMessage .= " registered on your site";
+							$RegMessage .= "<br>Profile link: " . "<a href='" . $url . "/viewuser.php?uid=" . $useruid . "'>" . $penname . "</a>";
 							sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
 						}
 					}
