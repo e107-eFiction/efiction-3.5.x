@@ -27,7 +27,7 @@ if (isset($pagelinks['rss']))
     $output .= "<div id=\"pagetitle\">" . ($recentdays ? _RECENTSTORIES : _MOSTRECENT) . " " . $pagelinks['rss']['link'] . "</div>";
 }
 else {
-    $output .= "<div id=\"pagetitle\">" . ($recentdays ? _RECENTSTORIES : _MOSTRECENT);
+    $output .= "<div id=\"pagetitle\">" . ($recentdays ? _RECENTSTORIES : _MOSTRECENT) . "</div>";;
 }
 
 
