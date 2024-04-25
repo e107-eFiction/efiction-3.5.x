@@ -20,14 +20,12 @@
 // ----------------------------------------------------------------------
 if(!defined("_CHARSET")) exit( );
 
-define("_NOTIFICATIONADMIN", "NOTIFICATIONs Administration");
+define("_NOTIFICATIONADMIN", "Administration Notifications");
 define("_REGISTRATION_NOTIFY", "Send email - new registration");
 define("_LOST_PASWORD_NOTIFY", "Send email - lost password");
 define("_REGISTRATION_TOEMAIL", "Email recipients"); 
 
-if(!defined("_UNINSTALLWARNING")) {
-    define("_UNINSTALLWARNING", "<strong>Warning!</strong> No data will be deleted from the database!");
-}
+ 
 
 
  
