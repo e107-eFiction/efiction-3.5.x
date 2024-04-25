@@ -6,7 +6,8 @@
 <div class="listbox">
 <div class="content">{featuredstory}<span class="label">Summary: </span>{summary}<br />
 <span class="label">Rated:</span> {rating}<br />
-<span class="label">Categories:</span> {category} <span class="label">Characters: </span> {characters}<br />
+<span class="label">Categories:</span> {category}<br />
+<span class="label">Characters: </span> {characters}<br />
 {classifications}
 <span class="label">Challenges:</span> {challengelinks}<br /> <span class="label">Series:</span> {serieslinks}<br />
 <span class="label">Chapters: </span> {numchapters} <span class="label">Completed:</span> {completed} <br /> 
