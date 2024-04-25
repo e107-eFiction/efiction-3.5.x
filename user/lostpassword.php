@@ -88,7 +88,14 @@ if(isMEMBER) accessDenied( );
 						$RegMessage .= " Asked for new password";
 						$RegMessage .= "<br>Profile link: " . "<a href='".$url."/viewuser.php?uid=" . $uid . "'>" . $penname . "</a>";
 
- 						sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+						$RegNoticeTo_array = explode(',', $RegNoticeTo);
+						foreach ($RegNoticeTo_array as $RegNoticeTo_email)
+						{
+							if (validEmail($RegNoticeTo_email))
+							{
+								sendemail($sitename, $RegNoticeTo_email, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+							}
+						}
 					}
 				}	 
 			}

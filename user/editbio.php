@@ -128,7 +128,14 @@ function random_string ($charset_string, $length)
 							$RegMessage = "Username: $penname" . "\r\n" . "Email: $email" . "\r\n" . "IP: $RegIP" . "\r\n" . "Host: $RegHost";
 							$RegMessage .= " registered on your site";
 							$RegMessage .= "<br>Profile link: " . "<a href='" . $url . "/viewuser.php?uid=" . $useruid . "'>" . $penname . "</a>";
-							sendemail($sitename, $RegNoticeTo, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+
+							$RegNoticeTo_array=explode(',', $RegNoticeTo);
+							foreach ($RegNoticeTo_array AS $RegNoticeTo_email) {
+								if(validEmail($RegNoticeTo_email)) {
+									sendemail($sitename, $RegNoticeTo_email, $siteemail, $siteemail, $RegSubject,  $RegMessage);
+								}	
+							}
+
 						}
 					}
 					/* registration notice end */
