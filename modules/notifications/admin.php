@@ -49,32 +49,32 @@ else {
 	$lostpassword_notify = isset($tmp['lostpassword_notify']) ? $tmp['lostpassword_notify'] : "";
 	$registration_toemail = isset($tmp['registration_toemail']) ? $tmp['registration_toemail'] : "";
  
-	$output .= "<div  id=\"settingsform\" style=\"width: 99%\">
-	  <form method=\"POST\" style=\"margin: 1em auto;\" enctype=\"multipart/form-data\"
-	   action=\"admin.php?action=modules&amp;admin=true&amp;module=notifications\">";
+	$output .= 
+	"<div  id=\"settingsform\" style=\"width: 99%\">
+	  	<form method=\"POST\" style=\"margin: 1em auto;\" enctype=\"multipart/form-data\"  action=\"admin.php?action=modules&amp;admin=true&amp;module=notifications\">";
 	$output .= "<div style='margin-bottom: 1em'>
-	        <label for=\"notifications[registration_notify]\">". _REGISTRATION_NOTIFY. ": </label> 
-			 <select name=\"notifications[registration_notify]\">
-				<option value=\"1\"".($registration_notify == "1" ? " selected" : "").">"._YES."</option>
-				<option value=\"0\"".($registration_notify == "0" ? " selected" : "").">"._NO. "</option>
-			</select></div>
-			<div style='margin-bottom: 1em'>
-	        <label for=\"notifications[lostpassword_notify]\">" . _LOST_PASWORD_NOTIFY . ": </label> 
-			 <select name=\"notifications[lostpassword_notify]\">
-				<option value=\"1\"" . ($lostpassword_notify == "1" ? " selected" : "") . ">" . _YES . "</option>
-				<option value=\"0\"" . ($lostpassword_notify == "0" ? " selected" : "") . ">" . _NO . "</option>
-			</select></div>
-			<div style='margin-bottom: 1em'>
-			<label for=\"notifications[registration_toemail]\">". _REGISTRATION_TOEMAIL.":</label> 
-				<input type=\"text\" class=\"textbox\" id=\"registration_toemail\" maxlength=\"250\"
-			 name=\"notifications[registration_toemail]\" size=\"80\"  value=\"" .  $registration_toemail  . "\"></div>
-			
-			</div>";
+	        		<label for=\"notifications[registration_notify]\">". _REGISTRATION_NOTIFY. ": </label> 
+					<select name=\"notifications[registration_notify]\">
+						<option value=\"1\"".($registration_notify == "1" ? " selected" : "").">"._YES."</option>
+						<option value=\"0\"".($registration_notify == "0" ? " selected" : "").">"._NO. "</option>
+					</select>
+				</div>
+				<div style='margin-bottom: 1em'>
+	        		<label for=\"notifications[lostpassword_notify]\">" . _LOST_PASWORD_NOTIFY . ": </label> 
+			 		<select name=\"notifications[lostpassword_notify]\">
+						<option value=\"1\"" . ($lostpassword_notify == "1" ? " selected" : "") . ">" . _YES . "</option>
+						<option value=\"0\"" . ($lostpassword_notify == "0" ? " selected" : "") . ">" . _NO . "</option>
+					</select>
+				</div>
+				<div style='margin-bottom: 1em'>
+					<label for=\"notifications[registration_toemail]\">". _REGISTRATION_TOEMAIL.":</label> 
+					<input type=\"text\" class=\"textbox\" id=\"registration_toemail\" maxlength=\"250\" name=\"notifications[registration_toemail]\" size=\"80\"  value=\"" .  $registration_toemail  . "\"> 
+				</div>";
 	$output .= "<div id='submitdiv'>
-					<INPUT type=\"submit\" id=\"submit\" class=\"button\" name=\"submit\" value=\""._SUBMIT."\">
+					<input type=\"submit\" id=\"submit\" class=\"button\" name=\"submit\" value=\""._SUBMIT."\">
 				</div>
 				</form> 
-				</div>";
+	</div>";
 	 
 }
 ?>
