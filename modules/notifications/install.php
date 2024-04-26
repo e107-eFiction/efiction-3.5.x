@@ -31,13 +31,14 @@ include_once(_BASEDIR."languages/".$language."_admin.php");
 if(!isADMIN) accessDenied( );       
 $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 if($confirm == "yes") {
-	list($installed) = dbrow(dbquery("SELECT COUNT(code_module) FROM ".TABLEPREFIX. "fanfiction_codeblocks WHERE code_module = 'notifications'"));
+	list($installed) = dbrow(dbquery("SELECT COUNT(name) FROM ".TABLEPREFIX. "fanfiction_modules WHERE name = 'notifications'"));
 	if(!$installed) {
  
 		$check= dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_settings LIKE 'notifications'"));
 		if (!$check) dbquery("ALTER TABLE `" . TABLEPREFIX . "fanfiction_settings` ADD `notifications` TEXT NOT NULL default ''");
  
 		include("version.php");
+		
 		dbquery("INSERT INTO `".TABLEPREFIX."fanfiction_modules`(`version`, `name`) VALUES('$moduleVersion', '$moduleName')");
  	    }
 	$output = write_message(_ACTIONSUCCESSFUL);
