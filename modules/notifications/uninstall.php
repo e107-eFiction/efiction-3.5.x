@@ -42,7 +42,7 @@ else if($confirm == "no") {
 else {
 
 	$blockquery = dbquery("SELECT * FROM " . TABLEPREFIX . "fanfiction_modules WHERE name = 'notifications'");
-	$notquery = dbquery("SHOW COLUMNS FROM " . $settingsprefix . "fanfiction_settings LIKE 'notifications'");
+	$notquery = dbquery("SHOW COLUMNS FROM " .TABLEPREFIX  . "fanfiction_settings LIKE 'notifications'");
  
 	$modquery = dbquery("SELECT * FROM ".TABLEPREFIX. "fanfiction_codeblocks WHERE code_module = 'notifications'");
 	if(dbnumrows($modquery) OR dbnumrows($notquery) or dbnumrows($blockquery) ) {
