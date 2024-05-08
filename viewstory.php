@@ -48,11 +48,20 @@ if(empty($chapter)) $chapter = isset($_GET['chapter']) && isNumber($_GET['chapte
 	$warning = "";
 	if(!$storyinfo) $warning = _INVALIDSTORY;
 	if(!$storyinfo['valid'] && !isADMIN && ($storyinfo['uid'] != USERUID || !in_array(USERUID, $storyinfo['coauthors']))) $warning = _ACCESSDENIED;
-	$ratingquery = dbquery("SELECT ratingwarning, warningtext FROM ".TABLEPREFIX."fanfiction_ratings WHERE rid = '".$storyinfo['rid']."' LIMIT 1");
-	$rating = dbassoc($ratingquery);
-	$warninglevel = sprintf("%03b", $rating['ratingwarning']);
+	if ($storyinfo['rid']  != 0 ) {
+		$ratingquery = dbquery("SELECT ratingwarning, warningtext FROM " . TABLEPREFIX . "fanfiction_ratings WHERE rid = '" . $storyinfo['rid'] . "' LIMIT 1");
+		$rating = dbassoc($ratingquery);
+		$warninglevel = sprintf("%03b", $rating['ratingwarning']);
+	}
+	else {
+		/* fix me, set default rating */
+		$warninglevel[0] = '';
+		$warninglevel[1] = '';
+		$warninglevel[2] = '';
+	}
+ 
 	$title = $storyinfo['title'];
-	if($warninglevel[0] && !isMEMBER) $warning = _RUSERSONLY."<br />";
+ 	if($warninglevel[0] && !isMEMBER) $warning = _RUSERSONLY."<br />";
 	else if($warninglevel[1] && empty($_SESSION[SITEKEY."_ageconsent"]) && !$ageconsent) $warning = _AGECHECK."<br /><a href='viewstory.php?sid=".$storyinfo['sid']."&amp;ageconsent=ok&amp;warning=".$storyinfo['rid']."'>".$rating['warningtext']."</a>";
 	else if($warninglevel[2] && empty($_SESSION[SITEKEY."_warned"][$storyinfo['rid']])) {
 		$warning = $rating['warningtext']."<br /><a href='viewstory.php?sid=".$storyinfo['sid']."&amp;warning=".$storyinfo['rid']."'>"._CONTINUE."</a>";
