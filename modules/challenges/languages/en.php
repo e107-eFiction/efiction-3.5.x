@@ -13,5 +13,7 @@ define("_REMOVECHALLENGE", "Remove from this challenge");
 define("_RESPOND2CHALLENGE", "Respond to the challenge!");
 define("_RESPONSES", "Responses");
 define("_RECALCCHAL", "Recalculate Responses");
+if (!defined("_UNINSTALLWARNING"))
+{
 define("_UNINSTALLWARNING", "<strong>Warning!</strong> All data related to challenges will be deleted from the database!");
-?>
+}
