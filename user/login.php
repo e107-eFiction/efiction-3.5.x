@@ -26,6 +26,7 @@
 		if(!defined("_LOGINCHECK")) exit( );
 		define("_BASEDIR", "");
 		include_once("config.php");
+		include(_BASEDIR . "includes/dbfunctions.php");
 		$settings = dbquery("SELECT tableprefix, maintenance, sitekey, debug FROM ".$settingsprefix."fanfiction_settings WHERE sitekey = '".$sitekey."'");
 		list($tableprefix, $maintenance, $sitekey, $debug) = dbrow($settings);
 		$tempdebug = $debug;
@@ -110,7 +111,12 @@
 			if($link['link_access'] == 2 && !isADMIN) continue;
 			$pagelinks[$link['link_name']] = array("id" => $link['link_id'], "text" => $link['link_text'], "url" => _BASEDIR.$link['link_url'], "link" => "<a href=\"".$link['link_url']."\" title=\"".$link['link_text']."\"".($link['link_target'] ? " target=\"_blank\"" : "").($current == $link['link_name'] ? " id=\"current\"" : "").">".$link['link_text']."</a>");
 		}
-		$output .= "<div style='text-align: center;'>".$pagelinks['register']['link']." | ".$pagelinks['lostpassword']['link']."</div>";
+		$output .= "<div style='text-align: center;'>";
+		if(isset($pagelinks['register'])) {
+			$output .= $pagelinks['register']['link']." | ";
+		}
+		$output .= $pagelinks['lostpassword']['link']."</div>";
+		 
 	}
 }
 ?>

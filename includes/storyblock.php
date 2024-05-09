@@ -100,7 +100,7 @@ if(!defined("_CHARSET")) exit( );
 	$numchapsquery = dbquery("SELECT count(sid) FROM ".TABLEPREFIX."fanfiction_chapters WHERE sid = '".$stories['sid']."' AND validated > 0");
 	list($chapters) = dbrow($numchapsquery);
 	$tpl->assign("numchapters", $chapters );
-
+ 
 	$tpl->assign("updated"   , date("$dateformat", $stories['updated']) );
 	$tpl->assign("published"   , date("$dateformat", $stories['date']) );
 	if(!empty($recentdays)) {

@@ -4,10 +4,11 @@
 if(!function_exists("dbconnect")) { // just in case.  Some people seemed to be having an issue and this was the easiest fix.
 
 function dbconnect($dbhost, $dbuser, $dbpass, $dbname ) {
-	$mysql_access = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
+	$mysqli_access = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
+ 
 	try
 	{
-		$mysql_access = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
+		$mysqli_access = new mysqli($dbhost, $dbuser, $dbpass, $dbname);
 	}
 	catch (mysqli_sql_exception $e)
 	{
@@ -18,9 +19,9 @@ function dbconnect($dbhost, $dbuser, $dbpass, $dbname ) {
 		}
 	}
 	//mysqli_query($mysql_access, "SET SESSION sql_mode = 'NO_ZERO_IN_DATE,NO_ZERO_DATE,NO_ENGINE_SUBSTITUTION'");
-	mysqli_query($mysql_access, "SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
-    mysqli_query($mysql_access, "SET NAMES UTF8;");
-	return $mysql_access;
+	mysqli_query($mysqli_access, "SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION'");
+    mysqli_query($mysqli_access, "SET NAMES UTF8;");
+	return $mysqli_access;
 }
 
 

@@ -624,7 +624,7 @@ function editstory($sid) {
 	if(isset($_POST['submit'])) {
 		$title = isset($_POST['title']) ? strip_tags(descript($_POST['title']), $allowed_tags) : "";
 		$summary = isset($_POST['summary']) ? strip_tags(descript($_POST['summary']), $allowed_tags) : "";
-		$storynotes = strip_tags(descript($_POST['storynotes']), $allowed_tags);
+		$storynotes = isset($_POST['storynotes']) ?  strip_tags(descript($_POST['storynotes']), $allowed_tags) : "";
 		$rr = isset($_POST['rr']) && isNumber($_POST['rr']) ? $_POST['rr'] : 0;
 		$feat = isset($_POST['feature']) && isNumber($_POST['feature']) ? $_POST['feature'] : 0;
 		$complete = isset($_POST['complete']) && isNumber($_POST['complete']) ? $_POST['complete'] : 0;

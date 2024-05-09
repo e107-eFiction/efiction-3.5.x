@@ -2,6 +2,8 @@
 
 - added notification module
 - changed files: user/editbio.php and user/lostpassword.php 
+- chanded way for loading DB functions - moved from config file! 
+- fixed bug in install.php - script worked but in PHP 8.x it caused warnings
 
 
 # efiction v3.5.7

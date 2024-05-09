@@ -202,7 +202,7 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 		else $output .= write_message("Are you ready to update? <a href='update.php?confirm=yes'>" . _YES . "</a> " . _OR . " <a href='update.php?confirm=no'>" . _NO . "</a>");
 	}
 }
-elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 7))  //3.5.6
+elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 8))  //3.5.6 + 3.5.7
 {
 	if ($confirm == "yes")
 	{
@@ -261,6 +261,7 @@ elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 7))  //3.
 	}
 
 }
+
 else $output .= write_message(_ALREADYUPDATED);
 
 /* until database is fully fixed, not update efiction version */

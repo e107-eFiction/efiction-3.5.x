@@ -105,6 +105,8 @@ else if (isset($_REQUEST['language']))
 else
 {
 	include("../config.php");
+	include("../includes/dbfunctions.php");
+
 	$dbconnect = dbconnect($dbhost, $dbuser, $dbpass, $dbname);
 	$settings = dbquery("SELECT tableprefix, language FROM " . $settingsprefix . "fanfiction_settings WHERE sitekey = '" . $sitekey . "'");
 	list($tableprefix, $language) = dbrow($settings);
@@ -824,9 +826,11 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 
 	case "2";
 		include("../config.php");
+		include("../includes/dbfunctions.php");
 		if (dbnumrows(dbquery("SHOW TABLES LIKE '" . $settingsprefix . "fanfiction_settings'")))
 		{
-			include("../config.php");
+			//include("../config.php");
+			//include("../includes/dbfunctions.php");
 			$dbconnect = dbconnect($dbhost, $dbuser, $dbpass, $dbname);
 			$settings = dbquery("SELECT tableprefix, language FROM " . $settingsprefix . "fanfiction_settings WHERE sitekey = '" . $sitekey . "'");
 			list($tableprefix, $language) = dbrow($settings);
@@ -955,13 +959,14 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 			{
 
 				$test = dbquery("SHOW TABLES");
-				if (!$test) $output .= write_message(_CONFIGFAILED);
+				if (!$test) $output .= write_message(_CONFIGFAILED. "(2)");
 				else $output .= write_message(_SETTINGSTABLESETUP . " <a href='install.php?step=2&amp;install=automatic'>" . _AUTO . "</a> " . _OR . " <a href='install.php?step=2&amp;install=manual'>" . _MANUAL2 . "</a>");
 			}
 		}
 		break;
 	default:
 		$output .= "<div id='pagetitle'>" . _CONFIGDATA . "</div>";
+
 		if (isset($_POST['submit']))
 		{
 			$dbhost = descript($_POST['dbhost']);
@@ -971,14 +976,16 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 			$language = $_POST['language'];
 			$sitekey = descript($_POST['sitekey']);
 			$settingsprefix = descript($_POST['settingsprefix']);
-			$mysqli_access = mysqli_connect($dbhost, $dbuser, $dbpass);
+			$mysqli_access = @mysqli_connect($dbhost, $dbuser,$dbpass, $dbname);
+			 
 			if (!$mysqli_access)
 			{
-				$output .= write_message(_CONFIGFAILED);
+				$output .= write_message(_CONFIGFAILED . "(1)");
 			}
 		}
 		if (isset($_POST['submit']) && $mysqli_access)
 		{
+		
 			$handle = fopen("../config.php", 'w');
 			if (!$handle)
 			{
@@ -1003,10 +1010,13 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 \$sitekey = \"$sitekey\";
 \$settingsprefix = \"$settingsprefix\";
 
-include_once(\"includes/dbfunctions.php\");
-if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbname);
-
 ?>";
+
+/* removed in 3.5.8 and moved to file: 
+include(\"includes/dbfunctions.php\");
+if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbname);
+*/
+
 				fwrite($handle, $text);
 				fclose($handle);
 				@chmod("../config.php", 0644);
@@ -1016,7 +1026,10 @@ if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbn
 		}
 		else
 		{
-			if (file_exists("../config.php") && !isset($mysqli_access)) include("../config.php");
+			if (file_exists("../config.php") && !isset($mysqli_access)) {
+				include("../config.php");
+				include("../includes/dbfunctions.php");
+			}
 			if (isset($tinyMCE)) $output .= write_message(_CONFIG2DETECTED);
 			else if (isset($sitename) && $sitename) $output .= write_message(_CONFIG1DETECTED);
 			else

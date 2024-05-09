@@ -34,7 +34,22 @@ if(empty($chapter)) $chapter = isset($_GET['chapter']) && isNumber($_GET['chapte
 	// Get the story information
 	$storyquery = dbquery("SELECT "._PENNAMEFIELD." as penname, "._UIDFIELD." as uid, story.*, story.date as date, story.updated as updated, story.validated as valid FROM ".TABLEPREFIX."fanfiction_stories as story, "._AUTHORTABLE." WHERE story.sid = '".$sid."' AND story.uid = "._UIDFIELD);
 	$storyinfo = dbassoc($storyquery);
-	if($storyinfo['coauthors'] == 1) {
+ 
+	if(!$storyinfo) {
+		$current = "storyerror";
+		// load our template files to set up the page.
+		if (file_exists("$skindir/default.tpl")) $tpl = new TemplatePower("$skindir/default.tpl");
+		else $tpl = new TemplatePower("default_tpls/default.tpl");
+		$title = "Story was not found";
+		$text  = "Story with ID " . $sid . " is not in database"; 
+		include("includes/pagesetup.php");
+		$tpl->assign("output", "<div id='pagetitle'>" . $title . "</div>" . write_error($text));
+		$tpl->printToScreen();
+		dbclose();
+		exit();
+	}
+	
+	if($storyinfo['coauthors'] > 0) {
 	$array_coauthors = array();
 		$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$sid."'");
 		while($c = dbassoc($coauth)) {
@@ -295,12 +310,28 @@ else {
 	// if the story has only one chapter this is what happens
 	else {
 		$chapter = dbassoc($chapterinfo);
+
+		if (!$chapter)
+		{
+			$current = "chaptererror";
+			// load our template files to set up the page.
+			if (file_exists("$skindir/default.tpl")) $tpl = new TemplatePower("$skindir/default.tpl");
+			else $tpl = new TemplatePower("default_tpls/default.tpl");
+			$title = "Chapter was not found";
+			$text  = "Missing chapter";
+			include("includes/pagesetup.php");
+			$tpl->assign("output", "<div id='pagetitle'>" . $title . "</div>" . write_error($text));
+			$tpl->printToScreen();
+			dbclose();
+			exit();
+		}
+
 		$chapterauthor = $chapter['uid'];
 		$chapterpenname = $chapter['penname'];
 		$chaptertitle = $chapter['title'];
 		$chapid = $chapter['chapid'];
-		$title = stripslashes($chapter['title']);
-		$inorder = $chapter['inorder'];
+		$title = stripslashes((string) $chapter['title']);
+		$inorder = $chapter['inorder']; 
 		$notes = format_story($chapter['notes']);
 		$endnotes = format_story($chapter['endnotes']);
 		$story = $chapter['storytext'];
