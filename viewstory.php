@@ -48,21 +48,23 @@ if(empty($chapter)) $chapter = isset($_GET['chapter']) && isNumber($_GET['chapte
 		dbclose();
 		exit();
 	}
-	
+	 
 	if($storyinfo['coauthors'] > 0) {
 	$array_coauthors = array();
 		$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$sid."'");
 		while($c = dbassoc($coauth)) {
 		$array_coauthors[$c['uid']] = $c['penname'];
 		}
-		$storyinfo['coauthors'] = $array_coauthors;
+		$storyinfo['coauthors_array'] = $array_coauthors;
 		unset($array_coauthors);
 	}
-	else $storyinfo['coauthors'] = array();
+	else $storyinfo['coauthors_array'] = array();
+	 
+
 	//  Check that the story is valid and that the visitor has permissions to read this story
 	$warning = "";
 	if(!$storyinfo) $warning = _INVALIDSTORY;
-	if(!$storyinfo['valid'] && !isADMIN && ($storyinfo['uid'] != USERUID || !in_array(USERUID, $storyinfo['coauthors']))) $warning = _ACCESSDENIED;
+	if(!$storyinfo['valid'] && !isADMIN && ($storyinfo['uid'] != USERUID || !in_array(USERUID, $storyinfo['coauthors_array']))) $warning = _ACCESSDENIED;
 	if ($storyinfo['rid']  != 0 ) {
 		$ratingquery = dbquery("SELECT ratingwarning, warningtext FROM " . TABLEPREFIX . "fanfiction_ratings WHERE rid = '" . $storyinfo['rid'] . "' LIMIT 1");
 		$rating = dbassoc($ratingquery);
@@ -158,7 +160,7 @@ if($action == "printable") {
 		$chapterinfo = dbquery("SELECT *, "._PENNAMEFIELD." as penname FROM (".TABLEPREFIX."fanfiction_chapters as c, "._AUTHORTABLE.") WHERE sid = '$sid' AND inorder = '$chapter' AND c.uid = "._UIDFIELD." LIMIT 1");
 		$c = dbassoc($chapterinfo);
 		// if the *CHAPTER* hasn't been validated and the viewer isn't an admin or the author throw them a warning.  
-		if(empty($c['validated']) && !isADMIN && USERUID != $c['uid'] && !in_array(USERUID, $stories['coauthors'])) {
+		if(empty($c['validated']) && !isADMIN && USERUID != $c['uid'] && !in_array(USERUID, $stories['coauthors_array'])) {
 			$warning = write_error(_ACCESSDENIED);
 			$tpl->assign("archivedat", $warning);
 			$tpl->printToScreen( );
@@ -344,7 +346,7 @@ else {
 		$printicon = "<a href=\"viewstory.php?action=printable&amp;sid=$sid&amp;textsize=$textsize&amp;chapter=1\" target=\"_blank\"><img src='".(isset($printer) ? $priner : "images/print.gif")."' border='0' alt='"._PRINTER."'></a>";
 	}
 	// if the *CHAPTER* hasn't been validated and the viewer isn't an admin or the author throw them a warning.  
-	if(!$valid && !isADMIN && USERUID != $chapterauthor && !in_array($chapterauthor, $storyinfo['coauthors'])) {
+	if(!$valid && !isADMIN && USERUID != $chapterauthor && !in_array($chapterauthor, $storyinfo['coauthors_array'])) {
 		$warning = accessDenied( );
 	}
 	$stories = $storyinfo;
@@ -355,7 +357,7 @@ else {
 	if(isADMIN && uLEVEL < 3) 
 		$adminlinks = "<div class=\"adminoptions\"><span class='label'>"._ADMINOPTIONS.":</span> "._EDIT." - <a href=\"stories.php?action=editstory&amp;sid=$sid&amp;admin=1\">"._STORY."</a> "._OR." <a href=\"stories.php?action=editchapter&amp;chapid=$chapid&amp;admin=1\">"._CHAPTER."</a> | "._DELETE." - <a href=\"stories.php?action=delete&amp;sid=$sid&amp;admin=1\">"._STORY."</a> "._OR." <a href=\"stories.php?action=delete&amp;chapid=$chapid&amp;sid=$sid&amp;admin=1\">"._CHAPTER."</a></div>";
 	if(isMEMBER && $favorites) {
-		$jumpmenu2 .= "<option value=\"user.php?action=favst&amp;add=1&amp;sid=$sid\">"._ADDSTORY2FAVES."</option><option value=\"user.php?action=favau&amp;add=1&amp;author=".$stories['uid'].(count($storyinfo['coauthors']) ? ",".implode(",", array_keys($storyinfo['coauthors'])) : "")."\">"._ADDAUTHOR2FAVES."</option>";
+		$jumpmenu2 .= "<option value=\"user.php?action=favst&amp;add=1&amp;sid=$sid\">"._ADDSTORY2FAVES."</option><option value=\"user.php?action=favau&amp;add=1&amp;author=".$stories['uid'].(count($storyinfo['coauthors_array']) ? ",".implode(",", array_keys($storyinfo['coauthors_array'])) : "")."\">"._ADDAUTHOR2FAVES."</option>";
 	}
 	if($reviewsallowed ) {
 		if(isMEMBER || $anonreviews) {

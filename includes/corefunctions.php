@@ -266,14 +266,21 @@ function title_link($stories) {
 
 // Same with the author list
 function author_link($stories) {
-	if(is_array($stories['coauthors'])) {
-		$authlink[] = "<a href=\""._BASEDIR."viewuser.php?uid=".$stories['uid']."\">".$stories['penname']."</a>";
-		$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$stories['sid']."'");
-		foreach($stories['coauthors'] AS $k => $v) {
+	
+	$authlink[] = "<a href=\"" . _BASEDIR . "viewuser.php?uid=" . $stories['uid'] . "\">" . $stories['penname'] . "</a>";
+
+	if($stories['coauthors']) {
+		
+		//not needed, why is it there?
+		//$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co 
+		//LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$stories['sid']."'");
+
+		foreach($stories['coauthors_array'] AS $k => $v) {
 			$authlink[] = "<a href=\""._BASEDIR."viewuser.php?uid=".$k."\">".$v."</a>";
 		}
 	}
-	return isset($authlink) ? implode(", ", $authlink) : "<a href=\""._BASEDIR."viewuser.php?uid=".$stories['uid']."\">".$stories['penname']."</a>";
+ 
+	return  implode(", ", $authlink) ;
 }
 
 // Used to truncate text (summaries in blocks for example) to a set length.  An improvement on the old version as this keeps words intact
