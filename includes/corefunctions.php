@@ -227,7 +227,7 @@ function format_email($text) {
 // Function to format a URL into a clickable link
 function format_link($text, $title = "", $target = 0) {
 	if(empty($title)) $title = $text;
-	if(strpos($text, "http://") === false) $text = "http://".$text;
+	if(strpos($text, "http://") === false && strpos($text, "https://")) $text = "https://".$text;
 	$text = "<a href='$text'".($target ? " target='_blank'" : "").">$title</a>";
 	return $text;
 }
