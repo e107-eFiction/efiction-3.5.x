@@ -23,11 +23,10 @@
 //
 // To read the license please visit http://www.gnu.org/copyleft/gpl.html
 // ----------------------------------------------------------------------
-
 define("_BASEDIR", "../");
-$action = "backup";
+define("_CHARSET", "utf-8");
 include("../config.php");
-
+ 
 $settingsresults = dbquery("SELECT * FROM ".$settingsprefix."fanfiction_settings WHERE sitekey = '$sitekey'");
 $settings = dbassoc($settingsresults);
 foreach($settings as $var => $val) {
@@ -63,8 +62,10 @@ function datadump ($table) {
 	while($t = dbassoc($tabledata)) {
 		echo "INSERT INTO ".$table." ";
 		$row = array( );
-		foreach($t AS $field => $value) {			
-			$value = utf8_encode (escapestring($value) );
+		foreach($t AS $field => $value) {
+			//$value = utf8_encode (escapestring($value) );
+			$value = escapestring($value);
+			$value = mb_convert_encoding($value, 'UTF-8', 'ISO-8859-1');
 			$value = str_replace("\n","\\n",$value);
 			if (isset($value)) $row[$field] = "\"$value\"";
 			else $row[$field] = "\"\"";

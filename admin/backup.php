@@ -23,7 +23,7 @@
 //
 // To read the license please visit http://www.gnu.org/copyleft/gpl.html
 // ----------------------------------------------------------------------
-
+define("_CHARSET", "utf-8");
 define("_BASEDIR", "../");
 include("../config.php");
 
