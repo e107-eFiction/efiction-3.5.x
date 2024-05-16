@@ -287,7 +287,7 @@ else {
 				$notes = isset($chap['notes']) ? format_story($chap['notes']) : false;
 				$endnotes = isset($chap['endnotes']) ? format_story($chap['endnotes']) : false;
 				$chapid = $chap['chapid'];
-				$story = stripslashes($chap['storytext']);
+				$story = isset($chap['storytext']) ? format_story($chap['storytext']) : false; 
 				$chapterauthor = $chap['uid'];
 				$chapterpenname = $chap['penname'];
 				$valid = $chap['validated'];
