@@ -151,6 +151,7 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 							}
 
 							dbquery("UPDATE `" . TABLEPREFIX . $t .  "` SET `{$f}_tmp` = UNIX_TIMESTAMP( `{$f}` )");
+							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` DATETIME NOT NULL)");
 							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` INT NOT NULL"); 
 							dbquery("UPDATE  `" . TABLEPREFIX . $t .  "` set {$f} = {$f}_tmp");
 							dbquery("ALTER TABLE  `" . TABLEPREFIX . $t .  "` DROP `{$f}_tmp`");
