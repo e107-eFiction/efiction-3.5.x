@@ -431,7 +431,8 @@ if(isset($_POST['submit'])) {
 				</select> <a href='#' class='pophelp'>[?]<span>"._HELP_REVDELETE."</span></a></td>
 		</tr>
 		<tr>
-				<td><label for='newratings'>"._WHATRATINGS.":</label></td><td><select name='newratings'>
+				<td><label for='newratings'>"._WHATRATINGS. ":</label></td><td><select name='newratings'>
+				<option value='3'" . ($ratings == "3" ? " selected" : "") . ">" . _LIKES_NUMBER . "</option>
 				<option value='2'".($ratings == "2" ? " selected" : "").">"._LIKESYS."</option>
 				<option value='1'".($ratings == "1" ? " selected" : "").">"._STARS."</option>
 				<option value='0'".($ratings == "0" ? " selected" : "").">"._NONE."</option>

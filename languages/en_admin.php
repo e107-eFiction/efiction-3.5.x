@@ -132,6 +132,7 @@ define ("_INSTALLMODULE", "Install this module");
 define ("_LANGUAGE", "Language");
 define ("_LEVEL", "Level");
 define ("_LIKESYS", "Like/Dislike"); // Changed to avoid conflict with user _LIKE declaration
+define ("_LIKES_NUMBER", "Number of Likes");  
 define ("_LINKACCESS", "Link Access Level"); 
 define ("_LINKKEY", "Link Access Key");
 define ("_LINKRANGE", "Size of Range for Page Links");

@@ -167,14 +167,26 @@ function subseriesList($thisseries) {
 
 function seriesreview($thisseries) {
 
+	global $ratings;
+
 	if(!isNumber($thisseries)) return;
 	$storylist = storiesInSeries($thisseries);
 	$serieslist = subseriesList($thisseries);
-$newrating = dbquery("SELECT AVG(rating) as totalreviews FROM ".TABLEPREFIX."fanfiction_reviews 
-	WHERE ((item = '$thisseries' AND type = 'SE')".
-	(count($storylist) > 0 ? " OR (FIND_IN_SET(item, '".(implode(",", $storylist))."') > 0 AND type = 'ST')" : "").
-	(count($serieslist) > 0 ? " OR (FIND_IN_SET(item, '".(implode(",", $serieslist))."') > 0 AND type = 'SE')" : "").
-	") AND rating != '-1'");
+	if($ratings == 3) {
+		$newrating = dbquery("SELECT COUNT(rating) as totalreviews FROM " . TABLEPREFIX . "fanfiction_reviews 
+		WHERE ((item = '$thisseries' AND type = 'SE')" .
+		(count($storylist) > 0 ? " OR (FIND_IN_SET(item, '" . (implode(",", $storylist)) . "') > 0 AND type = 'ST')" : "") .
+			(count($serieslist) > 0 ? " OR (FIND_IN_SET(item, '" . (implode(",", $serieslist)) . "') > 0 AND type = 'SE')" : "") .
+			") AND rating != '-1'");
+	}
+    else {
+		$newrating = dbquery("SELECT AVG(rating) as totalreviews FROM " . TABLEPREFIX . "fanfiction_reviews 
+	WHERE ((item = '$thisseries' AND type = 'SE')" .
+		(count($storylist) > 0 ? " OR (FIND_IN_SET(item, '" . (implode(",", $storylist)) . "') > 0 AND type = 'ST')" : "") .
+		(count($serieslist) > 0 ? " OR (FIND_IN_SET(item, '" . (implode(",", $serieslist)) . "') > 0 AND type = 'SE')" : "") .
+		") AND rating != '-1'");
+	}
+
 list($totalreviews) = dbrow($newrating);
 $newcount = dbquery("SELECT count(reviewid) as totalcount FROM ".TABLEPREFIX."fanfiction_reviews 
 	WHERE ((item = '$thisseries' AND type = 'SE')".
@@ -269,8 +281,7 @@ function author_link($stories) {
 	
 	$authlink[] = "<a href=\"" . _BASEDIR . "viewuser.php?uid=" . $stories['uid'] . "\">" . $stories['penname'] . "</a>";
 
-	if($stories['coauthors']) {
-		
+	if($stories['coauthors'] && $stories['coauthors_array'])  {	
 		//not needed, why is it there?
 		//$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co 
 		//LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$stories['sid']."'");
@@ -468,7 +479,11 @@ function build_pagelinks($url, $total, $offset = 0, $columns = 1) {
 function ratingpics($rating) {
 	global $ratings, $like, $dislike, $star, $halfstar;
 	$ratingpics = "";
-	if($ratings == "2") {
+
+	if($ratings == "3") { 
+		$ratingpics = "<span title=\""._LIKES_NUMBER. "\"><b>" . $rating . "</b></span>";
+	}	
+	elseif($ratings == "2") {
 		if($rating >= 0.5)
 			$ratingpics = ($like ? $like : "<img src=\""._BASEDIR."images/like.gif\" alt=\""._LIKED."\">");
 		else if(($rating < 0.5) && ($rating > 0))
@@ -575,4 +590,11 @@ function search($storyquery, $countquery, $pagelink = "search.php?", $pagetitle 
 	$tpl->gotoBlock("_ROOT");
 	return $numrows;
 }
-?>
+
+
+// This function replaces escaped newlines with html <br /> tags
+function fixup_newlines($string)
+{
+	$string = str_replace(array("\\r\\n", "\\n\\r", "\\r", "\\n"), "<br />", $string);
+	return $string;
+}
