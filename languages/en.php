@@ -62,8 +62,10 @@ define ("_FATALERROR", "<b>A fatal MySQL error was encountered.</b><br />");
 define ("_FSTORY", "Feature");
 define ("_GO", "Go");
 define ("_HALFSTAR", "half-star");
+define ("_HIDE", "Hide");
 define ("_JAVASCRIPTOFF", "You must have javascript enabled for this form to work properly."); // Modified for version 3.0
 define ("_LIKE", "like");
+if(!defined("_LIKES_NUMBER")) define("_LIKES_NUMBER", "Number of Likes");  
 define ("_LOGIN", "Log In");
 define ("_PLEASELOGIN", "Please login to access this feature.");
 define ("_MEMBER", "Member");
@@ -124,6 +126,7 @@ define ("_TINYMCETOGGLE", "Use tinyMCE");
 define ("_TITLE", "Title");
 define ("_TOC", "Table of Contents");
 define ("_TOPLEVEL", "Top Level Category"); // Really only used in the admin, but needs to load with the header.
+define ("_UNHIDE", "Unhide");
 define ("_UP", "up arrow");
 define ("_WIP", "Work in Progress Only"); // Added 01/12/07
 define ("_YES", "Yes");
