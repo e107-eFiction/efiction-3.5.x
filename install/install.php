@@ -22,6 +22,13 @@
 // ----------------------------------------------------------------------
 
 
+/**
+ * Revert PHP 8.1 mysqli default error mode
+ * @link https://github.com/php/php-src/blob/4025cf2875f895e9f7193cebb1c8efa4290d052e/UPGRADING#L101-L105
+ */
+mysqli_report(MYSQLI_REPORT_OFF);
+
+
 function random_char($string)
 {
 	$length = strlen($string);
