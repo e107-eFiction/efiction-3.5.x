@@ -37,6 +37,7 @@ if(!empty($favorites) && isMEMBER && $userinfo['uid'] != USERUID) {
 }
  
 $tpl->assign("userpenname", $userinfo['penname']." ".$nameinfo);
+$tpl->assign("membersince", date("$dateformat", $userinfo['date']));
 
 if($userinfo['realname'])
 	$tpl->assign("realname", $userinfo['realname']);
