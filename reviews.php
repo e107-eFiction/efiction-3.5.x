@@ -141,7 +141,7 @@ else if($action == "edit" || $action == "add") {
 			}
 			else if($type == "ST") {
 				if(isset($_POST['chapid']) && isNumber($_POST['chapid'])) $chapid = $_POST['chapid'];
-				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_reviews (item, type, reviewer, review, rating, date, uid, chapid) VALUES ('$item', 'ST', '$reviewer', '$review', '$rating', now(), '".(USERUID && isNumber(USERUID) ? USERUID : 0)."', '$chapid')");
+				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_reviews (item, type, reviewer, review, rating, date, uid, chapid) VALUES ('$item', 'ST', '$reviewer', '$review', '$rating', '" . time() . "', '".(USERUID && isNumber(USERUID) ? USERUID : 0)."', '$chapid')");
 				$count =  dbquery("SELECT AVG(rating) as totalcount FROM ".TABLEPREFIX."fanfiction_reviews WHERE item = '$item' AND type = 'ST' AND rating != '-1'");
 				list($totalcount) = dbrow($count);
 				if($totalcount) $update = dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET rating = '".round($totalcount)."' WHERE sid = '$item'");
@@ -172,7 +172,7 @@ else if($action == "edit" || $action == "add") {
 				}
 			}
 			else if($type == "SE"){
-				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_reviews (item, type, reviewer, review, rating, date, uid) VALUES ('$item', 'SE', '$reviewer', '$review', '$rating', now(), '".(USERUID && isNumber(USERUID) ? USERUID : 0)."')");
+				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_reviews (item, type, reviewer, review, rating, date, uid) VALUES ('$item', 'SE', '$reviewer', '$review', '$rating', '" . time() . "', '".(USERUID && isNumber(USERUID) ? USERUID : 0)."')");
 				$thisseries = $item;
 				seriesreview($item);
 				$uidquery = dbquery("SELECT uid as uid,title FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$item'");

@@ -41,7 +41,7 @@ if($nid) {
 	{
 		$comment = escapestring(format_story(replace_naughty(strip_tags($_POST['comment'], $allowed_tags))));
 		if(!$cid && USERUID) {
-			$insert = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_comments (nid, uid, comment, time) VALUES ('$nid', '".(USERUID ? USERUID : 0)."', '$comment', now())");
+			$insert = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_comments (nid, uid, comment, time) VALUES ('$nid', '".(USERUID ? USERUID : 0)."', '$comment', '" . time() . "')");
 			if($insert) dbquery("UPDATE ".TABLEPREFIX."fanfiction_news SET comments = comments + 1 WHERE nid = '$nid' LIMIT 1");
 		}
 		else if($cid) {
