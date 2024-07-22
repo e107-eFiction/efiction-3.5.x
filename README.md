@@ -1,3 +1,8 @@
+# efiction v3.5.8 fixes
+
+- rating display fix
+
+
 # efiction v3.5.8
 
 - added notification module
