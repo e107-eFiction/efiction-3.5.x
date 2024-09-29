@@ -150,8 +150,16 @@ if ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 6))  //3.5.5
 								dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` ADD `{$f}_tmp` int(10) unsigned NOT NULL default '0' ");
 							}
 
+							$updated = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}_backup'"));
+							if (!$updated)
+							{
+								dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` ADD `{$f}_backup` datetime  ");
+							}
+
+							dbquery("UPDATE `" . TABLEPREFIX . $t .  "` SET `{$f}_backup` =  `{$f}`  ");
 							dbquery("UPDATE `" . TABLEPREFIX . $t .  "` SET `{$f}_tmp` = UNIX_TIMESTAMP( `{$f}` )");
-							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` DATETIME NOT NULL)");
+							dbquery("UPDATE `" . TABLEPREFIX . $t .  "` SET `{$f}` =  '' ");
+						//	dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` DATETIME NOT NULL)");  this is needed on some servers
 							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` CHANGE `{$f}` `{$f}` INT NOT NULL"); 
 							dbquery("UPDATE  `" . TABLEPREFIX . $t .  "` set {$f} = {$f}_tmp");
 							dbquery("ALTER TABLE  `" . TABLEPREFIX . $t .  "` DROP `{$f}_tmp`");
