@@ -165,7 +165,7 @@ function random_string ($charset_string, $length)
 				}
 				else {
 					dbquery("UPDATE "._AUTHORTABLE." SET penname = '".escapestring($penname)."' WHERE uid = '$_POST[uid]'");
-					if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_NEWPEN, USERPENNAME, USERUID, $_POST[oldpenname], $uid, $penname))."', '".USERUID."', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'EB', " . time() . ")");
+					if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_NEWPEN, USERPENNAME, USERUID, $_POST['oldpenname'], $uid, $penname))."', '".USERUID."', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'EB', " . time() . ")");
 				}
 			}
 /* The section adds fields from the authorfields table to the authorinfo table allowing dynamic additions to the bio/registration page */
