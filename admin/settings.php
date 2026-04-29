@@ -169,13 +169,20 @@ if(isset($_POST['submit'])) {
 		$smtp_password = $_POST['newsmtp_password'];
 		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET smtp_host = '$smtp_host', smtp_username = '$smtp_username', smtp_password = '$smtp_password' WHERE sitekey ='".SITEKEY."'");
 	}
-	if($result) {
+	if ($result) {
 		$output .= write_message(_ACTIONSUCCESSFUL);
-		$sect = $sects[(array_search($sect, $sects) + 1)];
-		if(!$sect) $sect = $sects[0];
+		
+		$idx = array_search($sect, $sects);
+		if ($idx !== false) {
+			$next_idx = $idx + 1;
+			if ($next_idx >= count($sects)) {
+				$next_idx = 0;
+			}
+			$sect = $sects[$next_idx];
+		}
+	} else {
+		$output .= write_error(_ERROR);
 	}
-	else $output .= write_error(_ERROR);
-}
 	$settingsresults = dbquery("SELECT * FROM ".$settingsprefix."fanfiction_settings WHERE sitekey ='".SITEKEY."'");
 	$settings = dbassoc($settingsresults);
  
