@@ -218,7 +218,9 @@ if($add == "stories") {
 			$confirmed = 0;
 			include("includes/emailer.php");
 			$seriesMail = sprintf(_NEWSERIESITEMS, stripslashes($title));
-			$subject = sprintf("_SERIESITEMSSUBS", stripslashes($title));
+			// the constant was quoted, so members received the literal
+			// string "_SERIESITEMSSUBS" as the mail subject
+			$subject = sprintf(_SERIESITEMSSUBS, stripslashes($title));
 			$mailInfo = dbassoc(dbquery("SELECT "._PENNAMEFIELD." as penname, "._EMAILFIELD." as email FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$owner' LIMIT 1"));
 			sendemail($mailInfo['penname'], $mailInfo['email'], $sitename, $siteemail, $subject, $seriesMail, "html");
 		}

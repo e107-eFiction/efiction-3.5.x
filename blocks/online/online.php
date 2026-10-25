@@ -2,8 +2,10 @@
 if(!defined("_CHARSET")) exit( );
 
 	global $dateformat, $tpl;
-	if(file_exists(_BASEDIR."blocks/online/{$language}.php")) include(_BASEDIR."blocks/online/{$language}.php");
-	else include(_BASEDIR."blocks/online/en.php");
+	// issue #6: a page rendering the block twice (or another include of the
+	// language file) redefined _GUESTS and warned on PHP 8; include_once.
+	if(file_exists(_BASEDIR."blocks/online/{$language}.php")) include_once(_BASEDIR."blocks/online/{$language}.php");
+	else include_once(_BASEDIR."blocks/online/en.php");
 
 	$where = "online_uid=" . (USERUID ? USERUID : "0 AND online_ip = INET6_ATON('" . $_SERVER['REMOTE_ADDR'] . "')");
  
