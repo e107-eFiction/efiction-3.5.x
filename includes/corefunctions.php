@@ -220,6 +220,10 @@ function nl2br2($string) {
 
 // Formats the text of the story when displayed on screen.
 function format_story($text) {
+      // issue #4: several call sites hand a row array here (the (string)
+      // cast below only converts the warning into "Array"); join the
+      // values so the formatter receives the text it was meant to see.
+      if(is_array($text)) $text = implode("\n", $text);
       $text = trim((string)$text);
       if(strpos($text, "<br>") === false && strpos($text, "<p>") === false && strpos($text, "<br />") === false) $text = nl2br2($text);
       if(_CHARSET != "ISO-8859-1" && _CHARSET != "US-ASCII") return stripslashes($text);
@@ -281,7 +285,9 @@ function author_link($stories) {
 	
 	$authlink[] = "<a href=\"" . _BASEDIR . "viewuser.php?uid=" . $stories['uid'] . "\">" . $stories['penname'] . "</a>";
 
-	if($stories['coauthors'] && $stories['coauthors_array'])  {	
+	// issue #13: coauthors_array is not always set on the row; reading it
+	// unguarded raised "Undefined array key" on PHP 8.
+	if(!empty($stories['coauthors']) && !empty($stories['coauthors_array']))  {
 		//not needed, why is it there?
 		//$coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co 
 		//LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$stories['sid']."'");
