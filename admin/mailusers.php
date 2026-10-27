@@ -36,8 +36,8 @@ if(!defined("_CHARSET")) exit( );
 		else $select = "SELECT "._EMAILFIELD." as email, "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE;
 		if($who == "admins" && $_POST['category'] != "all" && isNumber($_POST['category'])) $select .= " AND (FIND_IN_SET(".$_POST['category'].", ap.categories) > 0 OR ap.categories = 0)";
 		$query = dbquery($select);
-		$subject = strip_tags(descript($_POST['subject']));
-		$mailtext = descript($_POST['mailtext']);
+		$subject = strip_tags(descript($_POST['subject'] ?? ''));
+		$mailtext = descript($_POST['mailtext'] ?? '');
 		$sent = 0;
 		while($result = dbassoc($query)){
 			$mailresult = sendemail($result['penname'], $result['email'], $sitename, $siteemail, $subject, $mailtext, "html");

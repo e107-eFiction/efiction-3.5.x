@@ -28,7 +28,7 @@ if(!function_exists("random_char")) {
 function random_char($string)
 {
 	$length = strlen($string);
-	$position = mt_rand(0, $length - 1);
+	$position = random_int(0, $length - 1);
 	$output = ($string[$position]);
 	return $output;
 }
@@ -43,10 +43,18 @@ function random_string ($charset_string, $length)
 
 }
  
-	$uid = isset($_REQUEST['uid']) ? $_REQUEST['uid'] : false;
+	$uid = isset($_REQUEST['uid']) && isNumber($_REQUEST['uid']) ? (int)$_REQUEST['uid'] : false;
 	if(!$uid) $uid = USERUID;
 
-	if((!isADMIN || uLEVEL > 2) && $uid != USERUID && $action == "editbio") $output .= write_error(_NOTAUTHORIZED);
+	// Only the member themself, or an admin of level 1 or 2, may edit an account.
+	// (Before 3.5.74 the error was shown but the changes were still saved.)
+	if($action == "editbio" && $uid != USERUID && (!isADMIN || uLEVEL > 2)) {
+		$output .= write_error(_NOTAUTHORIZED);
+		$tpl->assign("output", $output);
+		$tpl->printToScreen( );
+		dbclose( );
+		exit( );
+	}
 	if(isMEMBER) $output .= "<div id=\"pagetitle\">"._EDITPERSONAL."</div>";
 	else $output .= "<div id=\"pagetitle\">"._NEWACCOUNT."</div>";
 	if(!empty($_POST['submit'])) {
@@ -68,7 +76,7 @@ function random_string ($charset_string, $length)
 					if(!$pwdsetting) {
 						$charset = '23456789' . 'abcdefghijkmnpqrstuvwxyz' . 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 						$pass = random_string($charset, 10);
-						$encryppass = md5($pass);
+						$encryppass = ef_hash_password($pass);
 					}
 					else {
 						if($_POST['password'] != $_POST['password2']) {
@@ -79,9 +87,9 @@ function random_string ($charset_string, $length)
 							exit( );
 						}
 						$pass = $_POST['password2'];
-						$encryppass = md5($pass);
+						$encryppass = ef_hash_password($pass);
 					}
-					dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." (penname, realname, bio, email, date, password) VALUES ('".escapestring($penname)."', '".escapestring(strip_tags($_POST['realname']))."', '".strip_tags(escapestring($_POST['bio']), $allowed_tags)."', '$email'," . time() . ", '$encryppass')");
+					dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." (penname, realname, bio, email, date, password) VALUES ('".escapestring($penname)."', '".escapestring(strip_tags($_POST['realname'] ?? ''))."', '".strip_tags(escapestring($_POST['bio']), $allowed_tags)."', '$email'," . time() . ", '".escapestring($encryppass)."')");
 					$useruid = dbinsertid();
 					if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_REGISTER, $penname, $useruid, $_SERVER['REMOTE_ADDR']))."', '".$useruid. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RG', " . time() . ")");
 					if(empty($siteskin)) {
@@ -153,25 +161,24 @@ function random_string ($charset_string, $length)
 		else{
 			 if(($_POST['password']) && ($_POST['password2'])) {
 				if($_POST['password'] == $_POST['password2']) {
-					$encryppassword = md5($_POST['password']);
-					dbquery("UPDATE "._AUTHORTABLE." SET password='$encryppassword' WHERE uid = '$uid'");
+					$encryppassword = ef_hash_password($_POST['password']);
+					dbquery("UPDATE "._AUTHORTABLE." SET password='".escapestring($encryppassword)."' WHERE uid = '$uid'");
 				}
 				else $output .=  write_error(_PASSWORDTWICE);
 			}
-			if(isset($_POST['oldpenname']) && $penname != $_POST['oldpenname']) {
+			if(isADMIN && uLEVEL == 1 && $penname && isset($_POST['oldpenname']) && $penname != $_POST['oldpenname']) {
 				$checkresult = dbquery("SELECT * FROM "._AUTHORTABLE." WHERE penname = '".escapestring($penname)."'");
 				if(dbnumrows($checkresult)) {
 					$output .= write_message(_PENNAMEINUSE."  "._TRYAGAIN);
 				}
 				else {
-					dbquery("UPDATE "._AUTHORTABLE." SET penname = '".escapestring($penname)."' WHERE uid = '$_POST[uid]'");
+					dbquery("UPDATE "._AUTHORTABLE." SET penname = '".escapestring($penname)."' WHERE uid = '".(int)$uid."'");
 					if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_NEWPEN, USERPENNAME, USERUID, $_POST['oldpenname'], $uid, $penname))."', '".USERUID."', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'EB', " . time() . ")");
 				}
 			}
 /* The section adds fields from the authorfields table to the authorinfo table allowing dynamic additions to the bio/registration page */
 			$fields = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_authorfields WHERE field_on = '1'");
 			while($field = dbassoc($fields)) {
-				$uid = isset($_POST['uid']) && isNumber($_POST['uid']) ? $_POST['uid'] : false;
 				if(!$uid) continue;
 				$oldfield = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_authorinfo WHERE field='".$field['field_id']."' AND uid = '".$uid."'");
 				if(dbnumrows($oldfield) > 0) {
@@ -182,7 +189,7 @@ function random_string ($charset_string, $length)
 				else if(!empty($_POST["af_".$field['field_name']])) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_authorinfo(`uid`, `info`, `field`) VALUES('$uid', '".escapestring($_POST["af_".$field['field_name']])."', '".$field['field_id']."');");
 			}
 /* End dynamic fields */
-			dbquery("UPDATE "._AUTHORTABLE." SET realname='".descript(strip_tags(escapestring($_POST['realname'])), $allowed_tags)."', email='$email', bio='".descript(strip_tags(escapestring($_POST['bio']), $allowed_tags))."', image='".($imageupload && !empty($_POST['image']) ? escapestring($_POST['image']) : "")."' WHERE uid = '$uid'");
+			dbquery("UPDATE "._AUTHORTABLE." SET realname='".descript(strip_tags(escapestring($_POST['realname'])), $allowed_tags)."', email='$email', bio='".escapestring(descript(strip_tags($_POST['bio'] ?? '', $allowed_tags)))."', image='".($imageupload && !empty($_POST['image']) ? escapestring($_POST['image']) : "")."' WHERE uid = '$uid'");
 			$output .= write_message(_ACTIONSUCCESSFUL."  ".(isset($_GET['uid']) ? _BACK2ADMIN : _BACK2ACCT));
 		}
 	}
@@ -216,17 +223,17 @@ function random_string ($charset_string, $length)
 		$authorfields = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_authorfields WHERE field_on = '1'");
 		while($field = dbassoc($authorfields)) {
 			if($field['field_type'] == 1 || $field['field_type'] == 4 || $field['field_type'] == 6) 
-				$output .= "<div><label for='".$field['field_name']."'>".$field['field_title'].":</label>\n<input type='text' class='textbox' name='af_".$field['field_name']."'".(!empty($user["af_".$field['field_id']]) ? "value='".$user["af_".$field['field_id']]."'" : "").">\n</div>\n";
+				$output .= "<div><label for='".$field['field_name']."'>".$field['field_title'].":</label>\n<input type='text' class='textbox' name='af_".$field['field_name']."'".(!empty($user["af_".$field['field_id']]) ? "value='".htmlspecialchars($user["af_".$field['field_id']], ENT_QUOTES, 'UTF-8')."'" : "").">\n</div>\n";
 			if($field['field_type'] == 2) {
 				$output .= "<div><label for='".$field['field_name']."'>".$field['field_title'].":</label>\n
 						<select class='textbox' name='af_".$field['field_name']."'>\n";
-				$opts = explode("|#|", $field['field_options']);
+				$opts = explode("|#|", $field['field_options'] ?? '');
 				foreach($opts as $opt) {
 					$output .= "<option".(!empty($user["af_".$field['field_id']]) && $user["af_".$field['field_id']] == $opt ? " selected" : "").">$opt</option>\n";
 				}
 				$output .= "</select>\n</div>\n";
 			}
-			if($field['field_type'] == 5) eval(stripslashes($field['field_code_in']));
+			if($field['field_type'] == 5) eval(stripslashes($field['field_code_in'] ?? ''));
 			if($field['field_type'] == 3) {
 				$output .= "<div class='fieldset'><span class='label'>".$field['field_title'].":</span>\n";
 				$output .= "<input type='radio' name='af_".$field['field_name']."' id='af_".$field['field_name']._YES."' value='"._YES."'".(!empty($user["af_".$field['field_id']]) && $user["af_".$field['field_id']] == _YES ? "checked='checked'" : "")."> <label for='".$field['field_name']._YES."'>"._YES."</label>\n

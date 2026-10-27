@@ -27,9 +27,28 @@ if(!defined("_CHARSET")) exit( );
 	$output .= "<div id=\"pagetitle\">"._MANAGEREVIEWS."</div>";
 	if(isset($_POST['submit'])) {
 		$reviewid = isset($_POST['reviewid']) && isNumber($_POST['reviewid']) ? $_POST['reviewid'] : false;
-		$result = dbquery("SELECT review, reviewid, item, type, chapid, uid FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '".$_POST['rid']."' LIMIT 1");
+		$result = dbquery("SELECT review, reviewid, item, type, chapid, uid FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '".(isset($_POST['rid']) && isNumber($_POST['rid']) ? $_POST['rid'] : 0)."' LIMIT 1");
 		list($review, $reviewid, $item, $type, $chapid, $uid) = dbrow($result);
-		$updated = escapestring($review . "<br><br><i>"._AUTHORSRESPONSE.": " .replace_naughty(descript($_POST['response'], $allowed_tags))."</i>");
+		// Only the story's or series' author (or a co-author) may respond, once.
+		// (Before 3.5.74 the form page checked this but saving didn't.)
+		$ef_owner = false;
+		if($reviewid && $type == "ST") {
+			$ef_o = dbassoc(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '".(int)$item."' LIMIT 1"));
+			$ef_owner = ($ef_o && $ef_o['uid'] == USERUID) || dbnumrows(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_coauthors WHERE sid = '".(int)$item."' AND uid = '".(int)USERUID."'"));
+		}
+		else if($reviewid && $type == "SE") {
+			$ef_o = dbassoc(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '".(int)$item."' LIMIT 1"));
+			$ef_owner = $ef_o && $ef_o['uid'] == USERUID;
+		}
+		else if($reviewid) $ef_owner = isADMIN;   // reviews of module items: admins only
+		if(!$ef_owner) accessDenied( );
+		if(dbnumrows(dbquery("SELECT reviewid FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '".(int)$reviewid."' AND respond = '1'"))) {
+			$tpl->assign("output", write_message(_ALREADYRESPONDED));
+			$tpl->printToScreen( );
+			dbclose( );
+			exit( );
+		}
+		$updated = escapestring($review . "<br><br><i>"._AUTHORSRESPONSE.": " .replace_naughty(descript($_POST['response'] ?? '', $allowed_tags))."</i>");
 		$success = dbquery("UPDATE ".TABLEPREFIX."fanfiction_reviews SET review = '$updated', respond = '1' WHERE reviewid = '$reviewid'");
 		if($uid) {
 			$prefsquery = dbquery("SELECT "._UIDFIELD." as uid, "._EMAILFIELD." as email, "._PENNAMEFIELD." as penname, newrespond FROM ".TABLEPREFIX."fanfiction_authorprefs as ap LEFT JOIN "._AUTHORTABLE." ON ap.uid = "._UIDFIELD." WHERE ap.uid = "._UIDFIELD." AND "._UIDFIELD." = '$uid' LIMIT 1");
@@ -84,7 +103,7 @@ if(!defined("_CHARSET")) exit( );
 			else if($type == "SE") {
 				$storyquery = dbquery("SELECT title, uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$item' LIMIT 1");
 				list($title, $authoruid) = dbrow($storyquery);
-				$title = stripslashes($title);
+				$title = stripslashes($title ?? "");
 				$title = "<a href=\"series.php?seriesid=$item\">$title</a>";
 			}
 			else { 

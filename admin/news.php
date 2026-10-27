@@ -28,9 +28,9 @@ if (uLEVEL > 3) accessDenied();
 $output .= "<div id=\"pagetitle\">" . _NEWS . "</div>";
 if (isset($_POST['submit']))
 {
-	$title = addslashes(strip_tags(descript($_POST['title']), $allowed_tags));
-	$author = addslashes(strip_tags(descript($_POST['author']), $allowed_tags));
-	$story = addslashes(strip_tags(descript($_POST['story']), $allowed_tags));
+	$title = addslashes(strip_tags(descript($_POST['title'] ?? ''), $allowed_tags));
+	$author = addslashes(strip_tags(descript($_POST['author'] ?? ''), $allowed_tags));
+	$story = addslashes(strip_tags(descript($_POST['story'] ?? ''), $allowed_tags));
 	$time = time();
 	if ($_GET['form'] == "new") $result = dbquery("INSERT INTO " . TABLEPREFIX . "fanfiction_news (title, author, story, time) VALUES ('$title', '$author', '$story', '$time')");
 	else $result = dbquery("UPDATE " . TABLEPREFIX . "fanfiction_news 
@@ -69,9 +69,9 @@ else if (isset($_GET["form"]))
 	else $newsitem = array("title" => "", "author" => "", "story" => "");
 	$output .= "<form method=\"POST\" enctype=\"multipart/form-data\" action=\"admin.php?action=news&form=$_GET[form]\">
 				<table align=\"center\"><tr><td colspan=\"2\" align=\"center\"><b>" . ($_GET["form"] == "new" ? _ADDNEWS : _EDITNEWS) . "</b></td></tr>
-			<tr><td>" . _AUTHOR . ": </td><td><INPUT  type=\"text\" class=\"textbox=\" name=\"author\" value=\"" . stripslashes($newsitem['author']) . "\"></td></tr>
-			<tr><td>" . _TITLE . ": </td><td><INPUT  type=\"text\" class=\"textbox=\" name=\"title\" value=\"" . stripslashes($newsitem['title']) . "\"></td></tr>
-			<tr><td>" . _TEXT . ": </td><td><textarea class=\"textbox\" name=\"story\" id=\"story\" COLS=\"45\" ROWS=\"6\">" . stripslashes($newsitem['story']) . "</TEXTAREA>";
+			<tr><td>" . _AUTHOR . ": </td><td><INPUT  type=\"text\" class=\"textbox=\" name=\"author\" value=\"" . stripslashes($newsitem['author'] ?? '') . "\"></td></tr>
+			<tr><td>" . _TITLE . ": </td><td><INPUT  type=\"text\" class=\"textbox=\" name=\"title\" value=\"" . stripslashes($newsitem['title'] ?? '') . "\"></td></tr>
+			<tr><td>" . _TEXT . ": </td><td><textarea class=\"textbox\" name=\"story\" id=\"story\" COLS=\"45\" ROWS=\"6\">" . stripslashes($newsitem['story'] ?? '') . "</TEXTAREA>";
 	if ($tinyMCE)
 		$output .= "<div class='tinytoggle'><input type='checkbox' name='toggle' onclick=\"toogleEditorMode('story');\" checked><label for='toggle'>" . _TINYMCETOGGLE . "</label></div>";
 

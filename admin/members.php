@@ -28,7 +28,7 @@ if(!defined("_CHARSET")) exit( );
 function random_char($string)
 {
 	$length = strlen($string);
-	$position = mt_rand(0, $length - 1);
+	$position = random_int(0, $length - 1);
 	return($string[$position]);
 }
 
@@ -84,12 +84,11 @@ $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 			dbquery("UPDATE "._AUTHORTABLE." SET admincreated = '0' WHERE "._UIDFIELD." = '".$_GET['release']."'");
 			$emailquery = dbquery("SELECT "._EMAILFIELD." as email, "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE uid = '".$_GET['release']."'");
 			$email = dbassoc($emailquery);
-			mt_srand((double)microtime() * 1000000);
 			$charset = '23456789' . 'abcdefghijkmnpqrstuvwxyz' . 'ABCDEFGHJKLMNPQRSTUVWXYZ';
 			$pass = random_string($charset, 10);
-			$encryppass = md5($pass);
+			$encryppass = ef_hash_password($pass);
 			//$headers = "From: $sitename\n";
-			dbquery("UPDATE "._AUTHORTABLE." SET "._PASSWORDFIELD." = '$encryppass' WHERE uid = '".$_GET['release']."'");
+			dbquery("UPDATE "._AUTHORTABLE." SET "._PASSWORDFIELD." = '".escapestring($encryppass)."' WHERE uid = '".$_GET['release']."'");
 			
 			$subject = _SIGNUPSUBJECT;
 			
@@ -165,8 +164,8 @@ $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 			<tr><td colspan=\"2\"><INPUT type=\"submit\" class=\"button\" value=\""._SUBMIT."\" name=\"submit\"></form></td></tr></table>";
 		}
 		else if (isset($_POST['submit'])) {
-			if(preg_match("!^[a-z0-9_ ]{3,30}$!i", $_POST['penname'])) {
-				dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))."(penname, realname, email, admincreated, date) VALUES ('".escapestring(descript($_POST['penname']))."', '".escapestring(descript($_POST['realname']))."', '".escapestring(descript($_POST['email']))."', '1', '" . time() . "')");
+			if(preg_match("!^[a-z0-9_ ]{3,30}$!i", $_POST['penname'] ?? '')) {
+				dbquery("INSERT INTO ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))."(penname, realname, email, admincreated, date) VALUES ('".escapestring(descript($_POST['penname']))."', '".escapestring(descript($_POST['realname'] ?? ''))."', '".escapestring(descript($_POST['email'] ?? ''))."', '1', '" . time() . "')");
 				$newuid = dbinsertid( );
 				if($logging) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_REG, descript($_POST['penname']), $newuid, USERPENNAME, USERUID, $_SERVER['REMOTE_ADDR']))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'RG', " . time() . ")");
 				if(!$skin) {

@@ -60,13 +60,13 @@ function deleteStory($story) {
 	}	
 	dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_coauthors WHERE sid = '$sid'");
 	// Delete story from all series it is in.
-	$serieslist = dbquery("SELECT inorder, seriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE sid = '".$story['sid']."' LIMIT 1");
+	$serieslist = dbquery("SELECT inorder, seriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE sid = '".$story['sid']."'");
 	while($series = dbassoc($serieslist)) {
 		$countquery = dbquery("SELECT count(seriesid) FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '".$series['seriesid']."'");
 		list($count) = dbrow($countquery);
 		dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '".$series['seriesid']."' AND sid = '".$story['sid']."' LIMIT 1");
 		if($series['inorder'] < $count) dbquery("UPDATE ".TABLEPREFIX."fanfiction_inseries SET inorder = (inorder - 1) WHERE seriesid = '".$series['seriesid']."' AND inorder > '".$series['inorder']."'");
-		seriesreview($series); 
+		seriesreview((string)$series['seriesid']); 
 	}
 	$codequery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_codeblocks WHERE code_type = 'delstory'");
 	while($code = dbassoc($codequery)) {
@@ -112,24 +112,18 @@ function deleteUser($uid) {
 						$chapters = dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE sid = '".$story['sid']."' AND uid = '$uid'");
 						while($chap = dbassoc($chapters)) {
 							$chapid = $chap['chapid'];
-							$storytext = "";
-							if($out = fopen (STORIESPATH."/$uid/$chapid.txt", "r"))
-							while (!feof($out)) {
-								$storytext .= fgets($out, 10000);
-							}
-							fclose($out);
-							unlink(STORIESPATH."/$uid/$chapid.txt"); 
-							if($storytext) {
+							$oldfile = STORIESPATH."/$uid/$chapid.txt";
+							$storytext = is_file($oldfile) ? (string)@file_get_contents($oldfile) : "";
+							if($storytext !== "") {
 								if( !file_exists( STORIESPATH."/$newauthor/" ) ) {
-									mkdir(STORIESPATH."/$newauthor", 0755);
-									chmod(STORIESPATH."/$newauthor", 0777);
+									@mkdir(STORIESPATH."/$newauthor", 0755);
+									@chmod(STORIESPATH."/$newauthor", 0777);
 								}
-								$handle = fopen(STORIESPATH."/$newauthor/$chapid.txt", 'w');
-								if ($handle) {
-									fwrite($handle, $storytext);
-									fclose($handle);
+								// copy first, and only remove the old file once the new one is written
+								if(@file_put_contents(STORIESPATH."/$newauthor/$chapid.txt", $storytext) === strlen($storytext)) {
+									@chmod(STORIESPATH."/$newauthor/$chapid.txt", 0644);
+									@unlink($oldfile);
 								}
-								chmod(STORIESPATH."/$newauthor/$chapid.txt", 0644);
 							}
 							dbquery("UPDATE ".TABLEPREFIX."fanfiction_chapters SET uid = '$newauthor' WHERE chapid = '$chapid' LIMIT 1");
 						}
@@ -176,13 +170,13 @@ function deleteSeries($seriesid) {
 	list($title, $uid) = dbrow($seriesinfo);
 	dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '$seriesid'");
 	// Delete series from other series where it is a sub-series
-	$serieslist = dbquery("SELECT inorder, seriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE subseriesid = '".$seriesid."' LIMIT 1");
+	$serieslist = dbquery("SELECT inorder, seriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE subseriesid = '".$seriesid."'");
 	while($series = dbassoc($serieslist)) {
 		$countquery = dbquery("SELECT count(seriesid) FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '".$series['seriesid']."'");
 		list($count) = dbrow($countquery);
 		dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '".$series['seriesid']."' AND subseriesid = '".$seriesid."' LIMIT 1");
 		if($series['inorder'] < $count) dbquery("UPDATE ".TABLEPREFIX."fanfiction_inseries SET inorder = (inorder - 1) WHERE seriesid = '".$series['seriesid']."' AND inorder > '".$series['inorder']."'");
-		seriesreview($series); 
+		seriesreview((string)$series['seriesid']); 
 	}	
 	dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$seriesid'");
 	dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_favorites WHERE type = 'SE' AND item = '$seriesid'");

@@ -36,7 +36,8 @@ if($let) {
 		if(!empty($authorlist)) $scountquery[] = "FIND_IN_SET(series.uid, '".implode(",",$authorlist)."') > 0";
 		if($searchtype == "advanced" || !$searchtype) $scountquery[] = "(summary LIKE '%$searchterm%' OR title LIKE '%$searchterm%') ";
 	}
-	if(isset($_REQUEST['authors'])) $scountquery[] = "FIND_IN_SET(series.uid, '".implode(",",$searchVars['authors'])."') > 0";
+	$ef_sauthors = isset($_REQUEST['authors']) ? array_filter(array_map('trim', is_array($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", (string)$_REQUEST['authors'])), "isNumber") : array( );
+	if($ef_sauthors) $scountquery[] = "FIND_IN_SET(series.uid, '".implode(",", array_map('intval', $ef_sauthors))."') > 0";
 	foreach($categories as $cat) {
 		$catseries[] = "FIND_IN_SET($cat, series.catid) > 0 ";
 	}

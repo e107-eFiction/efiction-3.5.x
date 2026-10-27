@@ -33,10 +33,10 @@ $chapid = isset($_GET['chapid']) && isNumber($_GET['chapid']) ? $_GET['chapid'] 
 		else 
 			$ademail = $siteemail;
 	if(isset($_POST['submit'])) {
-		$subject = strip_tags(descript($_POST['subject']));
-		$letter = descript($_POST['letter']);
+		$subject = strip_tags(descript($_POST['subject'] ?? ''));
+		$letter = descript($_POST['letter'] ?? '');
 		include("includes/emailer.php");
-		$result = sendemail($_POST['authorname'], $_POST['authoremail'], $adminname, $ademail, $subject, $letter, "html");
+		$result = sendemail($_POST['authorname'] ?? '', $_POST['authoremail'] ?? '', $adminname, $ademail, $subject, $letter, "html");
 		if($result) echo write_message(_EMAILSENT);
 		else echo write_error(_NOMAILSENT);
 		if($logging) {
@@ -53,8 +53,8 @@ $chapid = isset($_GET['chapid']) && isNumber($_GET['chapid']) ? $_GET['chapid'] 
 			list($letter, $subject) = dbrow($letterquery);
 			$search = array("@\{sitename\}@", "@\{adminname\}@",  "@\{author\}@", "@\{storytitle\}@",  "@\{chaptertitle\}@", "@\{rules\}@");
 			$replace = array( $sitename, $adminname, $story['penname'], $story['title'], $story['chapter'], "<a href=\"".$url."/viewpage.php?page=rules\">"._RULES."</a>");
-			$letter = preg_replace($search, $replace, $letter);
-			$subject = preg_replace($search, $replace, $subject);
+			$letter = preg_replace($search, $replace, $letter ?? "");
+			$subject = preg_replace($search, $replace, $subject ?? "");
 			echo "<body>
 			<div id=\"pagetitle\"> ".$story['title'].": ".$story['chapter']." "._BY." ".$story['penname']."</div>
 			<div style=\"line-height: 4ex; margin: 0 auto; width: 90%;\">

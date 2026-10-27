@@ -29,15 +29,15 @@ if(isset($_GET['delete']) && isNumber($_GET['delete'])) {
 	else $output .= write_error(_ERROR);
 }
 if(isset($_POST['submit'])) {
-	if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['link_name'])) $output .= write_error(_BADVARNAME);
+	if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['link_name'] ?? '')) $output .= write_error(_BADVARNAME);
 	else {
 		if(isNumber($_POST['link_access'])) $link_access = $_POST['link_access'];
 		else $link_access = 0;
 		$link_name = descript($_POST['link_name']);
-		$link_text = descript($_POST['link_text']);
-		$link_url = descript(strip_tags($_POST['link_url']));
-		$link_target = descript($_POST['link_target']);
-		$link_key = strlen($_POST['link_key']) > 1 ? substr($_POST['link_key'], 0, 1) : $_POST['link_key']; // only one letter please.
+		$link_text = descript($_POST['link_text'] ?? '');
+		$link_url = descript(strip_tags($_POST['link_url'] ?? ''));
+		$link_target = descript($_POST['link_target'] ?? '');
+		$link_key = strlen($_POST['link_key'] ?? '') > 1 ? substr($_POST['link_key'], 0, 1) : $_POST['link_key']; // only one letter please.
 		if(isset($_GET['edit']) && isNumber($_GET['edit'])) 
 			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_pagelinks SET link_name = '".escapestring($link_name)."', link_text = '".escapestring($link_text)."', link_key = '$link_key', link_url = '".escapestring($link_url)."', link_target = '$link_target', link_access = '$link_access' WHERE link_id = $_GET[edit] LIMIT 1");
 		else $result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_pagelinks(`link_name`, `link_text`, `link_key`, `link_url`, `link_target`, `link_access`) VALUES('".escapestring($link_name)."', '".escapestring($link_text)."', '".escapestring($link_key)."', '".escapestring($link_url)."', '$link_target', '$link_access')");

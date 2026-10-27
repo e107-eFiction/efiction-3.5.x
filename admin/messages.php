@@ -25,7 +25,7 @@ if(!defined("_CHARSET")) exit( );
 	$output .= "<div id=\"pagetitle\">"._MESSAGESETTINGS."</div>";
 
 if(isset($_POST['submit'])) {
-	$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_messages SET message_text = '".escapestring(descript($_POST['text']))."' WHERE message_name = '".$_GET['message']."' LIMIT 1");
+	$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_messages SET message_text = '".escapestring(descript($_POST['text'] ?? ''))."' WHERE message_name = '".$_GET['message']."' LIMIT 1");
 	if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 	else $output .= write_error(_ERROR);
 }
@@ -34,7 +34,7 @@ else {
 	$message =  dbassoc($pagequery);
 	$text = $message['message_text'];
 	if(!$message) dbquery("INSERT INTO `".TABLEPREFIX."fanfiction_messages` (`message_name` , `message_title` , `message_text` ) VALUES ('".$_GET['message']."', '', '')");
-	$output .= "<div class='sectionheader'>".preg_replace("@\{sitename\}@", $sitename, $message['message_title'])."</div>
+	$output .= "<div class='sectionheader'>".preg_replace("@\{sitename\}@", $sitename, $message['message_title'] ?? '')."</div>
 		<div style='width: 100%;'><div  id=\"settingsform\"><form method=\"POST\" enctype=\"multipart/form-data\" action=\"admin.php?action=messages&message=".$_GET['message']."\">
 		<textarea rows=\"10\" cols=\"60\" style=\"width: 100%;\" ".($_GET['message'] == "tinyMCE" ? "class='mceNoEditor'" :"")." name=\"text\">$text</textarea>";
 	if($tinyMCE && $_GET['message'] != "tinyMCE") 

@@ -26,14 +26,12 @@
 if(!defined("_CHARSET")) exit( );
 
 
-$querystring = "";
-foreach($_GET as $key=>$value) {
-	if($key != "skin") $querystring .= "&amp;$key=$value";
-}
+// the rest of the current address, encoded (it lands inside a JavaScript string in an HTML attribute)
+$querystring = ef_query_terms(array("skin"));
 if(!isset($hiddenskins)) $hiddenskins = array( );
 if(is_string($hiddenskins)) $hiddenskins = explode(",", $hiddenskins);
 
-$content = "<select name=\"skin\" onChange=\"document.location = '".$_SERVER['PHP_SELF']."?skin=' + this.options[this.selectedIndex].value + '$querystring';\">";
+$content = "<select name=\"skin\" onChange=\"document.location = '".htmlspecialchars($_SERVER['SCRIPT_NAME'], ENT_QUOTES)."?skin=' + this.options[this.selectedIndex].value + '$querystring';\">";
 $directory = opendir(_BASEDIR."skins");
 while($filename = readdir($directory)) {
 	if($filename== "." || $filename== ".." || !is_dir(_BASEDIR."skins/".$filename) || (in_array($filename, $hiddenskins) && !isADMIN)) continue;

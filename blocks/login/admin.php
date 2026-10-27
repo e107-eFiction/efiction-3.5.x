@@ -20,7 +20,7 @@ else include("blocks/login/en.php");
 		$blocks['login']['acctlink'] = $_POST['acctlink'];
 		if(empty($_POST['form'])) unset($blocks['login']['form']);
 		else $blocks['login']['form'] = $_POST['form'];
-		$blocks['login']['template'] = addslashes(descript($_POST['template']));
+		$blocks['login']['template'] = addslashes(descript($_POST['template'] ?? ''));
 		save_blocks( $blocks );
 		unset($_GET['admin']);
 		$output .= write_message(_ACTIONSUCCESSFUL);

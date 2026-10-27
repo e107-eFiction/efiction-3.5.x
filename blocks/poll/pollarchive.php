@@ -41,8 +41,8 @@ $poll = !empty($_GET['poll']) && isNumber($_GET['poll']) ? $_GET['poll'] : false
 if($poll) {
 	$pollquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_poll WHERE poll_id = '$poll' ORDER BY poll_id DESC LIMIT 1");
 	$currentpoll = dbassoc($pollquery);
-	$opts = explode("|#|", $currentpoll['poll_opts']);
-	$votes = explode("#", $currentpoll['poll_results']);
+	$opts = explode("|#|", $currentpoll['poll_opts'] ?? '');
+	$votes = explode("#", $currentpoll['poll_results'] ?? '');
 	$output .= "<div id='pagetitle'>"._POLLARCHIVE.": ".$currentpoll['poll_question']."</div><br />";
 	if(isset($blocks['poll']['bar']) && file_exists($blocks['poll']['bar'])) $bar = $blocks['poll']['bar'];
 	else $bar = _BASEDIR."blocks/poll/bar.jpg";

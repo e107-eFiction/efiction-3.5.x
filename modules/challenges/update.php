@@ -11,7 +11,7 @@ include(_BASEDIR."includes/pagesetup.php");
 include_once(_BASEDIR."languages/".$language."_admin.php");
 if(file_exists("languages/".$language.".php")) include_once("languages/".$language.".php");
 else include_once("languages/en.php");
-if(!isADMIN) accessDenied( );
+if(!isADMIN || uLEVEL > 1) accessDenied( );   // the main administrator, as on the Modules page
 $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 include("version.php");
 list($currentVersion) = dbrow(dbquery("SELECT version FROM ".TABLEPREFIX."fanfiction_modules WHERE name = 'Challenges' LIMIT 1"));

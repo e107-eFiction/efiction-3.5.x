@@ -30,13 +30,16 @@ if(isset($_GET['benchmark'])) {
 $headerSent = false;
 
 // Defines the character set for your language/location
-define ("_CHARSET", "utf-8");
+if(!defined("_CHARSET")) define ("_CHARSET", "utf-8"); // user/login.php may have defined it already
 
 //default values to avoid ajax issue when notice error are on
 $allowed_tags = '';
 
 // Prevent possible XSS attacks via $_GET.
-foreach ($_GET as $v) {
+// (array values such as ?a[]=x are flattened first; on PHP 8 they used to crash every page)
+$ef_getvals = array( );
+array_walk_recursive($_GET, function($x) use (&$ef_getvals) { $ef_getvals[] = (string)$x; });
+foreach ($ef_getvals as $v) {
 	if(preg_match('@<script[^>]*?>.*?</script>@si', $v) ||
 		preg_match("'@<iframe[^>]*?>.*?</script>@si'", $v) ||
 		preg_match("'@<applet[^>]*?>.*?</script>@si'", $v) ||
@@ -44,11 +47,12 @@ foreach ($_GET as $v) {
 		preg_match('@<[\/\!]*?[^<>]*?>@si', $v) ||
 		preg_match('@<style[^>]*?>.*?</style>@siU', $v) ||
 		preg_match('@<![\s\S]*?--[ \t\n\r]*>@', $v)) {
-		include("languages/en.php"); // no language set yet, so default to English.	
-		die (_POSSIBLEHACK);
+		// no language or base folder is set up yet, so answer plainly (loading en.php here needs _BASEDIR and crashed on PHP 8)
+		if(!headers_sent()) { header("HTTP/1.1 400 Bad Request"); header("Content-Type: text/plain; charset=UTF-8"); }
+		die("Possible hacking attempt: this address contains HTML, so it was refused.");
 	}
 }
-unset($v);
+unset($v, $ef_getvals);
 
 if(!isset($_SESSION)) session_start();
 // clear the global variables if register globals is on.
@@ -223,9 +227,9 @@ if($current == "viewstory"){
 			}
 		}
 		$titleinfo = stripslashes($story['title'])." "._BY." ".implode(", ", $authlink);
-		$metaDesc = htmlspecialchars(stripslashes($story['summary']));
+		$metaDesc = htmlspecialchars(stripslashes($story['summary'] ?? ''));
 		$filename = basename($titleinfo.".html");
-		$ie = strpos("msie", strtolower($_SERVER['HTTP_USER_AGENT'])) !== false ? true : false;
+		$ie = strpos("msie", strtolower($_SERVER['HTTP_USER_AGENT'] ?? '')) !== false ? true : false;
 		if ($ie) $filename = rawurlencode($filename);
 		//header("Content-Disposition: inline; filename=\"".$titleinfo."\"");
  	}

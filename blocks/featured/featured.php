@@ -34,8 +34,8 @@ if(!defined("_CHARSET")) exit( );
 	$query = dbquery(_STORYQUERY." AND stories.featured = '1'".($limit ? " LIMIT $limit" : ""));
 	while($stories = dbassoc($query))
 	{
-		if(!isset($blocks['featured']['allowtags'])) $stories['summary'] = strip_tags($stories['summary']);
-		$stories['summary'] = truncate_text(stripslashes($stories['summary']), (isset($blocks['featured']['sumlength']) ? $blocks['featured']['sumlength'] : 75));
+		if(!isset($blocks['featured']['allowtags'])) $stories['summary'] = strip_tags($stories['summary'] ?? '');
+		$stories['summary'] = truncate_text(stripslashes($stories['summary'] ?? ''), (isset($blocks['featured']['sumlength']) ? $blocks['featured']['sumlength'] : 75));
 		if(!$use_tpl) $content .= "<div class='featuredstory'>".title_link($stories)." "._BY." ".author_link($stories)." ".$ratingslist[$stories['rid']]['name']."<br />".$stories['summary']."</div>";
 		else {
 			$tpl->newBlock("featuredblock");

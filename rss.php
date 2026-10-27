@@ -71,7 +71,7 @@ while($rate = dbassoc($ratlist)) {
       if($story['coauthors']) {
       $coauth = dbquery("SELECT "._PENNAMEFIELD." as penname, co.uid FROM ".TABLEPREFIX."fanfiction_coauthors AS co LEFT JOIN "._AUTHORTABLE." ON co.uid = "._UIDFIELD." WHERE co.sid = '".$story['sid']."'");
       while($c = dbassoc($coauth)) {
-        $story['authors'][] = $c['penname'];
+        $story['authors'][] = $c['penname'] ?? '';
       }
       }
       foreach($story['authors'] AS $k => $v) {
@@ -80,7 +80,7 @@ while($rate = dbassoc($ratlist)) {
       $rss.= "<item>
     <title>".strip_tags(xmlentities($story['title']))." "._BY." ".implode(", ", $story['authors'])." [".$ratings[$story['rid']]."]</title>
     <link>$url/viewstory.php?sid=".$story['sid']."</link>
-    <description>".strip_tags(xmlentities($story['summary']))."</description>
+    <description>".strip_tags(xmlentities($story['summary'] ?? ''))."</description>
     <pubDate>".date("r",$story['updated'])."</pubDate>
       </item>\n";  
   } 

@@ -35,7 +35,7 @@ if(empty($favorites)) accessDenied( );
 			$itemcount = 0;
 			$countquery = dbquery("SELECT COUNT(item) FROM ".TABLEPREFIX."fanfiction_favorites WHERE uid = '$uid' AND type = '$type'");
 			list($itemcount) = dbrow($countquery);
-			$output .= "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname, stripslashes($panel['panel_title'])).(isset($itemcount) ? " [$itemcount]" : "")."</a><br />\n";
+			$output .= "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname ?? '', stripslashes($panel['panel_title'])).(isset($itemcount) ? " [$itemcount]" : "")."</a><br />\n";
 		}
 	}
 	$output .= "</div>";

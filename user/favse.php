@@ -45,11 +45,11 @@ if(empty($favorites)) accessDenied( );
 		$result = false;
 		$check = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_favorites WHERE uid = '".USERUID."' AND item = '$seriesid' AND type = 'SE' LIMIT 1");
 		if(dbnumrows($check) == 0)
-			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_favorites(uid, item, type, comments) VALUES ('".USERUID."', '$seriesid', 'SE', '".escapestring(descript(strip_tags(replace_naughty($_POST['comments']), $allowed_tags)))."')");
+			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_favorites(uid, item, type, comments) VALUES ('".USERUID."', '$seriesid', 'SE', '".escapestring(descript(strip_tags(replace_naughty($_POST['comments'] ?? ''), $allowed_tags)))."')");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL." "._BACK2ACCT);
 	}
 	else if($edit && isset($_POST['submit'])) {
-		$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_favorites SET comments = '".escapestring(descript(strip_tags(replace_naughty($_POST['comments']), $allowed_tags)))."' WHERE uid = '".USERUID."' AND item = '$edit' AND type = 'SE'");
+		$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_favorites SET comments = '".escapestring(descript(strip_tags(replace_naughty($_POST['comments'] ?? ''), $allowed_tags)))."' WHERE uid = '".USERUID."' AND item = '$edit' AND type = 'SE'");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL." "._BACK2ACCT);
 		else $output .= write_error(_ERROR);
 	}

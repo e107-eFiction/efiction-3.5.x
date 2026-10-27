@@ -33,7 +33,7 @@ $tpl->assignInclude( "header", "./$skindir/header.tpl" );
 $tpl->assignInclude( "footer", "./$skindir/footer.tpl" );
 
 include("includes/pagesetup.php");
-if(isset($_GET['type'])) $type = descript($_GET['type']);
+if(isset($_GET['type']) && is_string($_GET['type']) && preg_match('/^[a-z0-9_]{1,40}$/i', $_GET['type'])) $type = $_GET['type'];
 else $type = false;
 
 if($type) {
@@ -41,7 +41,9 @@ if($type) {
 	$countquery = array();
 	$scountquery = array();
 	$searchtype = (isset($_REQUEST['searchtype']) ? $_REQUEST['searchtype'] : "simple");
-	$searchterm =  (isset($_REQUEST['searchterm']) ? descript($_REQUEST['searchterm']) : false);
+	$searchterm =  (isset($_REQUEST['searchterm']) && is_string($_REQUEST['searchterm']) ? descript($_REQUEST['searchterm']) : false);
+	// escape for the LIKE queries below (it used to go in as typed)
+	if($searchterm !== false) $searchterm = str_replace(array('%', '_'), array('\\%', '\\_'), escapestring($searchterm));
 	$disablesorts = array( );
 	if($searchterm) {
 		if($searchtype == "title") {
@@ -65,6 +67,10 @@ if($type) {
 				$countquery[] = "FIND_IN_SET(stories.uid, '".implode(",",$authorlist)."') > 0";
 				$scountquery[] = "FIND_IN_SET(series.uid, '".implode(",",$authorlist)."') > 0";
 			}
+			else {
+				// no member has that pen name: nothing matches (before 3.5.78 every story was listed)
+				$query[] = "1 = 0"; $countquery[] = "1 = 0"; $scountquery[] = "1 = 0";
+			}
 		}
 		if($searchtype == "advanced" || !$searchtype) {
 			$query[] = "(stories.summary LIKE '%$searchterm%' OR stories.title LIKE '%$searchterm%') ";
@@ -72,10 +78,12 @@ if($type) {
 			$scountquery[] = "(summary LIKE '%$searchterm%' OR title LIKE '%$searchterm%') ";
 		}
 	}
-	if(isset($_REQUEST['authors'])) {
-		$query[] = "FIND_IN_SET(stories.uid, '".implode(",",$searchVars['authors'])."') > 0";
-		$countquery[] = "FIND_IN_SET(stories.uid, '".implode(",",$searchVars['authors'])."') > 0";
-		$scountquery[] = "FIND_IN_SET(series.uid, '".implode(",",$searchVars['authors'])."') > 0";
+	$ef_authors = isset($_REQUEST['authors']) ? array_filter(array_map('trim', is_array($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", (string)$_REQUEST['authors'])), "isNumber") : array( );
+	if($ef_authors) {
+		$ef_authors = implode(",", array_map('intval', $ef_authors));
+		$query[] = "FIND_IN_SET(stories.uid, '".$ef_authors."') > 0";
+		$countquery[] = "FIND_IN_SET(stories.uid, '".$ef_authors."') > 0";
+		$scountquery[] = "FIND_IN_SET(series.uid, '".$ef_authors."') > 0";
 	}
 	if(isset($_REQUEST['catid'])) {
 		$catid = is_array($_REQUEST['catid']) ? $_REQUEST['catid'] : explode(",", $_REQUEST['catid']);
@@ -110,8 +118,8 @@ if($type) {
 		$charid = is_array($_REQUEST['charid']) ? $_REQUEST['charid'] : explode(",", $_REQUEST['charid']);
 		$charid = array_filter($charid, "isNumber");
 	}
-	if(!empty($_REQUEST['charlist1']) && !in_array($_REQUEST['charlist1'], $charid)) $charid[] = $_REQUEST['charlist1'];
-	if(!empty($_REQUEST['charlist2']) && !in_array($_REQUEST['charlist2'], $charid)) $charid[] = $_REQUEST['charlist2'];
+	if(!empty($_REQUEST['charlist1']) && isNumber($_REQUEST['charlist1']) && !in_array($_REQUEST['charlist1'], $charid)) $charid[] = $_REQUEST['charlist1'];
+	if(!empty($_REQUEST['charlist2']) && isNumber($_REQUEST['charlist2']) && !in_array($_REQUEST['charlist2'], $charid)) $charid[] = $_REQUEST['charlist2'];
 	if($charid) {
 		foreach($charid as $c) {
 			if(!empty($c)) {
@@ -126,9 +134,9 @@ if($type) {
 		if(count($charseries) > 0) $scountquery[] = "(".implode(" AND ", $charseries).")";
 	}
 	$rid = array( ); $rating = array( );
-	if(!empty($_REQUEST['rid'])) $rid = is_array($_REQUEST['rid']) ? implode(",", $_REQUEST['rid']) : array($_REQUEST['rid']);
-	if(!empty($_REQUEST['rating'])) $rating = is_array($_REQUEST['rating']) ? implode(",", $_REQUEST['rating']) : array($_REQUEST['rating']);
-	$rid = array_merge($rid, $rating);
+	if(!empty($_REQUEST['rid'])) $rid = is_array($_REQUEST['rid']) ? $_REQUEST['rid'] : explode(",", (string)$_REQUEST['rid']);
+	if(!empty($_REQUEST['rating'])) $rating = is_array($_REQUEST['rating']) ? $_REQUEST['rating'] : explode(",", (string)$_REQUEST['rating']);
+	$rid = array_values(array_filter(array_merge((array)$rid, (array)$rating), "isNumber")); // numbers only
 	if(!empty($rid)) {
 		$query[] = "FIND_IN_SET(stories.rid, '".(implode(",", $rid))."') > 0";
 		$countquery[]  = "FIND_IN_SET(stories.rid, '".(implode(",", $rid))."') > 0";
@@ -185,8 +193,8 @@ if($type) {
 	}
 	// Begin story length
 	unset($wordcount);
-	$wordlow = isset($_REQUEST['wordlow']) ? $_REQUEST['wordlow'] : "-500";
-	$wordhigh = isset($_REQUEST['wordhigh']) ? $_REQUEST['wordhigh'] : "1000000";
+	$wordlow = isset($_REQUEST['wordlow']) && is_string($_REQUEST['wordlow']) && preg_match('/^-?[0-9]{1,9}$/', $_REQUEST['wordlow']) ? $_REQUEST['wordlow'] : "-500";
+	$wordhigh = isset($_REQUEST['wordhigh']) && is_string($_REQUEST['wordhigh']) && preg_match('/^[0-9]{1,9}$/', $_REQUEST['wordhigh']) ? $_REQUEST['wordhigh'] : "1000000";
 	if($wordlow != "-500") $wordcount = "stories.wordcount > ".$wordlow;
 	if($wordhigh != "1000000") 
 	{
@@ -210,9 +218,9 @@ if($type) {
 	$termsList = array();
 	foreach($termArray as $term => $value) {
 		if($term == "submit" || $term == "go" || $term == "offset" || $term == "type" || ($term != "complete" && empty($value))) continue;
-		$termsList[$term] = "$term=".(is_array($value) ? implode(",", $value) : $value);
+		$termsList[$term] = ef_term($term, $value);
 	}
-	$terms = "type=$type".(count($termsList) ? "&amp;" : "").implode("&amp;", $termsList);
+	$terms = ef_term("type", $type).(count($termsList) ? "&amp;" : "").implode("&amp;", $termsList);
 // End query strings
 	$panelquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_panels WHERE panel_name = '$type' AND panel_type = 'B' LIMIT 1");
 	if(dbnumrows($panelquery)) {

@@ -29,7 +29,7 @@ $uid = isset($_GET['uid']) && isNumber($_GET['uid']) ? $_GET['uid'] : 0;
 if($uid > 0) {
 	$query = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 	list($penname) = dbrow($query);
-	$output = "<div id='pagetitle'>".stripslashes($penname)."</div>\n";
+	$output = "<div id='pagetitle'>".stripslashes($penname ?? '')."</div>\n";
 	$squery = "SELECT stories.*, "._PENNAMEFIELD." as penname, stories.date as date, stories.updated as updated FROM ("._AUTHORTABLE.", ".TABLEPREFIX."fanfiction_stories as stories) LEFT JOIN ".TABLEPREFIX."fanfiction_coauthors as coauth ON coauth.sid = stories.sid WHERE "._UIDFIELD." = stories.uid AND stories.validated > 0 $squery AND (stories.uid = '$uid' OR coauth.uid = '$uid') "._ORDERBY;
 	$cquery = "SELECT count(stories.sid) FROM ".TABLEPREFIX."fanfiction_stories as stories LEFT JOIN ".TABLEPREFIX."fanfiction_coauthors as coauth ON stories.sid = coauth.sid WHERE validated > 0 $countquery AND (stories.uid = '$uid' OR coauth.uid = '$uid')";
 	$numrows = search($squery, $cquery, "browse.php?");

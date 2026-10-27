@@ -424,7 +424,7 @@ define ("_LOG_ADMIN_DEL", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> deleted <a
 define ("_LOG_ADMIN_EDIT", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> edited <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%6\$d'>%5\$s</a>.");
 define ("_LOG_ADMIN_DEL_CHAPTER", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> deleted <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%6\$d'>%5\$s</a>, chapter %7\$d");
 define ("_LOG_ADMIN_EDIT_CHAPTER", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> edited <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%6\$d'>%5\$s</a>, chapter %7\$d");
-define ("_LOG_ADMIN_EDIT_AUTHOR", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> changed the author of <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%8\$7'>%5\$s</a> to <a href='viewuser.php?uid=%6\$d'>%5\$s</a>.");
+define ("_LOG_ADMIN_EDIT_AUTHOR", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> changed the author of <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%8\$d'>%7\$s</a> to <a href='viewuser.php?uid=%6\$d'>%5\$s</a>.");
 define ("_LOG_ADMIN_DEL_SERIES", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> deleted the series '%3\$s'.");
 define ("_LOG_ADMIN_EDIT_SERIES", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> edited the series '<a href='viewseries.php?seriesid=%4\$d'>%3\$s</a>'.");
 define ("_LOG_ADMIN_DEL_FROM_SERIES", "<a href='viewuser.php?uid=%2\$d'>%1\$s</a> deleted <a href='viewstory.php?sid=%4\$d'>%3\$s</a> by <a href='viewuser.php?uid=%6\$d'>%5\$s</a> from '<a href='viewseries.php?seriesid=%8\$d'>%7\$s</a>.'");

@@ -58,7 +58,7 @@ if(isset($_GET['delete'])) {
 if(isset($_GET['newitems']) && isNumber($_GET['newitems'])) {
 	if(isset($_POST['submit'])) {
 		for($x = 1; $x <= $itemsperpage; $x++) {
-			$item = escapestring(descript(strip_tags($_POST["item_$x"])));
+			$item = escapestring(descript(strip_tags($_POST["item_$x"] ?? "")));
 			if($item) {
 				$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_classes(`class_type`, `class_name`) VALUES('$_GET[newitems]', '$item')");
 				if(!$result) $output .= write_error(magicunquote($item).": "._ERROR."<br />");
@@ -96,8 +96,8 @@ if(isset($listtype)) {
 }
 if(isset($_GET['type']) && empty($_GET['delete'])) {
 	if(isset($_POST['submit'])) {
-		$type_name = escapestring(descript(strip_tags($_POST['type_name'])));
-		$type_title = escapestring(descript(strip_tags($_POST['type_title'])));
+		$type_name = escapestring(descript(strip_tags($_POST['type_name'] ?? '')));
+		$type_title = escapestring(descript(strip_tags($_POST['type_title'] ?? '')));
 		if(isset($_POST['type_id'])) $result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_classtypes SET classtype_name = '$type_name', classtype_title = '$type_title' WHERE classtype_id = '".$_POST['type_id']."' LIMIT 1");
 		else {
 			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_classtypes(classtype_name, classtype_title) VALUES('$type_name', '$type_title')");
@@ -124,7 +124,7 @@ if(isset($_GET['type']) && empty($_GET['delete'])) {
 if(isset($_GET['class']) && empty($_GET['delete'])) {
 	if(isset($_POST['submit'])) {
 		if(isset($_GET['class']) && isNumber($_GET['class'])) $class_id = $_GET['class'];
-		$class_name = escapestring(descript(strip_tags($_POST['class_name'])));
+		$class_name = escapestring(descript(strip_tags($_POST['class_name'] ?? '')));
 		$class_type = isNumber($_POST['type_id']) ? $_POST['type_id'] : false;
 		if(isset($class_id)) $result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_classes SET class_name = '$class_name', class_type = '$class_type' WHERE class_id = '$class_id' LIMIT 1");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL);

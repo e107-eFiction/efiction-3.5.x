@@ -44,7 +44,7 @@ if(dbnumrows($shouts) > 0) {
 	$output .= "<div class='sectionheader'>"._SHOUTARCHIVE."</div><div style='width: 80%;margin: 0 auto;'>";
 	while($shout = dbassoc($shouts)) {
 		if(isNumber($shout['shout_name']) && isset($shout['penname'])) $shoutname = "<a href='"._BASEDIR."viewuser.php?uid=".$shout['shout_name']."'>".$shout['penname']."</a>";
-		else if(isset($shout['shout_name'])) $shoutname = $shout['shout_name'];
+		else if(isset($shout['shout_name'])) $shoutname = htmlspecialchars(html_entity_decode(strip_tags($shout['shout_name']), ENT_QUOTES, _CHARSET), ENT_QUOTES, _CHARSET);
 		else $shout = _GUEST; // Just in case.
 		$output .= "
 <div class='tblborder'><span class='sbname'>$shoutname</span><br />\n

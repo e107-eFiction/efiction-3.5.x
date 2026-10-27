@@ -38,12 +38,12 @@ if(isset($_GET['task']) && $_GET['task'] == "recalc") {
 		$series = dbquery("SELECT COUNT(seriesid) FROM ".TABLEPREFIX."fanfiction_series WHERE FIND_IN_SET('".$c['chalid']."', challenges) > 0");
 		list($count2) = dbrow($series);
 		$count = $count1 + $count2;
-		dbquery("UPDATE ".TABLEPREFIX."fanfiction_challenges SET  responses = '$count' WHERE chalid = $c[chalid]");
+		dbquery("UPDATE ".TABLEPREFIX."fanfiction_challenges SET  responses = '".(int)$count."' WHERE chalid = '".(int)$c['chalid']."'");
 	}
 	$output .= write_message(_ACTIONSUCCESSFUL);
 }
 if(isset($_POST['submit'])) {
-	$anonchallenges = $_POST['anonchallenges'] == 1 ? 1 : 0;
+	$anonchallenges = isset($_POST['anonchallenges']) && $_POST['anonchallenges'] == 1 ? 1 : 0;
 	$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET anonchallenges = '$anonchallenges' WHERE sitekey = '".SITEKEY."'");
 	if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 	else $output .= write_error(_ERROR);

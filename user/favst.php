@@ -29,9 +29,9 @@ if(empty($favorites)) accessDenied( );
 		$uid = USERUID;
 		$output .= "<div id='pagetitle'>"._YOURSTATS."</div>";
 	}
-	$add = isset($_GET['add']) ? $_GET['add'] : false;
-	$edit = isset($_GET['edit']) ? $_GET['edit'] : false;
-	$delete = isset($_GET['delete']) ? $_GET['delete'] : false;
+	$add = isset($_GET['add']) && isNumber($_GET['add']) ? $_GET['add'] : false;
+	$edit = isset($_GET['edit']) && isNumber($_GET['edit']) ? $_GET['edit'] : false;
+	$delete = isset($_GET['delete']) && isNumber($_GET['delete']) ? $_GET['delete'] : false;
 	if($add) $output .= "<div class='sectionheader'>"._ADDTOFAVORITES."</div>";
 	else if($edit) $output .= "<div class='sectionheader'>"._EDITFAVORITES."</div>";
 	else $output .= "<div class='sectionheader'>"._FAVORITESTORIES."</div>";
@@ -45,11 +45,11 @@ if(empty($favorites)) accessDenied( );
 	if($add && isset($_POST['submit'])) {
 		$check = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_favorites WHERE uid = '".USERUID."' AND item = '$sid' AND type = 'ST' LIMIT 1");
 		if(!dbnumrows($check))
-			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_favorites(uid, item, type, comments) VALUES ('".USERUID."', '$sid', 'ST', '".escapestring(descript(strip_tags(replace_naughty($_POST['comments']), $allowed_tags)))."')");
+			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_favorites(uid, item, type, comments) VALUES ('".USERUID."', '$sid', 'ST', '".escapestring(descript(strip_tags(replace_naughty($_POST['comments'] ?? ''), $allowed_tags)))."')");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL." "._BACK2ACCT);
 	}
 	if($edit && isset($_POST['submit'])) {
-		$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_favorites SET comments = '".escapestring(descript(strip_tags(replace_naughty($_POST['comments']), $allowed_tags)))."' WHERE uid = '$uid' AND item = '$edit' AND type = 'ST'");
+		$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_favorites SET comments = '".escapestring(descript(strip_tags(replace_naughty($_POST['comments'] ?? ''), $allowed_tags)))."' WHERE uid = '".USERUID."' AND item = '".(int)$edit."' AND type = 'ST'");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL." "._BACK2ACCT);
 		else $output .= write_error(_ERROR);
 	}

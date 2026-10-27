@@ -38,7 +38,7 @@ include("includes/pagesetup.php");
 		if($captcha && !isMEMBER && !captcha_confirm()) $output .= write_error(_CAPTCHAFAIL);
 		else {
 			include("includes/emailer.php");
-			$result = sendemail($sitename, $siteemail, $_POST['email'], $_POST['email'], (!empty($_POST['reportpage']) ? _REPORT.": " : "").descript(strip_tags($_POST['subject'])), format_story(descript($_POST['comments'])).(!empty($_POST['reportpage']) ? "<br /><br /><a href='$url/".$_POST['reportpage']."'>$url/".$_POST['reportpage']."</a>" : "").(isMEMBER ? sprintf(_SITESIG2, "<a href='".$url."/viewuser.php?uid=".USERUID."'>".USERPENNAME."</a>") : _SITESIG), "html");
+			$result = sendemail($sitename, $siteemail, $_POST['email'] ?? '', $_POST['email'] ?? '', (!empty($_POST['reportpage']) ? _REPORT.": " : "").descript(strip_tags($_POST['subject'] ?? '')), format_story(descript($_POST['comments'] ?? '')).(!empty($_POST['reportpage']) ? "<br /><br /><a href='$url/".$_POST['reportpage']."'>$url/".$_POST['reportpage']."</a>" : "").(isMEMBER ? sprintf(_SITESIG2, "<a href='".$url."/viewuser.php?uid=".USERUID."'>".USERPENNAME."</a>") : _SITESIG), "html");
 			if($result) $output .= write_message(_EMAILSENT);
 			else $output .= write_error(_EMAILFAILED);
 		}

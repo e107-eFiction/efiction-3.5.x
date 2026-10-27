@@ -286,10 +286,16 @@ elseif ($oldVersion[0] == 3 && $oldVersion[1] == 5 && $oldVersion[2] < 9)  // 3.
 {
 	if ($confirm == "yes")
 	{
-		if (!dbassoc(dbquery("SHOW COLUMNS FROM ".TABLEPREFIX."fanfiction_settings LIKE 'smtp_port'")))
-			dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_settings` ADD `smtp_port` varchar(5) NOT NULL DEFAULT ''");
-		if (!dbassoc(dbquery("SHOW COLUMNS FROM ".TABLEPREFIX."fanfiction_settings LIKE 'smtp_secure'")))
-			dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_settings` ADD `smtp_secure` varchar(3) NOT NULL DEFAULT ''");
+		if (!dbassoc(dbquery("SHOW COLUMNS FROM ".$settingsprefix."fanfiction_settings LIKE 'smtp_port'")))
+			dbquery("ALTER TABLE `".$settingsprefix."fanfiction_settings` ADD `smtp_port` varchar(5) NOT NULL DEFAULT ''");
+		if (!dbassoc(dbquery("SHOW COLUMNS FROM ".$settingsprefix."fanfiction_settings LIKE 'smtp_secure'")))
+			dbquery("ALTER TABLE `".$settingsprefix."fanfiction_settings` ADD `smtp_secure` varchar(3) NOT NULL DEFAULT ''");
+		// 3.5.7: password_hash() needs more than the old varchar(40); MD5 hashes keep working and are replaced at login
+		$field_info = dbassoc(dbquery("SHOW COLUMNS FROM ".TABLEPREFIX."fanfiction_authors LIKE 'password'"));
+		if ($field_info && strtolower($field_info['Type']) != 'varchar(255)')
+			dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_authors` MODIFY `password` varchar(255) NOT NULL DEFAULT ''");
+		// older settings pages turned "https://site" into "http://https://site"
+		dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET url = SUBSTRING(url, 8) WHERE url LIKE 'http://https://%' OR url LIKE 'http://http://%'");
 
 		$set_359 = do_version_check_359();
 		if ($set_359)
@@ -298,6 +304,19 @@ elseif ($oldVersion[0] == 3 && $oldVersion[1] == 5 && $oldVersion[2] < 9)  // 3.
 		}
 		else
 		{
+			// Accounts an administrator created and never released have '0' or '' as password, which made the
+			// cookie salt md5(email . hash) guessable. Give them a random value that is no hash, so it never
+			// authenticates (see ef_password_is_hash()). Rows with a hash or a '!' value are left alone.
+			$unusablechars = '23456789abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ';
+			$unreleased = dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_authors WHERE password = '0' OR password = ''");
+			while ($row = dbassoc($unreleased))
+			{
+				$unusable = "!";
+				for ($i = 0; $i < 40; $i++) $unusable .= $unusablechars[random_int(0, strlen($unusablechars) - 1)];
+				dbquery("UPDATE ".TABLEPREFIX."fanfiction_authors SET password = '".escapestring($unusable)."' WHERE uid = '".(int)$row['uid']."' AND (password = '0' OR password = '') LIMIT 1");
+			}
+			// 3.5.78: clean HTML stored before the descript() rewrite (safe to run again)
+			ef_clean_stored_html();
 			$update = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET version = '".$version."' WHERE sitekey = '".SITEKEY."'");
 			if ($update) $output .= write_message(_ACTIONSUCCESSFUL);
 		}
@@ -418,19 +437,97 @@ function do_version_check_356()
 
 function do_version_check_359()
 {
+	global $settingsprefix;
+
 	$check_359 = false;
 
 	$required = array('smtp_port', 'smtp_secure');
 	foreach ($required as $f)
 	{
-		if (!dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_settings LIKE '{$f}'")))
+		if (!dbassoc(dbquery("SHOW COLUMNS FROM " . $settingsprefix . "fanfiction_settings LIKE '{$f}'")))
 		{
 			$check_359 = "fanfiction_settings - field: " . $f;
 			return $check_359;
 		}
 	}
 
+	// the column exists at varchar(40) on older sites, so check its type, not only that it is there
+	$field_info = dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . "fanfiction_authors LIKE 'password'"));
+	if (!$field_info || strtolower($field_info['Type']) != 'varchar(255)')
+	{
+		$check_359 = "fanfiction_authors - field: password";
+		return $check_359;
+	}
+
 	return $check_359;
+}
+
+/* 3.5.78: reviews, news comments and challenges saved before the descript() rewrite could keep
+   script in an attribute (<img onerror=...>). Runs the stored HTML through descript() again.
+   Called from the 3.5.8 -> 3.5.9 step; safe to run more than once (rows that are already clean
+   are not written). Returns the number of rows changed per table. */
+function ef_clean_stored_html($batch = 200)
+{
+	global $dbconnect;
+
+	$batch = max(1, (int)$batch);
+	$changed = array();
+	$jobs = array(
+		array('fanfiction_reviews', 'reviewid', array('review')),
+		array('fanfiction_comments', 'cid', array('comment')),
+		array('fanfiction_challenges', 'chalid', array('title', 'summary', 'challenger')),
+	);
+
+	// The site connects with SET NAMES UTF8 (3-byte utf8); read and write 4-byte characters
+	// (emoji) in utf8mb4 columns unchanged. A server without utf8mb4 cannot hold them anyway.
+	$mb4 = ($dbconnect instanceof mysqli);
+	if ($mb4)
+	{
+		// PHP 8.1+ throws here instead of returning false
+		try { @$dbconnect->set_charset('utf8mb4'); }
+		catch (Exception $e) { }
+	}
+
+	foreach ($jobs as $job)
+	{
+		list($table, $key, $cols) = $job;
+		$changed[$table] = 0;
+		if (!dbnumrows(dbquery("SHOW TABLES LIKE '" . escapestring(TABLEPREFIX . $table) . "'"))) continue;
+		$where = array();
+		foreach ($cols as $c) $where[] = "`$c` LIKE '%<%'";
+		$last = 0;
+		do
+		{
+			$rows = dbquery("SELECT `$key`, `" . implode("`, `", $cols) . "` FROM " . TABLEPREFIX . $table . " WHERE `$key` > '" . (int)$last . "' AND (" . implode(" OR ", $where) . ") ORDER BY `$key` LIMIT " . $batch);
+			$count = 0;
+			while ($row = dbassoc($rows))
+			{
+				$count++;
+				$last = (int)$row[$key];
+				$set = array();
+				foreach ($cols as $c)
+				{
+					$old = (string)$row[$c];
+					$new = (string)descript($old);
+					if ($new !== $old) $set[] = "`$c` = '" . escapestring($new) . "'";
+				}
+				if ($set)
+				{
+					dbquery("UPDATE " . TABLEPREFIX . $table . " SET " . implode(", ", $set) . " WHERE `$key` = '" . (int)$last . "' LIMIT 1");
+					$changed[$table]++;
+				}
+			}
+		}
+		while ($count == $batch);
+	}
+
+	if ($mb4)
+	{
+		// back to what includes/mysqli_functions.php sets (SET NAMES UTF8)
+		try { @$dbconnect->set_charset('utf8'); }
+		catch (Exception $e) { }
+	}
+	return $changed;
 }
 
 $tpl->assign("output", $output);

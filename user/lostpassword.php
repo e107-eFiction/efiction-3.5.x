@@ -28,7 +28,7 @@ if(!function_exists("random_char")) {
 function random_char($string)
 {
 	$length = strlen($string);
-	$position = mt_rand(0, $length - 1);
+	$position = random_int(0, $length - 1);
 	return ($string[$position]);
 }
 
@@ -45,16 +45,16 @@ if(isMEMBER) accessDenied( );
 	$output = "<div id=\"pagetitle\">"._LOSTPASSWORD."</div>";
 
 	  if(isset($_POST['submit'])) {
-		if(validEmail($_POST['email'])) {
-			$result = dbquery("SELECT "._UIDFIELD." as uid, "._PENNAMEFIELD." as penname, "._EMAILFIELD." AS email FROM "._AUTHORTABLE." WHERE email = '".strtolower(escapestring(descript($_POST['email'])))."'");
+		if(validEmail($_POST['email'] ?? '')) {
+			// an account created by an administrator gets its first password only when the administrator releases it
+			$result = dbquery("SELECT "._UIDFIELD." as uid, "._PENNAMEFIELD." as penname, "._EMAILFIELD." AS email FROM "._AUTHORTABLE." WHERE email = '".strtolower(escapestring(descript($_POST['email'])))."' AND author.admincreated != '1'");
 			list($uid, $penname, $email) = dbrow($result);
 			if(dbnumrows($result) == 0) $output .= write_message(_BADEMAIL);
 			else {
 				include("includes/emailer.php");
-				mt_srand((double)microtime() * 1000000);
 				$charset = '23456789' . 'abcdefghijkmnpqrstuvwxyz' . 'ABCDEFGHJKLMNPQRSTUVWXYZ';		
 				$pass = random_string($charset, 10);
-				$encryppass = md5($pass);
+				$encryppass = ef_hash_password($pass);
 				$subject = _NEWPWDSUB;
 				$mailtext = sprintf(_NEWPWDMSG, $pass);
 
@@ -62,7 +62,7 @@ if(isMEMBER) accessDenied( );
 				$result = sendemail($penname, $email, $sitename, $siteemail, $subject, $mailtext, "html");
 				if($result) {
 					$output .= write_message(_PASSWORDSENT);
-					dbquery("UPDATE ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." SET password='$encryppass' WHERE uid = '".$uid."'");
+					dbquery("UPDATE ".substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, "as author"))." SET password='".escapestring($encryppass)."' WHERE uid = '".(int)$uid."'");
 				}
 				else $output .=  write_message(_EMAILFAILED);
 				if($logging) 

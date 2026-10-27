@@ -24,6 +24,17 @@
 
 $current = "viewstory";
 
+// Prints a page with just the story title and a message (the story and print templates have no place for one).
+// The caller sets up the default template and includes pagesetup.php first: that has to run in the global
+// scope, because the blocks it includes read the site settings from there.
+function ef_story_error($msg, $title = "") {
+	global $tpl;
+	$tpl->assign("output", ($title !== "" ? "<div id='pagetitle'>".$title."</div>" : "").write_error($msg));
+	$tpl->printToScreen( );
+	dbclose( );
+	exit( );
+}
+
 include ("header.php");
 if(isset($_GET['action'])) $action = $_GET['action'];
 else $action = false;
@@ -36,6 +47,7 @@ if(empty($chapter)) $chapter = isset($_GET['chapter']) && isNumber($_GET['chapte
 	$storyinfo = dbassoc($storyquery);
  
 	if(!$storyinfo) {
+		http_response_code(404);
 		$current = "storyerror";
 		// load our template files to set up the page.
 		if (file_exists("$skindir/default.tpl")) $tpl = new TemplatePower("$skindir/default.tpl");
@@ -64,7 +76,9 @@ if(empty($chapter)) $chapter = isset($_GET['chapter']) && isNumber($_GET['chapte
 	//  Check that the story is valid and that the visitor has permissions to read this story
 	$warning = "";
 	if(!$storyinfo) $warning = _INVALIDSTORY;
-	if(!$storyinfo['valid'] && !isADMIN && ($storyinfo['uid'] != USERUID || !in_array(USERUID, $storyinfo['coauthors_array']))) $warning = _ACCESSDENIED;
+	// staff, the author and co-authors may read unvalidated stories and chapters (coauthors_array is keyed by uid)
+	$ef_ownview = isADMIN || (USERUID && ($storyinfo['uid'] == USERUID || isset($storyinfo['coauthors_array'][USERUID])));
+	if(!$storyinfo['valid'] && !$ef_ownview) $warning = _ACCESSDENIED;
 	if ($storyinfo['rid']  != 0 ) {
 		$ratingquery = dbquery("SELECT ratingwarning, warningtext FROM " . TABLEPREFIX . "fanfiction_ratings WHERE rid = '" . $storyinfo['rid'] . "' LIMIT 1");
 		$rating = dbassoc($ratingquery);
@@ -139,10 +153,7 @@ if($action == "printable") {
 					errorExit( );
 				}
 				$file = STORIESPATH."/".$c['uid']."/".$c['chapid'].".txt";
-				$log_file = @fopen($file, "r");
-				$file_contents = @fread($log_file, filesize($file));
-				$story = $file_contents;
-				@fclose($log_file);
+				$story = is_file($file) ? (string)@file_get_contents($file) : "";
 			}
 			else $story = $c['storytext'];
 			// The following lines cleans up problems between pre-2.0 stories and 2.0 stories.  If there's html, don't send it through nl2br and then clean up smart quotes.
@@ -159,13 +170,15 @@ if($action == "printable") {
 	else {
 		$chapterinfo = dbquery("SELECT *, "._PENNAMEFIELD." as penname FROM (".TABLEPREFIX."fanfiction_chapters as c, "._AUTHORTABLE.") WHERE sid = '$sid' AND inorder = '$chapter' AND c.uid = "._UIDFIELD." LIMIT 1");
 		$c = dbassoc($chapterinfo);
-		// if the *CHAPTER* hasn't been validated and the viewer isn't an admin or the author throw them a warning.  
-		if(empty($c['validated']) && !isADMIN && USERUID != $c['uid'] && !in_array(USERUID, $stories['coauthors_array'])) {
-			$warning = write_error(_ACCESSDENIED);
-			$tpl->assign("archivedat", $warning);
-			$tpl->printToScreen( );
-			dbclose( );
-			exit( );
+		// a chapter that doesn't exist, or an unvalidated one for anyone but staff, the author and co-authors
+		// (this crashed on PHP 8 and showed an empty print page)
+		if(!$c || (empty($c['validated']) && !$ef_ownview && USERUID != $c['uid'])) {
+			if(!$c) http_response_code(404);
+			$current = "storyerror";
+			$action = false;
+			$tpl = new TemplatePower(file_exists("$skindir/default.tpl") ? "$skindir/default.tpl" : "default_tpls/default.tpl");
+			include("includes/pagesetup.php");
+			ef_story_error($c ? _ACCESSDENIED : _ERROR, $title);
 		}
 
 		if($c['inorder'] == 1 && !empty($storyinfo['storynotes'])) {
@@ -189,10 +202,7 @@ if($action == "printable") {
 				errorExit( );
 			}
 			$file = STORIESPATH."/".$c['uid']."/".$c['chapid'].".txt";
-			$log_file = @fopen($file, "r");
-			$file_contents = @fread($log_file, filesize($file));
-			$story = $file_contents;
-			@fclose($log_file);
+			$story = is_file($file) ? (string)@file_get_contents($file) : "";
 		}
 		else $story = $c['storytext'];
 		// The following lines cleans up problems between pre-2.0 stories and 2.0 stories.  If there's html, don't send it through nl2br and then clean up smart quotes.
@@ -295,6 +305,15 @@ else {
 			}
 		}
 		$jumpmenu .= "</select>";
+		// a chapter number that doesn't exist (old link, typo): say so instead of a page full of warnings
+		if(!isset($inorder)) {
+			http_response_code(404);
+			$current = "storyerror";
+			$action = false;
+			$tpl = new TemplatePower(file_exists("$skindir/default.tpl") ? "$skindir/default.tpl" : "default_tpls/default.tpl");
+			include("includes/pagesetup.php");
+			ef_story_error(_ERROR, $title);
+		}
 		if($chapter < $chapters) {
 			$nextchapter = $chapter + 1;
 			$next = "<a href=\"viewstory.php?sid=$sid&amp;textsize=$textsize&amp;chapter=".($chapter+1)."\" class=\"next\">"._NEXT."</a>";
@@ -315,6 +334,7 @@ else {
 
 		if (!$chapter)
 		{
+			http_response_code(404);
 			$current = "chaptererror";
 			// load our template files to set up the page.
 			if (file_exists("$skindir/default.tpl")) $tpl = new TemplatePower("$skindir/default.tpl");
@@ -343,11 +363,15 @@ else {
 		while($code = dbassoc($codeblocks)) {
 			eval($code['code_text']);
 		}
-		$printicon = "<a href=\"viewstory.php?action=printable&amp;sid=$sid&amp;textsize=$textsize&amp;chapter=1\" target=\"_blank\"><img src='".(isset($printer) ? $priner : "images/print.gif")."' border='0' alt='"._PRINTER."'></a>";
+		$printicon = "<a href=\"viewstory.php?action=printable&amp;sid=$sid&amp;textsize=$textsize&amp;chapter=1\" target=\"_blank\"><img src='".(isset($printer) ? $printer : "images/print.gif")."' border='0' alt='"._PRINTER."'></a>";
 	}
 	// if the *CHAPTER* hasn't been validated and the viewer isn't an admin or the author throw them a warning.  
-	if(!$valid && !isADMIN && USERUID != $chapterauthor && !in_array($chapterauthor, $storyinfo['coauthors_array'])) {
-		$warning = accessDenied( );
+	if(!$valid && !$ef_ownview && USERUID != $chapterauthor) {
+		$current = "storyerror";
+		$action = false;
+		$tpl = new TemplatePower(file_exists("$skindir/default.tpl") ? "$skindir/default.tpl" : "default_tpls/default.tpl");
+		include("includes/pagesetup.php");
+		ef_story_error(_ACCESSDENIED, $title);
 	}
 	$stories = $storyinfo;
 	$tpl->gotoBlock("_ROOT");
@@ -364,7 +388,7 @@ else {
 			$reviewslink = "<a href=\"reviews.php?action=add&amp;type=ST&amp;item=$sid&amp;chapid=$chapid&amp;next=$nextchapter\">"._SUBMITREVIEW."</a>";
 			$jumpmenu2 .= "<option value=\"reviews.php?action=add&amp;type=ST&amp;item=$sid&amp;chapid=$chapid&amp;next=$nextchapter\">"._SUBMITREVIEW."</option>";
 		}
-		else $reviewslink = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link']), strtolower($pagelinks['register']['link'])));
+		else $reviewslink = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link'] ?? ''), strtolower($pagelinks['register']['link'] ?? '')));
 	}
 	$tpl->assign("reportthis", "[<a href=\""._BASEDIR."contact.php?action=report&amp;url=viewstory.php?chapid=$chapid\">"._REPORTTHIS."</a>]");
 	$jumpmenu2 .= "<option value=\"contact.php?action=report&amp;url=viewstory.php?chapid=$chapid\">"._REPORTTHIS."</option>";
@@ -379,7 +403,7 @@ else {
 			$type = "ST";
 			include("includes/reviewform.php");
 		}
-		else $form = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link']), strtolower($pagelinks['register']['link'])));
+		else $form = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link'] ?? ''), strtolower($pagelinks['register']['link'] ?? '')));
 	}
 	$textsizer = "<a href=\"viewstory.php?sid=$sid".($inorder ? "&amp;chapter=$inorder" : "")."&amp;textsize=".($textsize - 1)."\">-</a> <strong>". _TEXTSIZE. "</strong> <a href=\"viewstory.php?sid=$sid".($inorder ? "&amp;chapter=$inorder" : "")."&amp;textsize=".($textsize + 1)."\">+</a> ";
 	// okay now that we know they can see the story and the chapter add 1 to the story and chapter counts;
@@ -397,10 +421,7 @@ else {
 			errorExit(_ERROR);
 		}
 		$file = STORIESPATH."/$chapterauthor/$chapid.txt";
-		$log_file = @fopen($file, "r");
-		$file_contents = @fread($log_file, filesize($file));
-		$story = $file_contents;
-		@fclose($log_file);
+		$story = is_file($file) ? (string)@file_get_contents($file) : "";
 	}
 	$story = format_story($story);
 	if(isset($adminlinks)) $tpl->assign( "adminlinks", $adminlinks );

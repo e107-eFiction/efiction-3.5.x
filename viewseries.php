@@ -43,8 +43,8 @@ if(file_exists("$skindir/series_title.tpl")) $titleblock = new TemplatePower( "$
 else $titleblock = new TemplatePower( "default_tpls/series_title.tpl" );
 $titleblock->prepare( );
 $titleblock->newBlock("series");
-$titleblock->assign("pagetitle", stripslashes($series['title'])." "._BY." <a href=\"viewuser.php?uid=".$series['uid']."\">".$series['penname']."</a>");
-$titleblock->assign("summary", stripslashes($series['summary']));
+$titleblock->assign("pagetitle", stripslashes($series['title'] ?? '')." "._BY." <a href=\"viewuser.php?uid=".$series['uid']."\">".$series['penname']."</a>");
+$titleblock->assign("summary", stripslashes($series['summary'] ?? ''));
 $titleblock->assign("category", $series['catid'] ? catlist($series['catid']) : _NONE);
 $titleblock->assign("characters", $series['characters'] ? charlist($series['characters']) : _NONE);
 $titleblock->assign("numstories", $series['numstories']);

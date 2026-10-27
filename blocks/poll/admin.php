@@ -29,8 +29,8 @@ include("blocks/".$blocks['poll']['file']);
 		$output .= write_message(_ACTIONSUCCESSFUL);
 	}
 	if(isset($_POST['submit'])) {
-		$poll_question = escapestring(descript(stripslashes($_POST['poll_question'])));
-		$opts = explode("\r\n", ltrim(strip_tags(preg_replace( '!<p>!iU', "\r\n",  stripslashes(trim($_POST['poll_opts']))), preg_replace("!<p>!iu", "", $allowed_tags))));
+		$poll_question = escapestring(descript(stripslashes($_POST['poll_question'] ?? '')));
+		$opts = explode("\r\n", ltrim(strip_tags(preg_replace( '!<p>!iU', "\r\n",  stripslashes(trim($_POST['poll_opts'] ?? ''))), preg_replace("!<p>!iu", "", $allowed_tags))));
 		$new_opts = array( );
 		foreach($opts as $opt) { 
 			if(strlen(trim(preg_replace("!&nbsp;!", " ", $opt))) > 0) $new_opts[] = $opt;

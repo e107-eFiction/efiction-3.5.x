@@ -9,7 +9,7 @@ $tpl->assignInclude( "header", "$skindir/header.tpl" );
 $tpl->assignInclude( "footer", "$skindir/footer.tpl" );
 include(_BASEDIR."includes/pagesetup.php");
 include_once(_BASEDIR."languages/".$language."_admin.php");
-if(!isADMIN) accessDenied( );
+if(!isADMIN || uLEVEL > 1) accessDenied( );   // the main administrator, as on the Modules page
 $confirm = isset($_GET['confirm']) ? $_GET['confirm'] : false;
 if($confirm == "yes") {
 	dbquery("DELETE FROM `".TABLEPREFIX."fanfiction_codeblocks` WHERE code_module = 'challenges'");
