@@ -226,6 +226,7 @@ elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 8))  //3.
 {
 	if ($confirm == "yes")
 	{
+		$ip_errors = 0;
 		if ($oldVersion[0] == 3 &&  $oldVersion[1] == 5 && $oldVersion[2] < 7)
 		{
 			// List of DB tables (key) and field (value) which need changing to accommodate IPV6 addresses
@@ -234,32 +235,24 @@ elseif ($oldVersion[0] == 3 && ($oldVersion[1] < 5 || $oldVersion[2] < 8))  //3.
 				'fanfiction_online' => 'online_ip'
 			);
 
-			// Tables where IP address field needs updating to accommodate IPV6
-			// Set to varchar(45) - just in case something uses the IPV4 subnet (see http://en.wikipedia.org/wiki/IPV6#Notation)
+			// PHP 8.1+ makes mysqli throw, and dbquery() then stops the page. Switch that off for this
+			// step only, so a failed query returns false and is reported with its table and column.
+			$mysqli_driver = new mysqli_driver();
+			$report_mode = $mysqli_driver->report_mode;
+			mysqli_report(MYSQLI_REPORT_OFF);
+
+			// IP addresses are stored as INET6_ATON() binaries in varbinary(16)
 			foreach ($ip_upgrade as $t => $f)
 			{
-				if (isTable($t))
-				{
-			 
-					// Check for table - might add some core plugin tables in here
-					if ($field_info =  dbassoc(dbquery("SHOW COLUMNS FROM " . TABLEPREFIX . $t . " LIKE '{$f}'")))
-					{
-						//print_r($field_info);
-						if (strtolower($field_info['Type']) != 'VARBINARY(16)')
-						{
+				if (isTable($t)) $ip_errors += ef_upgrade_ip_field($t, $f);
+			}
 
-							dbquery("ALTER TABLE `" . TABLEPREFIX . $t .  "` MODIFY `$f` varbinary(16) DEFAULT NULL;");
- 
-						}
-					}
-
-				}
-			}	 
+			mysqli_report($report_mode);
 		}
 
 		$set_356 = false;
 		$set_356 = do_version_check_356();
-		if ($set_356)
+		if ($set_356 || $ip_errors)
 		{
 			$output .= write_error(_ERROR);
 		}
@@ -420,7 +413,7 @@ function do_version_check_356()
 			{
 
 			
-				if (strtolower($field_info['Type']) != 'varbinary(16)')
+				if (strtolower($field_info['Type']) != 'varbinary(16)' || $field_info['Null'] != 'YES')
 				{
 					$check_356 = $t . " - field:  " . $f;;
 			 
@@ -433,6 +426,101 @@ function do_version_check_356()
 	}
  
 	return $check_356;
+}
+
+/* 3.5.6 -> 3.5.8: move one IP column to varbinary(16) holding INET6_ATON() values.
+   - integer column (INET_ATON() values): fill <field>_tmp, then rename <field> to <field>_backup
+     and <field>_tmp to <field> in one ALTER TABLE. A <field>_tmp left by an earlier run is reused.
+   - varbinary(16) column: make it NULL-able and convert decimal text left by the old in-place
+     MODIFY (e.g. '3232235777') to the binary value.
+   Safe to run again. Failed queries are added to $output; returns the number of failures. */
+function ef_upgrade_ip_field($t, $f)
+{
+	global $output;
+
+	$table = TABLEPREFIX . $t;
+	$field_info = ef_show_column($t, $f);
+	if (!$field_info) return 0;
+	$type = strtolower($field_info['Type']);
+
+	if (preg_match('/^(tiny|small|medium|big)?int(\(\d+\))?( unsigned)?( zerofill)?$/', $type))
+	{
+		if (ef_show_column($t, "{$f}_backup"))
+		{
+			$output .= write_error("Table <b>" . $table . "</b>: column <b>{$f}</b> is still " . $type . ", but <b>{$f}_backup</b> already exists. Rename or drop <b>{$f}_backup</b> and run the update again.");
+			return 1;
+		}
+
+		$tmp_info = ef_show_column($t, "{$f}_tmp");
+		if (!$tmp_info)
+		{
+			if (!ef_ip_query("ALTER TABLE `" . $table . "` ADD `{$f}_tmp` varbinary(16) DEFAULT NULL", $table, "{$f}_tmp")) return 1;
+		}
+		else if (strtolower($tmp_info['Type']) != 'varbinary(16)' || $tmp_info['Null'] != 'YES')
+		{
+			if (!ef_ip_query("ALTER TABLE `" . $table . "` MODIFY `{$f}_tmp` varbinary(16) DEFAULT NULL", $table, "{$f}_tmp")) return 1;
+		}
+
+		// 0, negative (signed column) or empty means no address
+		if (!ef_ip_query("UPDATE `" . $table . "` SET `{$f}_tmp` = IF(`{$f}` > 0, INET6_ATON(INET_NTOA(`{$f}`)), NULL)", $table, "{$f}_tmp")) return 1;
+
+		// both renames in one statement, so the table never ends up with only one of them done
+		if (!ef_ip_query("ALTER TABLE `" . $table . "` CHANGE `{$f}` `{$f}_backup` " . $type . " NULL DEFAULT NULL, CHANGE `{$f}_tmp` `{$f}` varbinary(16) DEFAULT NULL", $table, $f)) return 1;
+
+		$output .= write_message("Table <b>" . $table . "</b>: column <b>{$f}</b> converted to varbinary(16), the old values are kept in <b>{$f}_backup</b>.");
+		return 0;
+	}
+
+	if ($type != 'varbinary(16)' || $field_info['Null'] != 'YES')
+	{
+		if (!ef_ip_query("ALTER TABLE `" . $table . "` MODIFY `{$f}` varbinary(16) DEFAULT NULL", $table, $f)) return 1;
+	}
+
+	// Decimal text from the old in-place MODIFY: only digits, and not 4 or 16 bytes long. A 4-byte
+	// binary can consist of digit characters only (49.50.51.52 is stored as '1234'), so 4 digits
+	// stay as they are; 16 digits are larger than any IPv4 number anyway.
+	$numeric = "`{$f}` IS NOT NULL AND LENGTH(`{$f}`) NOT IN (4, 16) AND HEX(`{$f}`) REGEXP '^(3[0-9])+$'";
+	$found = dbquery("SELECT 1 FROM `" . $table . "` WHERE " . $numeric . " LIMIT 1");
+	if (!$found)
+	{
+		$output .= write_error("Table <b>" . $table . "</b>, column <b>{$f}</b>: " . htmlspecialchars(dberror()));
+		return 1;
+	}
+	if (!dbnumrows($found)) return 0;
+
+	global $dbconnect;
+	$batch = 1000;
+	$converted = 0;
+	do
+	{
+		// converted rows are 4 bytes long (or NULL) afterwards, so the next batch skips them
+		if (!ef_ip_query("UPDATE `" . $table . "` SET `{$f}` = IF(CAST(`{$f}` AS UNSIGNED) BETWEEN 1 AND 4294967295, INET6_ATON(INET_NTOA(CAST(`{$f}` AS UNSIGNED))), NULL) WHERE " . $numeric . " LIMIT " . $batch, $table, $f)) return 1;
+		$count = $dbconnect->affected_rows;
+		$converted += $count;
+	}
+	while ($count == $batch);
+
+	$output .= write_message("Table <b>" . $table . "</b>: " . $converted . " IP addresses in column <b>{$f}</b> converted from text to binary.");
+	return 0;
+}
+
+// SHOW COLUMNS row for one column of a data table, false if it does not exist or the query failed
+function ef_show_column($t, $f)
+{
+	$result = dbquery("SHOW COLUMNS FROM `" . TABLEPREFIX . $t . "` LIKE '{$f}'");
+	if (!$result) return false;
+	$row = dbassoc($result);
+	return $row ? $row : false;
+}
+
+// Runs an ALTER/UPDATE of the IP migration; on failure adds the MySQL error to $output
+function ef_ip_query($query, $table, $field)
+{
+	global $output;
+
+	if (dbquery($query)) return true;
+	$output .= write_error("Table <b>" . $table . "</b>, column <b>" . $field . "</b>: " . htmlspecialchars(dberror()) . "<br />Query: " . htmlspecialchars($query));
+	return false;
 }
 
 function do_version_check_359()
