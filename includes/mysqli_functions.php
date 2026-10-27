@@ -48,6 +48,13 @@ function dbquery($query) {
 	return $result;
 }
 
+// Error number and text of the last failed query, for callers that report errors themselves.
+function dberror() {
+	global $dbconnect;
+	if(!($dbconnect instanceof mysqli) || !$dbconnect->errno) return "";
+	return "(" . $dbconnect->errno . ") " . $dbconnect->error;
+}
+
 function dbnumrows($query) {
 	global $debug, $dbconnect;
 	if ($query === false && $debug) {
