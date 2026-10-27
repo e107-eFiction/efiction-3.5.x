@@ -22,7 +22,7 @@
 // To read the license please visit http://www.gnu.org/copyleft/gpl.html
 // ----------------------------------------------------------------------
 
-	if(isset($_POST['submit']) && preg_match("!^[-a-z0-9_ ]{3,30}$!i", $_POST['penname'])) {
+	if(isset($_POST['submit'], $_POST['penname']) && is_string($_POST['penname']) && preg_match("!^[-a-z0-9_ ]{3,30}$!i", $_POST['penname'])) {
 		if(!defined("_LOGINCHECK")) exit( );
 		define("_BASEDIR", "");
 		include_once("config.php");
@@ -34,6 +34,9 @@
 		define("TABLEPREFIX", $tableprefix);
 		define("SITEKEY", $sitekey);
 		include_once("includes/queries.php");
+		// the password helpers live in corefunctions.php, which header.php has not loaded yet
+		if(!defined("_CHARSET")) define("_CHARSET", "utf-8");
+		include_once("includes/corefunctions.php");
 		$result = dbquery("SELECT *, "._UIDFIELD." as uid FROM "._AUTHORTABLE." LEFT JOIN ".$tableprefix."fanfiction_authorprefs AS ap ON ap.uid = "._UIDFIELD." WHERE "._PENNAMEFIELD." = '".$_POST['penname']."'");
 		$passwd = dbassoc($result);
 		if(!dbnumrows($result)) {
@@ -52,7 +55,6 @@
 			header("Location: maintenance.php");
 			exit( );
 		}
-		$encryptedpassword = md5($_POST['password']);
 		if($passwd['level'] == -1) {
 			require_once("header.php");
 			//make a new TemplatePower object
@@ -65,14 +67,21 @@
 			dbclose( );
 			exit( );
 		}
-		if($passwd['password'] == $encryptedpassword) {
+		if(isset($_POST['password']) && ef_password_is_hash($passwd['password']) && ef_verify_password($_POST['password'], $passwd['password'])) {
+			// replace a legacy MD5 hash once the column can hold the new one
+			if(ef_password_is_legacy($passwd['password']) && ef_password_column_ok( )) {
+				$newhash = ef_hash_password($_POST['password']);
+				if(dbquery("UPDATE ".trim(substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, " as author")))." SET password = '".escapestring($newhash)."' WHERE uid = '".(int)$passwd['uid']."' LIMIT 1")) $passwd['password'] = $newhash;
+			}
+			// the salt comes from the stored hash: cookies set before an upgrade stop matching and need one new login
+			$salt = md5($passwd['email'] . $passwd['password']);
 			if(isset($_POST['cookiecheck'])) {
 				setcookie($sitekey."_useruid",$passwd['uid'], time()+60*60*24*30, "/");
-				setcookie($sitekey."_salt", md5($passwd['email'] . $encryptedpassword),  time()+60*60*24*30, "/");
+				setcookie($sitekey."_salt", $salt,  time()+60*60*24*30, "/");
 			}
 			if(!isset($_SESSION)) session_start( );
 			$_SESSION[$sitekey."_useruid"] = $passwd['uid'];
-			$_SESSION[$sitekey."_salt"] = md5($passwd['email'] . $encryptedpassword);
+			$_SESSION[$sitekey."_salt"] = $salt;
 			$logincode = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_codeblocks WHERE code_type = 'login'");
 			while($code = dbassoc($logincode)) {
 				eval($code['code_text']);

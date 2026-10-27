@@ -60,7 +60,7 @@ if(!empty($_GET['edit'])) {
 		}
 		else {
 			if($field_type == 4) $field_options = isset($_POST['options_4']) ? descript($_POST['options_4']) : "";
-			if($field_type == 2) $field_options = implode("|#|", explode("\r\n", ltrim(strip_tags(preg_replace( '!<p>!iU', "\r\n",  stripslashes(trim($_POST['options_2']))), preg_replace("!<p>!iu", "", $allowed_tags)))));
+			if($field_type == 2) $field_options = implode("|#|", explode("\r\n", ltrim(strip_tags(preg_replace( '!<p>!iU', "\r\n",  stripslashes(trim($_POST['options_2'] ?? ''))), preg_replace("!<p>!iu", "", $allowed_tags)))));
 			if($field_type == 5) {
 				$code_in = isset($_POST['code_in']) ? descript($_POST['code_in']) : "";
 				$code_out = isset($_POST['code_out']) ? descript($_POST['code_out']) : "";
@@ -94,15 +94,15 @@ if(!empty($_GET['edit'])) {
 				$output .= "<option value='$id'".(isset($fieldinfo) && $fieldinfo['field_type'] == $id ? " selected" : "").">$name</option>";
 		}
 		$output .= "</select> <A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDTYPE."</span></A><br />
-			<div id='opt_2'".($fieldinfo['field_type'] == 2 ? "" :"style='display: none;'")."><label for='options_2'>"._FIELDSELECT.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDSELECT."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea style='width: 100%; height: 150px;' name='options_2' cols='35' rows='4' class='mceNoEditor' id='options_2'>".($fieldinfo['field_type'] == 2 ? preg_replace("@\|#\|@", "\n", stripslashes($fieldinfo['field_options'])) : "")."</textarea></div>";
+			<div id='opt_2'".($fieldinfo['field_type'] == 2 ? "" :"style='display: none;'")."><label for='options_2'>"._FIELDSELECT.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDSELECT."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea style='width: 100%; height: 150px;' name='options_2' cols='35' rows='4' class='mceNoEditor' id='options_2'>".($fieldinfo['field_type'] == 2 ? preg_replace("@\|#\|@", "\n", stripslashes($fieldinfo['field_options'] ?? '')) : "")."</textarea></div>";
 				if($tinyMCE) 
 				$output .= "<div class='tinytoggle'><input type='checkbox' name='toggle' onclick=\"toogleEditorMode('options_2');\"><label for='toggle'>"._TINYMCETOGGLE."</label></div>";
 		$output .= "</div>
-			<div id='opt_4'".($fieldinfo['field_type'] == 4 ? "" :"style='display: none;'")."><label for='options_4'>"._FIELDIDURL.":</label><input type='text' name='options_4' id='options_4' ".($fieldinfo['field_type'] == 4 ? "value='".stripslashes($fieldinfo['field_options'])."'" : "")."><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDIDURL."</span></A></div>
+			<div id='opt_4'".($fieldinfo['field_type'] == 4 ? "" :"style='display: none;'")."><label for='options_4'>"._FIELDIDURL.":</label><input type='text' name='options_4' id='options_4' ".($fieldinfo['field_type'] == 4 ? "value='".stripslashes($fieldinfo['field_options'] ?? '')."'" : "")."><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDIDURL."</span></A></div>
 			<div id='opt_5'".($fieldinfo['field_type'] == 5 ? "" :"style='display: none;'").">
-				<label for='code_in'>"._FIELDCODEIN.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDCODEIN."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea cols='35' rows='4' style='width: 100%; height: 150px;' name='code_in' class='mceNoEditor' id='code_in'>".stripslashes($fieldinfo['field_code_in'])."</textarea>";
+				<label for='code_in'>"._FIELDCODEIN.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDCODEIN."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea cols='35' rows='4' style='width: 100%; height: 150px;' name='code_in' class='mceNoEditor' id='code_in'>".stripslashes($fieldinfo['field_code_in'] ?? '')."</textarea>";
 		$output .= "</div>
-				<label for='code_out'>"._FIELDCODEOUT.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDCODEOUT."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea name='code_out' cols='35' rows='4'  style='width: 100%; height: 150px;' class='mceNoEditor' id='code_out'>".stripslashes($fieldinfo['field_code_out'])."</textarea>";
+				<label for='code_out'>"._FIELDCODEOUT.":</label><A HREF=\"#\" class=\"pophelp\">[?]<span>"._HELP_FIELDCODEOUT."</span></A><div style='margin-left: 30%; padding-left: 1em;'><textarea name='code_out' cols='35' rows='4'  style='width: 100%; height: 150px;' class='mceNoEditor' id='code_out'>".stripslashes($fieldinfo['field_code_out'] ?? '')."</textarea>";
 		$output .= "</div>
 			</div>
 			<div id='submitdiv'><INPUT type='submit' id='submit' class='button' value='"._SUBMIT."' name='submit'></div></form><div class='cleaner'>&nbsp;</div></div>";

@@ -34,8 +34,8 @@ $tpl->assignInclude( "header", "$skindir/header.tpl" );
 $tpl->assignInclude( "footer", "$skindir/footer.tpl" );
 include(_BASEDIR."includes/pagesetup.php");
 
-$chalid = isset($_GET['chalid']) ? $_GET['chalid'] : false;
-if($chalid && !isNumber($chalid)) unset($chalid, $action);
+$chalid = isset($_GET['chalid']) && is_string($_GET['chalid']) && isNumber($_GET['chalid']) ? (int)$_GET['chalid'] : false;
+if(isset($_GET['chalid']) && !$chalid) { unset($chalid); $action = false; }
 
 // security check
 	$admin = 0;
@@ -47,7 +47,7 @@ if($chalid && !isNumber($chalid)) unset($chalid, $action);
 			$challenge = dbquery("SELECT uid, catid from ".TABLEPREFIX."fanfiction_challenges WHERE chalid='$chalid' LIMIT 1");
 			list($chaluid, $catid) = dbrow($challenge);
 			if(uLEVEL == 3 && $admincats != 0) {
-				$seriescats = explode(",", $catid);
+				$seriescats = explode(",", $catid ?? "");
 				$adcats = explode(",", $admincats);
 				foreach($seriescats as $cat) {
 					if(in_array($cat, $adcats)) $admin = 1;
@@ -55,6 +55,21 @@ if($chalid && !isNumber($chalid)) unset($chalid, $action);
 			}
 			if($chaluid != USERUID &&  $admin != 1 && uLEVEL > 2) accessDenied( );
 		}
+	}
+	// Editing and deleting: only the challenge's owner or an admin. Removing a response:
+	// also the author of that story or series. (Before 3.5.78 the check above only
+	// covered level-3 admins, so any member could edit, delete or strip any challenge.)
+	if(in_array($action, array("edit", "delete", "remove"), true)) {
+		if(empty($chalid)) accessDenied( );
+		$ef_chal = dbrow(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_challenges WHERE chalid = '".(int)$chalid."' LIMIT 1"));
+		if(!$ef_chal) accessDenied( );
+		$ef_ok = $admin || (USERUID && (int)$ef_chal[0] === (int)USERUID);
+		if(!$ef_ok && $action == "remove" && USERUID) {
+			// same order as the removal below: a series when one is named, otherwise the story
+			if(isset($seriesid)) $ef_ok = !empty($seriesid) && (bool)dbrow(dbquery("SELECT seriesid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '".(int)$seriesid."' AND uid = '".(int)USERUID."' LIMIT 1"));
+			else if(!empty($sid)) $ef_ok = (bool)dbrow(dbquery("SELECT s.sid FROM ".TABLEPREFIX."fanfiction_stories AS s LEFT JOIN ".TABLEPREFIX."fanfiction_coauthors AS c ON c.sid = s.sid AND c.uid = '".(int)USERUID."' WHERE s.sid = '".(int)$sid."' AND (s.uid = '".(int)USERUID."' OR c.uid IS NOT NULL) LIMIT 1"));
+		}
+		if(!$ef_ok) accessDenied( );
 	}
 
 // end security check
@@ -68,16 +83,16 @@ if($action == "remove") {
 		if(isset($seriesid)) {
 			$chalinfo =dbquery("SELECT challenges FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$seriesid'");
 			list($challenges) = dbrow($chalinfo);
-			$challenges = explode(",", $challenges);
-			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_series SET challenges = '".array_diff($challenges, explode(",", $chalid))."' WHERE seriesid = '$seriesid'");
+			$challenges = explode(",", $challenges ?? "");
+			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_series SET challenges = '".implode(",", array_diff($challenges, array((string)$chalid)))."' WHERE seriesid = '".(int)$seriesid."'");
 		}
 		else {
 			$chalinfo = dbquery("SELECT challenges FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$sid'");
 			list($challenges) = dbrow($chalinfo);
-			$challenges = explode(",", $challenges);
+			$challenges = explode(",", $challenges ?? "");
 			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET challenges = '".implode(",", array_diff($challenges, explode(",", $chalid)))."' WHERE sid = '$sid'");
 		}
-		if($result) dbquery("UPDATE ".TABLEPREFIX."fanfiction_challenges SET responses = responses - 1 WHERE chalid = '$chalid'");
+		if($result && $GLOBALS['dbconnect']->affected_rows > 0) dbquery("UPDATE ".TABLEPREFIX."fanfiction_challenges SET responses = GREATEST(responses - 1, 0) WHERE chalid = '".(int)$chalid."'");
 		$output .= write_message(_ACTIONSUCCESSFUL);
 	}
 }
@@ -90,15 +105,15 @@ else if($action == "add" || $action == "edit") {
 
 	$output .= "<div id=\"pagetitle\">".($action == "edit" ? _EDITCHALLENGE : _ADDCHALLENGE)."</div>";
 	if(isset($_POST['submit'])) {
-		$title = escapestring(descript($_POST['title'], $allowed_tags));
-		$summary = escapestring(replace_naughty(strip_tags(descript($_POST['summary']), $allowed_tags)));
-		$challenger = escapestring(strip_tags(descript($_POST['challenger']), $allowed_tags));
+		$title = escapestring(descript($_POST['title'] ?? '', $allowed_tags));
+		$summary = escapestring(replace_naughty(strip_tags(descript($_POST['summary'] ?? ''), $allowed_tags)));
+		$challenger = escapestring(strip_tags(descript($_POST['challenger'] ?? ''), $allowed_tags));
 		if(!$challenger) $challenger = _ANONYMOUS;
 		$challengeruid = isset($_POST['challengeruid']) && isNumber($_POST['challengeruid']) ? $_POST['challengeruid'] : 0;
-		$catid = isset($_POST['catid']) ? array_filter(explode(",", $_POST['catid']), "isNumber") : array( );
+		$catid = isset($_POST['catid']) ? array_filter(is_array($_POST['catid']) ? $_POST['catid'] : explode(",", $_POST['catid']), "isNumber") : array( );
 		$category = implode(",", $catid);
 		if(!$category) $category = -1;
-		$characters = isset($_POST['charid']) ? array_filter($_POST['charid'], "isNumber") : array( );
+		$characters = isset($_POST['charid']) ? array_filter((array)$_POST['charid'], "isNumber") : array( );
 		$charid = implode(",", $characters);
 		if(empty($title) || empty($summary)) {
 			$output .= write_error(_REQUIREDINFO);
@@ -188,10 +203,13 @@ else if($action == "delete") {
 			dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_challenges WHERE chalid = '$chalid'");
 			$responses = dbquery("SELECT challenges, sid FROM  ".TABLEPREFIX."fanfiction_stories WHERE FIND_IN_SET($chalid, challenges) > 0");
 			while($response = dbassoc($responses)) {
-				$challenges = explode(",", $response[challenges]);
-				if(is_array($challenges)) 
-					foreach($challenges as $key=>$value) { if($value == $chalid) unset($challenges[$key]); }
-				dbquery("UPDATE  ".TABLEPREFIX."fanfiction_stories SET challenges = '".implode(",", $challenges)."' WHERE sid = $response[sid] LIMIT 1");
+				$challenges = array_diff(explode(",", $response['challenges']), array((string)$chalid));
+				dbquery("UPDATE  ".TABLEPREFIX."fanfiction_stories SET challenges = '".escapestring(implode(",", $challenges))."' WHERE sid = '".(int)$response['sid']."' LIMIT 1");
+			}
+			$responses = dbquery("SELECT challenges, seriesid FROM  ".TABLEPREFIX."fanfiction_series WHERE FIND_IN_SET($chalid, challenges) > 0");
+			while($response = dbassoc($responses)) {
+				$challenges = array_diff(explode(",", $response['challenges']), array((string)$chalid));
+				dbquery("UPDATE  ".TABLEPREFIX."fanfiction_series SET challenges = '".escapestring(implode(",", $challenges))."' WHERE seriesid = '".(int)$response['seriesid']."' LIMIT 1");
 			}
 			$output .=  write_message(_ACTIONSUCCESSFUL."  <a href=\"challenges.php\">"._BACK2PREVIOUS."</a>");
 		}
@@ -279,9 +297,9 @@ else {
 
 		$challenge = dbquery("SELECT * FROM  ".TABLEPREFIX."fanfiction_challenges WHERE chalid = '$chalid' LIMIT 1");
 		list($chalid, $challenger, $uid, $title, $cat, $chars, $summary, $responses) = dbrow($challenge);
-		$challenger = stripslashes($challenger);
-		$title = stripslashes($title);
-		$summary= stripslashes($summary);
+		$challenger = stripslashes($challenger ?? "");
+		$title = stripslashes($title ?? "");
+		$summary= stripslashes($summary ?? "");
 
 		$challenges->newBlock("titleblock");
 		if(isADMIN || USERUID == $uid) $challenges->assign("adminoptions", "<div class=\"adminoptions\">".($admin ? _ADMINOPTIONS : _OPTIONS).": [<a href=\"challenges.php?action=edit&amp;chalid=$chalid\">"._EDIT."</a>] [<a href=\"challenges.php?action=delete&amp;chalid=$chalid\">"._DELETE."</a>]</div>");

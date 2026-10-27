@@ -103,7 +103,7 @@ if(isset($_POST['submit']) || isset($_GET['offset'])) {
 		}
 	}
 	if(isset($_REQUEST['authors'])) {
-		$authors = isarray($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", $_REQUEST['authors']);
+		$authors = is_array($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", (string)$_REQUEST['authors']);
 		$authors = array_filter($authors, "isNumber");
 		if($authors) {
 			$authors = implode(",", $authors);
@@ -162,12 +162,13 @@ if(isset($_POST['submit']) || isset($_GET['offset'])) {
 
 	if(isset($_REQUEST['rid'])) $rid = is_array($_REQUEST['rid']) ? $_REQUEST['rid'] : explode(",", $_REQUEST['rid']);
 	else $rid = array();
+	// "All" (-1) in the ratings list means no rating filter (before 3.5.77 it matched nothing)
+	$rid = array_filter((array)$rid, function($r) { return is_string($r) && isNumber($r); });
 	if(count($rid) > 0) {
-		$rid = array_filter($rid, "isNumber");
 		$query[] = findclause('rid', $rid);
 		$countquery[] = findclause('rid', $rid);
 	}
-	if(isset($_REQUEST['complete'])) {
+	if(isset($_REQUEST['complete']) || isset($_REQUEST['completed'])) {   // the advanced form's checkbox is "completed"
 		$query[] = "stories.completed = '1'";
 		$countquery[] = "stories.completed = '1'";
 	}
@@ -176,14 +177,14 @@ if(isset($_POST['submit']) || isset($_GET['offset'])) {
 	foreach($classtypelist as $id => $vars) {
 		$opts = array( );
 		$exopts = array( );
-		if(isset($_POST["class_".$id])) $opts = array_filter($_POST["class_".$id], "isNumber");
+		if(isset($_POST["class_".$id])) $opts = array_filter((array)$_POST["class_".$id], "isNumber");
 		else if(isset($_GET["class_".$id])) {
 			$opts = array_merge($opts, explode(",", $_GET["class_".$id]));
 			$opts = array_filter($opts, "isNumber");
 		}
 		else if(isset($_REQUEST[$vars["name"]])) $opts[] = array($_REQUEST[$vars["name"]]);
 		$classin = array_merge($classin, $opts);
-		if(isset($_POST["exclass_".$id])) $exopts = array_filter($_POST["exclass_".$id], "isNumber");
+		if(isset($_POST["exclass_".$id])) $exopts = array_filter((array)$_POST["exclass_".$id], "isNumber");
 		else if(isset($_GET["exclass_".$id])) {
 			$exopts = array_merge($exopts, explode(",", $_GET["exclass_".$id]));
 			$exopts = array_filter($exopts, "isNumber");
@@ -236,13 +237,13 @@ if(isset($_POST['submit']) || isset($_GET['offset'])) {
 	$termsList = array();
 	foreach($termArray as $term => $value) {
 		if($term == "submit" || $term == "wordhigh" || $term == "wordlow" || empty($value) || $term == "formname" || $term == "searchtype") continue;
-		$termsList[$term] = "$term=".(is_array($value) ? implode(",", $value) : $value);
+		$termsList[$term] = ef_term($term, $value);
 	}
 	$terms = implode("&amp;", $termsList);
 	if(!empty($scountquery)) {
 		$seriesresults = dbquery(_SERIESCOUNT.$scountquery);
 		list($scount) = dbrow($seriesresults);
-		if($scount > 0) $otherresults[] = "<a href='browse.php?type=series$terms'>$scount "._SERIES."</a>";
+		if($scount > 0) $otherresults[] = "<a href='browse.php?type=series".($terms !== "" ? "&amp;".$terms : "")."'>$scount "._SERIES."</a>";
 	}
 	$codeblocks = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_codeblocks WHERE code_type = 'otherresults'");
 	while($code = dbassoc($codeblocks)) {

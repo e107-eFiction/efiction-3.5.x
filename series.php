@@ -52,7 +52,7 @@ if(isADMIN && uLEVEL == 3) {
 		$series = dbquery("SELECT uid, isopen, catid from ".TABLEPREFIX."fanfiction_series WHERE seriesid='$seriesid' LIMIT 1");
 		list($owner, $seriesopen, $catid) = dbrow($series);
 		if(uLEVEL == 3 && $admincats != 0) {
-			$seriescats = explode(",", $catid);
+			$seriescats = explode(",", $catid ?? "");
 			$adcats = explode(",", $admincats);
 			foreach($seriescats as $cat) {
 				if(in_array($cat, $adcats)) $admin = 1;
@@ -61,6 +61,30 @@ if(isADMIN && uLEVEL == 3) {
 	}
 }
 if(!$allowseries && !$admin) accessDenied( );
+
+// Editing, deleting, removing from and reordering a series: only its owner or an admin.
+// (any member could do these to anyone's series before.)
+$ef_sid_post = isset($_POST['seriesid']) ? $_POST['seriesid'] : null;
+if($ef_sid_post !== null && !isNumber($ef_sid_post)) accessDenied( );
+// check both ids: the edit form posts seriesid but the address carries one too
+$ef_targets = array( );
+if($seriesid) $ef_targets[] = (int)$seriesid;
+if($ef_sid_post !== null) $ef_targets[] = (int)$ef_sid_post;
+$ef_targets = array_unique($ef_targets);
+$ef_changes = $action == "edit" || $action == "validate" || ($action == "delete" && isset($_GET['confirmed']) && $_GET['confirmed'] == "yes") || !empty($_GET['go']);
+if($ef_changes && $ef_targets && !$admin) {
+	foreach($ef_targets as $ef_target) {
+		list($ef_owner) = dbrow(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '".$ef_target."' LIMIT 1"));
+		$ef_story_owner = false;
+		// a story's author may take their own story out of someone else's series
+		if($action == "delete" && !empty($inorder)) {
+			list($ef_story_uid) = dbrow(dbquery("SELECT s.uid FROM ".TABLEPREFIX."fanfiction_inseries AS i JOIN ".TABLEPREFIX."fanfiction_stories AS s ON s.sid = i.sid WHERE i.seriesid = '".$ef_target."' AND i.inorder = '".(int)$inorder."' LIMIT 1"));
+			$ef_story_owner = $ef_story_uid !== null && (int)$ef_story_uid === (int)USERUID;
+		}
+		if($ef_owner === null || ((int)$ef_owner !== (int)USERUID && !$ef_story_owner)) accessDenied( );
+	}
+}
+unset($ef_sid_post, $ef_targets, $ef_target, $ef_changes, $ef_owner, $ef_story_owner, $ef_story_uid);
 if($allowseries == 1 && !$admin) {
 	list($count) = dbrow(dbquery("SELECT COUNT(sid) FROM ".TABLEPREFIX."fanfiction_stories WHERE uid = '".USERUID."'"));
 	if($count == 0) accessDenied( );
@@ -81,15 +105,15 @@ if($add == "series" || ($action == "add" && !$add) || $action == "edit") {
 	$isopen = isset($_GET['isopen']) ? $_GET['isopen'] : 0;
 
 	if(isset($_POST['submit'])) {
-		$title = addslashes(escapestring(strip_tags($_POST['title'], $allowed_tags)));
-		$summary = addslashes(escapestring(descript(strip_tags($_POST["summary"], $allowed_tags))));
-		$category = isset($_POST['catid']) ? explode(",", $_POST['catid']) : array();
+		$title = addslashes(escapestring(strip_tags($_POST['title'] ?? '', $allowed_tags)));
+		$summary = addslashes(escapestring(descript(strip_tags($_POST["summary"] ?? '', $allowed_tags))));
+		$category = isset($_POST['catid']) ? (is_array($_POST['catid']) ? $_POST['catid'] : explode(",", (string)$_POST['catid'])) : array();
 		$category = array_filter($category, "isNumber");
 		if($category) $category = implode(",", $category);
 		else $category = "";
 		$open = isset($_POST['open']) && isNumber($_POST['open']) ? $_POST['open'] : 0;
 		$characters = isset($_POST['charid']) ? $_POST['charid'] : array();
-		$characters = array_filter($characters, "isNumber");
+		$characters = array_filter((array)$characters, "isNumber");
 		if($characters) $charid = implode(",", $characters);
 		else $charid = "";
 		$classes = array( );
@@ -112,7 +136,7 @@ if($add == "series" || ($action == "add" && !$add) || $action == "edit") {
 			$title = replace_naughty($title);
 			$summary = replace_naughty($summary);
 			if($action == "edit") {
-				$seriesid = $_POST['seriesid'];
+				$seriesid = (int)$_POST['seriesid'];
 				dbquery("UPDATE ".TABLEPREFIX."fanfiction_series SET title = '$title', summary ='$summary', catid = '$category', isopen = '$open', characters = '$charid', classes = '$classes' WHERE seriesid = '$seriesid'");
 				$codequery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_codeblocks WHERE code_type = 'editseries'");
 				while($code = dbassoc($codequery)) {
@@ -144,6 +168,7 @@ if($add == "series" || ($action == "add" && !$add) || $action == "edit") {
 	if($action == "edit" && !isset($POST['submit'])) {
 		$seriesquery = dbquery(_SERIESQUERY." AND seriesid = '$seriesid' LIMIT 1");
 		$series = dbassoc($seriesquery);
+		if(!$series) accessDenied(_ERROR);
 		$series = array_map("stripslashes", $series);
 		$owner = $series['uid'];
 		$output .= "<input type=\"hidden\" name=\"seriesid\" value=\"$seriesid\">";
@@ -213,6 +238,11 @@ if($add == "stories") {
 			if($item['sid']) $items[] = $item['sid'];
 			if($item['subseriesid']) $subs[] = $item['subseriesid'];
 		}
+		// Only the owner, an admin, or anyone for an open series (1 = needs the owner's OK, 2 = open)
+		// may add to a series, and members add only their own stories and series.
+		// (Before 3.5.74 anyone could add any story to any series.)
+		if(!$owner || (!$admin && USERUID != $owner && !$isopen)) accessDenied( );
+		$ef_mine = !$admin && USERUID != $owner;
 		if($admin || USERUID == $owner || $isopen == 2 ) $confirmed = 1;
 		else {
 			$confirmed = 0;
@@ -227,6 +257,7 @@ if($add == "stories") {
 		if(!empty($_POST["sid"])) {
 			foreach($_POST["sid"] as $story) {
 				if(!isNumber($story)) continue;
+				if($ef_mine && !dbnumrows(dbquery("SELECT s.sid FROM ".TABLEPREFIX."fanfiction_stories AS s LEFT JOIN ".TABLEPREFIX."fanfiction_coauthors AS c ON c.sid = s.sid AND c.uid = '".(int)USERUID."' WHERE s.sid = '".(int)$story."' AND (s.uid = '".(int)USERUID."' OR c.uid IS NOT NULL) LIMIT 1"))) continue;
 				if(!isset($items) || !is_array($items) || !in_array($story, $items)) {
 					$count++;
 					$validate = dbquery("SELECT validated FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$story' LIMIT 1");
@@ -240,6 +271,8 @@ if($add == "stories") {
 		if(!empty($_POST["subseriesid"])) {
 			foreach($_POST["subseriesid"] as $subseries) {
 				if(!isNumber($subseries)) continue;
+				if($subseries == $seriesid) continue;
+				if(!$admin && !dbnumrows(dbquery("SELECT seriesid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '".(int)$subseries."' AND uid = '".(int)USERUID."' LIMIT 1"))) continue;
 				if(!isset($subs) || !in_array($subseries, $subs)) {
 					$count++;
 					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_inseries (seriesid, subseriesid, inorder) VALUES('$seriesid', '$subseries', '$count')");
@@ -258,7 +291,7 @@ if($add == "stories") {
 		$output .= "<input type=\"hidden\" name=\"seriesid\" value=\"$seriesid\">";
 		$series = dbquery("SELECT title, uid, isopen FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$seriesid' LIMIT 1");
 		list($title, $owner) = dbrow($series);	
-		$output .= "<div class='sectionheader'>"._SERIES.": ".stripslashes($title)."</div>";
+		$output .= "<div class='sectionheader'>"._SERIES.": ".stripslashes($title ?? "")."</div>";
 		if(($admin || USERUID == $owner ) && isset($_GET['stories']) && $_GET['stories'] == "others") {
 			if($let == _OTHER) $letter= _PENNAMEFIELD." REGEXP '^[^a-z]'";
 			else $letter = _PENNAMEFIELD." LIKE '$let%'";
@@ -358,7 +391,7 @@ if($showlist) {
 			<tr><th class=\"tblborder\">"._TITLE."</th><th class=\"tblborder\" width=\"26\">"._ORDER."</th><th class=\"tblborder\">"._OPTIONS."</th></tr>";
 		$rows = dbnumrows($result);
 		while($series = dbassoc($result)) {
-			$output .= "<tr><td class=\"tblborder\"><a href=\"".($series['subseriesid'] == 0 ? "viewstory.php?sid=".$series['sid']."\">".stripslashes($series['storytitle']) : "viewseries.php?seriesid=$series[subseriesid]\">".stripslashes($series['subtitle']))."</a></td>
+			$output .= "<tr><td class=\"tblborder\"><a href=\"".($series['subseriesid'] == 0 ? "viewstory.php?sid=".$series['sid']."\">".stripslashes($series['storytitle'] ?? '') : "viewseries.php?seriesid=$series[subseriesid]\">".stripslashes($series['subtitle'] ?? ''))."</a></td>
 				<td class=\"tblborder\" align=\"center\">".($series['inorder'] == $rows ? "" : "<a href=\"series.php?action=manage&amp;go=down&amp;inorder=".$series['inorder']."&amp;".($series['sid'] ? "sid=".$series['sid'] : "subseriesid=".$series['subseriesid'])."&amp;seriesid=$seriesid\"><img src=\"images/arrowdown.gif\" align=\"right\" border=\"0\" width=\"13\" height=\"18\" alt=\""._DOWN."\"></a>").
 				($series['inorder'] == 1 ? "&nbsp;" : "<a href=\"series.php?action=manage&amp;go=up&amp;inorder=$series[inorder]&amp;".($series['sid'] ? "sid=".$series['sid'] : "subseriesid=".$series['subseriesid'])."&amp;seriesid=$seriesid\"><img src=\"images/arrowup.gif\" border=\"0\" width=\"13\" height=\"18\" align=\"left\" alt=\""._UP."\"></a>")."</td>
 				<td class=\"tblborder\">".($owner == USERUID || $admin ? "<a href=\"series.php?action=delete&amp;seriesid=$seriesid&amp;inorder=".$series['inorder']."\">"._REMOVE."</a>" : "&nbsp;").($isopen == 1 && empty($series['confirmed']) && USERUID == $owner ? " | <a href=\"series.php?action=validate&amp;seriesid=$seriesid&amp;inorder=".$series['inorder']."\">"._VALIDATE."</a>" : "")."</td></tr>";

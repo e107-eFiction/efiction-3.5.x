@@ -10,7 +10,7 @@ while($block = dbassoc($blockquery)) {
 if(file_exists("blocks/shoutbox/{$language}.php")) include_once("blocks/shoutbox/{$language}.php");
 else include_once("blocks/shoutbox/en.php");
 	if(isset($_POST['deleteshouts'])) {
-		$range = time( ) - ($_POST['del_range'] * 86400);
+		$range = time( ) - ((isset($_POST['del_range']) && is_string($_POST['del_range']) && isNumber($_POST['del_range']) ? (int)$_POST['del_range'] : 0) * 86400);
 		$result = dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_shoutbox WHERE shout_datestamp < $range");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 	}
@@ -18,17 +18,17 @@ else include_once("blocks/shoutbox/en.php");
 		$delete = dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_shoutbox WHERE shout_id = '$_GET[delete]' LIMIT 1");
 		if($delete) $output .= write_message(_ACTIONSUCCESSFUL);
 	}	
-	if(isset($_GET['shout_id'])) {
+	if(isset($_GET['shout_id']) && isNumber($_GET['shout_id'])) {
 		$output .= "<div class='sectionheader'>"._EDITSHOUT."</div>";
 		if(isset($_POST['submit'])) {
-			$shout_message = trim($_POST['shout_message']);
+			$shout_message = isset($_POST['shout_message']) && is_string($_POST['shout_message']) ? trim($_POST['shout_message']) : "";
 			$shout_message = preg_replace("/^(.{200}).*$/", "$1", $shout_message);
 			$shout_message = preg_replace("/[^\s]{25}/", "$1\n", $shout_message);
 			$search = array("\"", "'", "\\", '\"', "\'", "<", ">", "&nbsp;", "\n");
 			$replace = array("&quot;", "&#39;", "&#92;", "&quot;", "&#39;", "&lt;", "&gt;", " ", " ");
 			$shout_message = str_replace($search, $replace, replace_naughty(trim($shout_message)));
 			$shout_message = str_replace("\n", "<br />", $shout_message);
-			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_shoutbox SET shout_message = '$shout_message' WHERE shout_id = '".$_GET['shout_id']."' LIMIT 1");
+			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_shoutbox SET shout_message = '".escapestring($shout_message)."' WHERE shout_id = '".(int)$_GET['shout_id']."' LIMIT 1");
 			if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 		}
 		$shoutquery = dbquery("SELECT shout_message FROM ".TABLEPREFIX."fanfiction_shoutbox WHERE shout_id = '".$_GET['shout_id']."' LIMIT 1");
@@ -45,7 +45,7 @@ else include_once("blocks/shoutbox/en.php");
 		}
 	}
 	if(isset($_POST['submitopts'])) {
-		$blocks['shoutbox']['shoutdate'] = !empty($_POST['customshoutdate']) ? descript(strip_tags($_POST['customshoutdate'])) : descript(strip_tags($_POST['shoutdate']));
+		$blocks['shoutbox']['shoutdate'] = !empty($_POST['customshoutdate']) ? descript(strip_tags($_POST['customshoutdate'])) : descript(strip_tags($_POST['shoutdate'] ?? ''));
 		$blocks['shoutbox']['shoutlimit'] = isset($_POST['shoutlimit']) && isNumber($_POST['shoutlimit']) ? $_POST['shoutlimit'] : 10;
 		$blocks['shoutbox']['guestshouts'] = isset($_POST['guestshouts']) && $_POST['guestshouts'] == _YES ? 1 : 0;
 		save_blocks($blocks);

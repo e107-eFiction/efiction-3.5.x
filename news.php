@@ -31,27 +31,31 @@ include("includes/pagesetup.php");
 
 
 if(isset($_REQUEST['nid'])) $nid = $_REQUEST['nid'];
-if(!isset($nid) || !isNumber($nid)) $nid = false;
-$cid = isset($_REQUEST['cid']) && isNumber($_REQUEST['cid']) ? $_REQUEST['cid'] : false;
+if(!isset($nid) || !is_string($nid) || !isNumber($nid)) $nid = false; else $nid = (int)$nid;
+$cid = isset($_REQUEST['cid']) && is_string($_REQUEST['cid']) && isNumber($_REQUEST['cid']) ? (int)$_REQUEST['cid'] : false;
 
 if($nid) {
 
 	$output .= "<div id=\"pagetitle\">"._NEWS."</div>";
-	if(isset($_POST['submit']))
+	// Comments: members may post when comments are on; only staff (the ones shown the Edit link) may change one.
+	// (Before 3.5.77 anyone, even signed out, could rewrite any comment by sending its number.)
+	if(isset($_POST['submit']) && isset($_POST['comment']) && is_string($_POST['comment']))
 	{
-		$comment = escapestring(format_story(replace_naughty(strip_tags($_POST['comment'], $allowed_tags))));
-		if(!$cid && USERUID) {
-			$insert = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_comments (nid, uid, comment, time) VALUES ('$nid', '".(USERUID ? USERUID : 0)."', '$comment', '" . time() . "')");
+		$comment = escapestring(format_story(replace_naughty(strip_tags(descript($_POST['comment']), $allowed_tags))));
+		$ef_news_ok = (bool)dbrow(dbquery("SELECT nid FROM ".TABLEPREFIX."fanfiction_news WHERE nid = '$nid' LIMIT 1"));
+		if(!$cid && USERUID && $newscomments && $ef_news_ok && trim($comment) !== "") {
+			$insert = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_comments (nid, uid, comment, time) VALUES ('$nid', '".(int)USERUID."', '$comment', '" . time() . "')");
 			if($insert) dbquery("UPDATE ".TABLEPREFIX."fanfiction_news SET comments = comments + 1 WHERE nid = '$nid' LIMIT 1");
 		}
-		else if($cid) {
-			dbquery("UPDATE ".TABLEPREFIX."fanfiction_comments SET comment = '$comment' WHERE cid = '$cid'");
+		else if($cid && isADMIN && uLEVEL < 4) {
+			dbquery("UPDATE ".TABLEPREFIX."fanfiction_comments SET comment = '$comment' WHERE cid = '$cid' AND nid = '$nid'");
 		}
+		else accessDenied( );
 		unset($comment);
 	}
 	if(isset($_GET['del']) && isADMIN && uLEVEL < 4 && !empty($cid)) {
-		$insert = dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_comments WHERE cid = '$cid'");
-		if($insert) dbquery("UPDATE ".TABLEPREFIX."fanfiction_news SET comments = comments - 1 WHERE nid = '$nid' LIMIT 1");
+		dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_comments WHERE cid = '$cid' AND nid = '$nid'");
+		if($GLOBALS['dbconnect']->affected_rows > 0) dbquery("UPDATE ".TABLEPREFIX."fanfiction_news SET comments = GREATEST(comments - 1, 0) WHERE nid = '$nid' LIMIT 1");
 	}
 	$newsquery = dbquery("SELECT n.*, n.time as date FROM ".TABLEPREFIX."fanfiction_news as n WHERE n.nid = '$nid' LIMIT 1");
 	$stories = dbassoc($newsquery);
@@ -63,9 +67,9 @@ if($nid) {
 	$news->newBlock("newsbox");
 
 	//assign values
-	$news->assign("newstitle"   , stripslashes($stories['title']) );
+	$news->assign("newstitle"   , stripslashes($stories['title'] ?? '') );
 	$news->assign("newsstory"   , format_story($stories['story']) );
-	$news->assign("newsauthor", stripslashes($stories['author']) );
+	$news->assign("newsauthor", stripslashes($stories['author'] ?? '') );
 	$news->assign("newsid", $stories['nid']);
 	$news->assign("oddeven", "odd");
 	$news->assign("skindir", $skindir);
@@ -100,11 +104,13 @@ if($nid) {
 	}
 	if(isMEMBER) {
 		$output .= "<form method=\"POST\" enctype=\"multipart/form-data\" action=\"news.php?action=newsstory&amp;nid=$nid\">";
-		if(isset($_GET['edit']) && isNumber($_GET['edit'])) {
-			
-			$select = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_comments WHERE cid = '".$_GET['edit']."' LIMIT 1");
-			list($cid, $nid, $uname, $comment, $time) = dbrow($select);
-			$output .= "<input type=\"hidden\" name=\"cid\" value=\"$cid\">";
+		$comment = "";
+		if(isset($_GET['edit']) && is_string($_GET['edit']) && isNumber($_GET['edit']) && isADMIN && uLEVEL < 4) {
+			$select = dbquery("SELECT cid, comment FROM ".TABLEPREFIX."fanfiction_comments WHERE cid = '".(int)$_GET['edit']."' AND nid = '$nid' LIMIT 1");
+			if($ef_c = dbassoc($select)) {
+				$comment = htmlspecialchars($ef_c['comment'], ENT_QUOTES);
+				$output .= "<input type=\"hidden\" name=\"cid\" value=\"".(int)$ef_c['cid']."\">";
+			}
 		}
 		else $comment = "";
 		$output .= "<table align=\"center\"><tr><td><strong>"._PENNAME.":</strong></td><td>".USERPENNAME."<INPUT type=\"hidden\" name=\"uname\" value=\"".USERPENNAME."\"></td></tr>

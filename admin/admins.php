@@ -59,7 +59,7 @@ if(!defined("_CHARSET")) exit( );
 				$uid = $_GET['uid'];
 				$info = dbquery("SELECT "._PENNAMEFIELD." as penname, level, categories, contact FROM "._AUTHORTABLE." LEFT JOIN ".TABLEPREFIX."fanfiction_authorprefs as ap ON ap.uid = "._UIDFIELD." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 				list($penname, $adlevel, $adcategories, $adcontact) = dbrow($info);
-				$catid = explode(",", $adcategories);
+				$catid = explode(",", $adcategories ?? "");
 			}
 			$uid = isset($_REQUEST['uid']) ? $_REQUEST['uid'] : false;
 			if(!isNumber($uid)) $uid = false;

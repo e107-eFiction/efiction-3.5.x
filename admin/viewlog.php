@@ -50,7 +50,7 @@ if($count > 0) {
 	$output .= "<table class=\"tblborder\" cellspacing=\"0\" cellpadding=\"3\" style=\"width: 90%; margin: 0 auto;\"><tr class=\"tblborder\"><th>"._ACTION."</th><th>"._IP."</th><th>"._DATE."</th></tr>";
 	while ($item = dbassoc($result)) {
 			$output .= "<tr class=\"tblborder\">
-					<td class=\"tblborder\">".stripslashes($item['log_action'])."</td>
+					<td class=\"tblborder\">".stripslashes($item['log_action'] ?? '')."</td>
 					<td class=\"tblborder\">".$item['log_ip']."</td>
 					<td class=\"tblborder\">".date("$dateformat", $item['log_timestamp'])."</td>
 

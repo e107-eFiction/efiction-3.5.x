@@ -40,6 +40,25 @@ else include_once("languages/en_admin.php");
 
 // check that user has permissions to perform this action before going further.  Otherwise kick 'em
 	if(!isADMIN) accessDenied( );
+	// The admin panels put these values straight into SQL. They are all ids, so anything
+	// else (other than the few words the panels use) is refused here once for all panels.
+	$ef_idkeys = array('uid', 'sid', 'rid', 'chapid', 'catid', 'parentcatid', 'charid', 'class', 'type_id', 'subof', 'field', 'displayorder',
+		'after', 'orderafter', 'revoke', 'lock', 'unlock', 'validate', 'release', 'retire', 'remove', 'feature', 'level', 'adlevel', 'category',
+		'cat', 'delete', 'edit', 'warning', 'reviewid', 'seriesid', 'inorder', 'message_id', 'link_id', 'nid', 'cid', 'panel_level');
+	// "type" is used by admin/classifications.php (delete=type)
+	$ef_words = array('', 'new', 'class', 'type', 'yes', 'no', 'all', '-1', 'on');
+	// these are posted as text (category name in admin/categories.php, warning text in admin/warnings.php)
+	$ef_posttext = array('category', 'warning');
+	foreach(array('_GET' => $_GET, '_POST' => $_POST) as $ef_src => $ef_vals) {
+		foreach($ef_idkeys as $ef_k) {
+			if(!isset($ef_vals[$ef_k])) continue;
+			if($ef_src == '_POST' && in_array($ef_k, $ef_posttext, true)) continue;
+			foreach((array)$ef_vals[$ef_k] as $ef_v) {
+				if(is_array($ef_v) || (!in_array((string)$ef_v, $ef_words, true) && !preg_match('/^-?[0-9]+(,-?[0-9]+)*$/', (string)$ef_v))) accessDenied(_ERROR." (".$ef_k.")");
+			}
+		}
+	}
+	unset($ef_idkeys, $ef_words, $ef_posttext, $ef_src, $ef_vals, $ef_k, $ef_v);
 	$adminquery = dbquery("SELECT categories FROM ".TABLEPREFIX."fanfiction_authorprefs WHERE uid = '".USERUID."' LIMIT 1");
 	list($admincats) = dbrow($adminquery);
 	if(empty($admincats)) $admincats = "0";

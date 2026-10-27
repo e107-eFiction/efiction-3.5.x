@@ -31,7 +31,7 @@ else include_once(_BASEDIR."modules/challenges/languages/en.php");
 	if(!empty($charid)) {
 		$chars = array( );
 		foreach($charid as $c) {
-			$chars[] = "FIND_IN_SET('$c', characters) > 0";
+			$chars[] = "FIND_IN_SET('".(int)$c."', characters) > 0";
 		}
 		$chalquery[] = implode(" OR ", $chars);
 	}
@@ -45,14 +45,13 @@ else include_once(_BASEDIR."modules/challenges/languages/en.php");
 		// Now format the SQL
 		$cats = array( );
 		foreach($categories as $cat) {
-			$cats[] = "FIND_IN_SET($cat, catid) > 0 ";
+			$cats[] = "FIND_IN_SET(".(int)$cat.", catid) > 0 ";
 		}
 		// Now implode the SQL list
 		if(!empty($cats)) $chalquery[] = "(".implode(" OR ", $cats).")";
 	}
-	if(isset($authors)) $chalquery[] = "FIND_IN_SET(uid, '".implode(",",$authors)."') > 0";
-	if(isset($summary)) $chalquery[] = "summary LIKE '%".$summary."%'";
-	if(isset($title)) $chalquery[] = "summary LIKE '%".$title."%'";
+	if(isset($authors)) $chalquery[] = "FIND_IN_SET(uid, '".implode(",", array_map('intval', (array)$authors))."') > 0";
+	// (3.x also filtered on $summary and $title here, which nothing sets; dropped)
 	if($let == _OTHER) {
 		$chalquery[] = "chal.title REGEXP '^[^a-z]'";
 	}

@@ -29,10 +29,53 @@
 mysqli_report(MYSQLI_REPORT_OFF);
 
 
+/**
+ * Refuse to run on a site that is already installed: config.php is there and either its database
+ * cannot be checked or it already has the site's settings row and a main administrator.
+ * Otherwise anyone who finds a leftover install/ folder could rewrite config.php or add an
+ * administrator. While an install is still running (no administrator yet) the steps keep working.
+ * To reinstall on purpose, delete config.php first.
+ */
+function ef_install_locked()
+{
+	$cfg = dirname(dirname(__FILE__)) . "/config.php";
+	if (!is_file($cfg) || filesize($cfg) == 0) return false;
+	// read the values without including config.php
+	$src = (string)@file_get_contents($cfg);
+	$v = array();
+	foreach (array('dbhost', 'dbname', 'dbuser', 'dbpass', 'sitekey', 'settingsprefix') as $k)
+	{
+		if (!preg_match('/\$' . $k . '\s*=\s*(["\'])((?:\\\\.|(?!\1).)*)\1\s*;/s', $src, $m)) return true;
+		$v[$k] = stripcslashes($m[2]);
+	}
+	if ($v['sitekey'] === '' || !function_exists('mysqli_connect')) return true;
+	$db = @mysqli_connect($v['dbhost'], $v['dbuser'], $v['dbpass'], $v['dbname']);
+	if (!$db) return true;
+	$locked = false;
+	$r = @mysqli_query($db, "SELECT tableprefix FROM `" . str_replace('`', '', $v['settingsprefix']) . "fanfiction_settings` WHERE sitekey = '" . mysqli_real_escape_string($db, $v['sitekey']) . "'");
+	if ($r && ($row = mysqli_fetch_row($r)))
+	{
+		$prefix = $row[0] === '' ? $v['settingsprefix'] : $row[0];
+		$a = @mysqli_query($db, "SELECT COUNT(*) FROM `" . str_replace('`', '', $prefix) . "fanfiction_authorprefs` WHERE level = 1");
+		if ($a && ($n = mysqli_fetch_row($a)) && $n[0] > 0) $locked = true;
+	}
+	mysqli_close($db);
+	return $locked;
+}
+
+if (ef_install_locked())
+{
+	header("HTTP/1.1 403 Forbidden");
+	header("Content-Type: text/plain; charset=utf-8");
+	echo "eFiction is already installed, so the installer is switched off. Please delete the install/ folder.\nTo start over with a fresh install, delete config.php first.\n";
+	exit();
+}
+
+
 function random_char($string)
 {
 	$length = strlen($string);
-	$position = mt_rand(0, $length - 1);
+	$position = random_int(0, $length - 1);
 	return $string[$position];
 }
 
@@ -101,7 +144,8 @@ if (!isset($_GET['step']) || $_GET['step'] == 2)
 }
 else if (isset($_REQUEST['language']))
 {
-	$language = $_REQUEST['language'];
+	// only a language code may go into the include paths below
+	$language = is_string($_REQUEST['language']) && preg_match('/^[a-z]{2}(_[a-z]{2,4})?$/i', $_REQUEST['language']) ? $_REQUEST['language'] : "en";
 	if (file_exists("../languages/" . $language . ".php")) include("../languages/" . $language . ".php");
 	else include("../languages/en.php");
 	if (file_exists("../languages/" . $language . "_admin.php")) include("../languages/" . $language . "_admin.php");
@@ -179,7 +223,7 @@ $tpl->newBlock("header");
 $tpl->assign("sitename", "eFiction $version Install");
 $tpl->gotoBlock("_ROOT");
 $tpl->newBlock("footer");
-$tpl->assign("footer", "eFiction $version &copy; 2007. <a href='http://efiction.org/'>http://efiction.org/</a>");
+$tpl->assign("footer", "eFiction $version");
 $tpl->gotoBlock("_ROOT");
 
 if (!isset($_GET['step']))  $_GET['step'] = 0;
@@ -192,11 +236,11 @@ switch ($_GET['step'])
 			if ((!$_POST['email']) && !isADMIN) $fail .= "<div style='text-align: center;'>" . _EMAILREQUIRED . " " . _TRYAGAIN . "</div>";
 			if ($penname && !preg_match("!^[a-z0-9_ ]{3,30}$!i", $penname)) $fail = "<div style='text-align: center;'>" . _BADUSERNAME . " " . _TRYAGAIN . "</div>";
 			if (!preg_match("/^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+$/", $_POST['email'])) $fail = "<div style='text-align: center;'>" . _INVALIDEMAIL . " " . _TRYAGAIN . "</div>";
-			if ($_POST['password'] == $_POST['password2']) $encryptpassword = md5($_POST['password']);
+			if ($_POST['password'] == $_POST['password2']) $encryptpassword = ef_hash_password($_POST['password'], $tableprefix . "fanfiction_authors");
 			else $fail =  write_message(_PASSWORDTWICE);
 			if (!isset($fail))
 			{
-				$result = dbquery("INSERT INTO " . $tableprefix . "fanfiction_authors(`penname`, `email`, `password`, `date`) VALUES('$penname', '" . $_POST['email'] . "', '$encryptpassword', '" . time() . "')");
+				$result = dbquery("INSERT INTO " . $tableprefix . "fanfiction_authors(`penname`, `email`, `password`, `date`) VALUES('$penname', '" . $_POST['email'] . "', '" . escapestring($encryptpassword) . "', '" . time() . "')");
 				define("USERUID", dbinsertid());
 				$skinquery = dbquery("SELECT skin FROM " . $settingsprefix . "fanfiction_settings WHERE sitekey = '" . SITEKEY . "'");
 				list($skin) = dbrow($skinquery);
@@ -530,7 +574,7 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_authorprefs` (
   `image` varchar(200) NOT NULL default '',
   `date`int(10) unsigned NOT NULL default '0',
   `admincreated` char(1) NOT NULL default '0',
-  `password` varchar(40) NOT NULL default '0',
+  `password` varchar(255) NOT NULL default '',
   PRIMARY KEY  (`uid`),
   KEY `penname` (`penname`),
   KEY `admincreated` (`admincreated`)
@@ -1007,15 +1051,16 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 				$dbpass = descript($_POST['dbpass']);
 				$sitekey = descript($_POST['sitekey']);
 				if (empty($sitekey)) $sitekey = random_string($randomcharset, 10);
-				$language = $_POST['language'];
+				$language = is_string($_POST['language']) && preg_match('/^[a-z]{2}(_[a-z]{2,4})?$/i', $_POST['language']) ? $_POST['language'] : "en";
 				$settingsprefix = descript($_POST['settingsprefix']);
+				// var_export() escapes every value, so a password with " or $ cannot break the file or inject code
 				$text = "<?php 
-\$dbhost = \"$dbhost\";
-\$dbname = \"$dbname\";
-\$dbuser= \"$dbuser\";
-\$dbpass = \"$dbpass\";
-\$sitekey = \"$sitekey\";
-\$settingsprefix = \"$settingsprefix\";
+\$dbhost = " . var_export((string)$dbhost, true) . ";
+\$dbname = " . var_export((string)$dbname, true) . ";
+\$dbuser= " . var_export((string)$dbuser, true) . ";
+\$dbpass = " . var_export((string)$dbpass, true) . ";
+\$sitekey = " . var_export((string)$sitekey, true) . ";
+\$settingsprefix = " . var_export((string)$settingsprefix, true) . ";
 
 ?>";
 
@@ -1033,13 +1078,6 @@ if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbn
 		}
 		else
 		{
-			if (file_exists("../config.php") && !isset($mysqli_access)) {
-				include("../config.php");
-				include("../includes/dbfunctions.php");
-			}
-			if (isset($tinyMCE)) $output .= write_message(_CONFIG2DETECTED);
-			else if (isset($sitename) && $sitename) $output .= write_message(_CONFIG1DETECTED);
-			else
 			{
 				$output .=
 					"<form method='POST' enctype='multipart/form-data' action='install.php?step=1' class='tblborder' style='width: 350px; margin: 1em auto;'>

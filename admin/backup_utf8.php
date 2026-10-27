@@ -30,8 +30,8 @@ include("../config.php");
 $settingsresults = dbquery("SELECT * FROM ".$settingsprefix."fanfiction_settings WHERE sitekey = '$sitekey'");
 $settings = dbassoc($settingsresults);
 foreach($settings as $var => $val) {
-	$$var = stripslashes($val);
-	$settings[$var] = htmlspecialchars($val);
+	$$var = stripslashes($val ?? "");
+	$settings[$var] = htmlspecialchars($val ?? "");
 }
 if(!defined("SITEKEY")) define("SITEKEY", $settings['sitekey']);
 unset($settings['sitekey']);

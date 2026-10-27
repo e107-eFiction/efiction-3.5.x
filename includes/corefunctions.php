@@ -34,15 +34,19 @@ function categoryitems($catid, $value)
 	//find out current category's parent
 	if(is_array($catid)) $cats = $catid;
 	else $cats = array($catid);
-	$cats = array_filter($cats, "isNumber");
-	$catquery = dbquery("SELECT catid, parentcatid, leveldown FROM ".TABLEPREFIX."fanfiction_categories WHERE FIND_IN_SET(catid, '$catid') GROUP BY catid");
+	$cats = array_values(array_filter(array_map("strval", $cats), "isNumber"));
+	if(!$cats) return;
+	$value = (int)$value;
+	$catquery = dbquery("SELECT catid, parentcatid, leveldown FROM ".TABLEPREFIX."fanfiction_categories WHERE FIND_IN_SET(catid, '".implode(",", $cats)."') GROUP BY catid");
+	$seen = array( );
 	while(isset($catquery)) {
+		$pcats = array( );
 		while($cat = dbassoc($catquery)) {
-			$pcats = array();
-			if($cat['leveldown'] > 0) $pcats[] = $cat['parentcatid'];
+			$seen[$cat['catid']] = true;
+			if($cat['leveldown'] > 0 && !isset($seen[$cat['parentcatid']])) $pcats[] = (int)$cat['parentcatid'];
 			if(!in_array($cat['catid'], $cats)) $cats[] = $cat['catid'];
 		}
-		if(count($pcats) > 0) $catquery = dbquery("SELECT catid, parentcatid, leveldown FROM ".TABLEPREFIX."fanfiction_categories WHERE FIND_IN_SET(catid, '".implode($pcats)."') GROUP BY catid");
+		if(count($pcats) > 0) $catquery = dbquery("SELECT catid, parentcatid, leveldown FROM ".TABLEPREFIX."fanfiction_categories WHERE FIND_IN_SET(catid, '".implode(",", array_unique($pcats))."') GROUP BY catid");
 		else unset($catquery);
 	}
 	dbquery("UPDATE ".TABLEPREFIX."fanfiction_categories SET numitems = (numitems + $value) WHERE FIND_IN_SET(catid, '".implode(",", $cats)."')");
@@ -99,6 +103,15 @@ function descript($text) {
 
 	$text = preg_replace('#(<[^>]+[\\"\'\s])(onmouseover|onmousedown|onmouseup|onmouseout|onmousemove|onclick|ondblclick|onload|xmlns)[^>]*>#iU', ">", $text);
 
+	// 3.5.78: the list above missed most event handlers (onerror, onfocus...) and handlers
+	// written without a space before them, so every tag is now rebuilt from its attributes:
+	// event handlers, style with expression(), and script/data links are dropped.
+	// A quote that is never closed and a tag cut off at the end of the text are rebuilt too
+	// (the browser would otherwise read them on into the page around the text).
+	$cleaned = preg_replace_callback('#<(/?)([a-zA-Z][a-zA-Z0-9]*)((?>[^>"\']+|"[^"]*"|\'[^\']*\'|["\'])*)(>|\z)#', 'ef_clean_tag', (string)$text);
+	// if the regex gives up (backtrack limit on a huge text) no tag may pass uncleaned
+	$text = $cleaned !== null ? $cleaned : str_replace("<", "&lt;", (string)$text);
+
 	// remove javascript: and vbscript: protocol
 	
 	$text = preg_replace('#([a-z]*)=([\`\'\"]*)script:#iU', '$1=$2nojscript...', $text);
@@ -109,6 +122,30 @@ function descript($text) {
 	$text = preg_replace('#(<[^>]+)style=([\`\'\"]*).*expression\([^>]*>#iU', "$1>", $text);
 	$text = preg_replace('#(<[^>]+)style=([\`\'\"]*).*behaviour\([^>]*>#iU', "$1>", $text);
 	return $text;
+}
+
+// Rebuild one HTML tag keeping only safe attributes (used by descript()).
+function ef_clean_tag($m) {
+	$closed = isset($m[4]) && $m[4] === ">";
+	if($m[1] === "/") return "</".$m[2].($closed ? ">" : "");
+	$out = "<".$m[2];
+	$selfclose = preg_match('#/\s*$#', $m[3]);
+	preg_match_all('#([^\s"\'/=<>]+)(?:\s*=\s*("[^"]*"|\'[^\']*\'|[^\s>]+))?#', $m[3], $attrs, PREG_SET_ORDER);
+	foreach($attrs as $a) {
+		$name = strtolower($a[1]);
+		if(!preg_match('#^[a-z][a-z0-9_:.-]*$#', $name) || strpos($name, "on") === 0 || $name == "xmlns" || $name == "formaction" || $name == "srcdoc") continue;
+		if(!isset($a[2])) { $out .= " ".$name; continue; }
+		$v = $a[2];
+		if(strlen($v) > 1 && ($v[0] == '"' || $v[0] == "'") && substr($v, -1) == $v[0]) $v = substr($v, 1, -1);
+		// ENT_HTML5 so that &colon; &Tab; &NewLine; are decoded the way the browser decodes them
+		$plain = strtolower(preg_replace('#[\x00-\x20]+#', '', html_entity_decode($v, ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+		$plain = preg_replace('#&\#?[a-z0-9]+;?#', '', $plain);
+		if(preg_match('#^(java|vb|live)script:#', $plain) || (strpos($plain, "data:") === 0 && !preg_match('#^data:image/(png|gif|jpe?g|webp);#', $plain))) continue;
+		if($name == "style" && preg_match('#expression\(|behaviou?r\s*:|javascript:|url\s*\(\s*[\'"]?\s*(java|vb)script#i', $plain)) continue;
+		$out .= " ".$name.'="'.str_replace(array('"', '<', '>'), array('&quot;', '&lt;', '&gt;'), $v).'"';
+	}
+	if(!$closed) return $out;
+	return $out.($selfclose ? " />" : ">");
 }
 
 // Call this function when the user tries to do something they shouldn't have access to.
@@ -140,6 +177,7 @@ function errorExit( $msg = ""){
 
 function storiesInSeries($thisseries) {
 	$storylist = array( );
+	if(is_int($thisseries)) $thisseries = (string)$thisseries;
 	if(!isNumber($thisseries)) return $storylist;
 	$serieslist = array( );
 	$stinseries = dbquery("SELECT sid, subseriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '$thisseries'");
@@ -156,6 +194,7 @@ function storiesInSeries($thisseries) {
 }
 function subseriesList($thisseries) {
 	$serieslist = array( );
+	if(is_int($thisseries)) $thisseries = (string)$thisseries;
 	if(!isNumber($thisseries)) return $serieslist;
 	$stinseries = dbquery("SELECT subseriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE seriesid = '$thisseries'");
 	while($st = dbassoc($stinseries)) {
@@ -169,6 +208,7 @@ function seriesreview($thisseries) {
 
 	global $ratings;
 
+	if(is_int($thisseries)) $thisseries = (string)$thisseries;
 	if(!isNumber($thisseries)) return;
 	$storylist = storiesInSeries($thisseries);
 	$serieslist = subseriesList($thisseries);
@@ -194,7 +234,7 @@ $newcount = dbquery("SELECT count(reviewid) as totalcount FROM ".TABLEPREFIX."fa
 	(count($serieslist) > 0 ? " OR (FIND_IN_SET(item, '".(implode(",", $serieslist))."') > 0 AND type = 'SE')" : "").
 	") AND review != 'No Review'");
 list($totalcount) = dbrow($newcount);
-if($totalcount) $update = dbquery("UPDATE ".TABLEPREFIX."fanfiction_series SET rating = '".round($totalreviews)."', reviews = '$totalcount' WHERE seriesid = '$thisseries'");
+$update = dbquery("UPDATE ".TABLEPREFIX."fanfiction_series SET rating = '".($totalcount ? round((float)$totalreviews) : 0)."', reviews = '".(int)$totalcount."', numstories = '".count($storylist)."' WHERE seriesid = '$thisseries'");
 $parentq = dbquery("SELECT seriesid FROM ".TABLEPREFIX."fanfiction_inseries WHERE subseriesid = '$thisseries' AND seriesid != '$thisseries'");
 while($parent2 = dbassoc($parentq)) { seriesreview($parent2['seriesid']); }
 
@@ -240,11 +280,32 @@ function format_email($text) {
 	return str_replace($search, $replace, $text);
 }
 
+// One "name=value" pair for a link that repeats the visitor's search or browse terms.
+// Names and values are URL-encoded and the result is safe inside an HTML attribute; arrays become a comma list.
+function ef_term($name, $value) {
+	if(is_array($value)) $value = implode(",", array_map(function($v) { return is_array($v) ? "" : (string)$v; }, $value));
+	return htmlspecialchars(rawurlencode((string)$name)."=".rawurlencode((string)$value), ENT_QUOTES);
+}
+
+// The current query string, minus the given keys, as "&amp;a=b&amp;c=d" (empty when nothing is left).
+function ef_query_terms($skip = array()) {
+	$out = "";
+	foreach($_GET as $k => $v) if(!in_array((string)$k, $skip, true)) $out .= "&amp;".ef_term($k, $v);
+	return $out;
+}
+
 // Function to format a URL into a clickable link
+// Only http://, https:// and mailto: are links; a bare host (example.org/page) gets https://.
+// Anything else (javascript:, data:...) is shown as text. Both the address and the title are escaped.
 function format_link($text, $title = "", $target = 0) {
+	$text = trim((string)$text);
 	if(empty($title)) $title = $text;
-	if(strpos($text, "http://") === false && strpos($text, "https://")) $text = "https://".$text;
-	$text = "<a href='$text'".($target ? " target='_blank'" : "").">$title</a>";
+	$title = htmlspecialchars((string)$title, ENT_QUOTES, _CHARSET);
+	if(!preg_match('#^(https?://|mailto:)#i', $text)) {
+		if(!preg_match('#^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.[a-z]{2,}([:/?\#]|$)#i', $text)) return $title;
+		$text = "https://".$text;
+	}
+	$text = "<a href='".htmlspecialchars($text, ENT_QUOTES, _CHARSET)."'".($target ? " target='_blank'" : "").">$title</a>";
 	return $text;
 }
 
@@ -438,6 +499,52 @@ function check_prefs($uid) {
 	else return false;
 }
 
+// Passwords (3.5.7): stored with password_hash(). Old unsalted MD5 hashes still verify and are
+// replaced at the next login, but only once the password column is wide enough for the new hash
+// (update.php widens it to varchar(255)); until then MD5 is kept so nobody is locked out.
+
+// Can the authors table hold a password_hash() result? Checked once per request.
+// $table defaults to the table in _AUTHORTABLE (the installer passes its own).
+function ef_password_column_ok($table = "") {
+	static $ok = array( );
+	if($table === "" && defined("_AUTHORTABLE")) $table = trim(substr(_AUTHORTABLE, 0, strpos(_AUTHORTABLE, " as author")));
+	if($table === "") return false;
+	if(!isset($ok[$table])) {
+		$result = dbquery("SHOW COLUMNS FROM ".$table." LIKE 'password'");
+		$col = $result ? dbassoc($result) : false;
+		$ok[$table] = $col && preg_match("/^varchar\((\d+)\)/i", $col['Type'], $m) && (int)$m[1] >= 255;
+	}
+	return $ok[$table];
+}
+
+// Hash a new password for storage.
+function ef_hash_password($plain, $table = "") {
+	if(!ef_password_column_ok($table)) return md5($plain);
+	return password_hash($plain, PASSWORD_DEFAULT);
+}
+
+// True while $stored is still a legacy MD5 hash (or anything that is not a password_hash() result).
+function ef_password_is_legacy($stored) {
+	return !(is_string($stored) && strlen($stored) > 32 && $stored[0] === '$');
+}
+
+// Is $stored a real password hash: a 32-character hex MD5 or a password_hash() result? Anything
+// else ('0' or '' on accounts an administrator created and never released, '!' placeholders set by
+// update.php) must never authenticate, by form login, cookie or session.
+function ef_password_is_hash($stored) {
+	if(!is_string($stored) || $stored === "") return false;
+	if(preg_match("/^[0-9a-f]{32}$/i", $stored)) return true;
+	$info = password_get_info($stored);
+	return !empty($info['algo']);
+}
+
+// Check a password against the stored hash (password_hash() or legacy MD5).
+function ef_verify_password($plain, $stored) {
+	if(!is_string($plain) || !is_string($stored) || $stored === "") return false;
+	if(!ef_password_is_legacy($stored)) return password_verify($plain, $stored);
+	return hash_equals($stored, md5($plain));
+}
+
 // Function builds the alphabet links on various pages.
 function build_alphalinks($url, $let) {
 	global $alphabet;
@@ -586,7 +693,7 @@ function search($storyquery, $countquery, $pagelink = "search.php?", $pagetitle 
 		$terms = array();
 		foreach($termArray as $term => $value) {
 			if($term == "submit" || $term == "go" || $term == "offset" || ($term != "complete" &&empty($value))) continue;
-			$terms[] = "$term=".(is_array($value) ? implode(",", $value) : $value);
+			$terms[] = ef_term($term, $value);
 		}
 		$terms = implode("&amp;", $terms);
 		$terms .= "&amp;";

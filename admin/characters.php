@@ -91,12 +91,12 @@ if(!defined("_CHARSET")) exit( );
 			if(!isNumber($numchars)) $numchars = $itempsperpage;
 			for($x = 1; $x <= $numchars; $x++) {
 				if(isset($_POST["character$x"]) && $_POST["character$x"] != "") {
-					$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_characters (charname, bio, catid) VALUES('".escapestring(descript(strip_tags(trim($_POST["character$x"]))))."', '".escapestring(descript($_POST["bio$x"]))."', '$_POST[catid]')");
+					$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_characters (charname, bio, catid) VALUES('".escapestring(descript(strip_tags(trim($_POST["character$x"]))))."', '".escapestring(descript($_POST["bio$x"] ?? ""))."', '$_POST[catid]')");
 				}
 			}
 		}
 		else if($_GET["do"] == "update") {
-			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_characters SET charname = '".escapestring(descript(strip_tags(trim($_POST["character1"]))))."', bio = '".escapestring(descript($_POST["bio1"]))."' WHERE charid = '$_POST[charid]'");
+			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_characters SET charname = '".escapestring(descript(strip_tags(trim($_POST["character1"] ?? ""))))."', bio = '".escapestring(descript($_POST["bio1"] ?? ""))."' WHERE charid = '$_POST[charid]'");
 		}
 		$output .= write_message(_ACTIONSUCCESSFUL);
 	}

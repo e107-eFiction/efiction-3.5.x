@@ -38,6 +38,17 @@ $tpl->prepare();
 
 include("includes/pagesetup.php");
 
+// May the visitor read (and so review) this story? Same rule as viewstory.php: validated,
+// or staff, the author or a co-author. (3.5.77)
+function ef_review_story_ok($sid) {
+	$st = dbassoc(dbquery("SELECT uid, validated FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '".(int)$sid."' LIMIT 1"));
+	if(!$st) return false;
+	if($st['validated'] > 0 || isADMIN) return true;
+	if(!USERUID) return false;
+	if((int)$st['uid'] === (int)USERUID) return true;
+	return (bool)dbrow(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_coauthors WHERE sid = '".(int)$sid."' AND uid = '".(int)USERUID."' LIMIT 1"));
+}
+
 $reviewid = isset($_REQUEST['reviewid']) ? $_REQUEST['reviewid'] : false;
 if(!isNumber($reviewid)) unset($reviewid);
 $type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
@@ -48,7 +59,7 @@ if($action == "delete") {
 	if(isADMIN && uLEVEL <= 3) $notauthor = 1;
 	$query = dbquery("SELECT item, chapid, type, review, rating, uid FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '$reviewid' LIMIT 1");
 	list($item, $chapid, $type, $review, $rating, $reviewuid) = dbrow($query);
-	if($reviewuid == USERUID) $notauthor = 1;
+	if(USERUID && $reviewuid == USERUID) $notauthor = 1;
 	if($type == "SE") $query2 = "SELECT uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$item' LIMIT 1";
 	if($type == "ST") $query2 = "SELECT uid FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$item' LIMIT 1";
 	else {
@@ -59,7 +70,12 @@ if($action == "delete") {
 	}
 	$authorquery = dbquery($query2);
 	list($author) = dbrow($authorquery);
-	if($author != USERUID && !$notauthor && ($revdelete < 2 || ($revdelete == 1 && $reviewuid))) accessDenied( );
+	// Who may delete: admins (level 1-3), the member who wrote the review, and the
+	// story's or series' author when the site allows it ($revdelete 1: anonymous
+	// reviews, 2: all reviews). (Before 3.5.74 the check let other people through.)
+	if(empty($reviewid) || $reviewuid === null) accessDenied( );
+	$ef_author_may = USERUID && $author == USERUID && ($revdelete == 2 || ($revdelete == 1 && !$reviewuid));
+	if(empty($notauthor) && !$ef_author_may) accessDenied( );
 	$delete = isset($_GET['delete']) ? $_GET['delete'] : false;
 	$output .= "<div id=\"pagetitle\">"._DELETEREVIEW."</div>";
 	if($delete == "yes") {
@@ -114,14 +130,33 @@ if($action == "delete") {
 else if($action == "edit" || $action == "add") {
 	if(isset($_GET['next']) && isNumber($_GET['next'])) $nextchapter = $_GET['next'];
 	if(!isMEMBER && !$anonreviews) accessDenied( );
-	if(!isset($chapid) && $type == "ST") { 
-		$chapquery = dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE sid = '$item' AND inorder = '1' LIMIT 1");
-		list($chapid) = dbrow($chapquery);
+	// Only an admin or the member who wrote a review may edit it.
+	// (Before 3.5.74 anyone, signed in or not, could rewrite any review.)
+	if($action == "edit") {
+		if(empty($reviewid)) accessDenied( );
+		$ef_r = dbassoc(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '".(int)$reviewid."' LIMIT 1"));
+		if(!$ef_r || !((isADMIN && uLEVEL < 4) || (USERUID && (int)$ef_r['uid'] === (int)USERUID))) accessDenied( );
+	}
+	if($action == "add") {
+		// new reviews: only when the site takes them, and only for something the visitor may read
+		if(!$reviewsallowed) accessDenied( );
+		if($type == "ST") {
+			if(empty($item) || !ef_review_story_ok($item)) accessDenied( );
+			// a chapter of this story (a chapter number from another story used to change that story's counts)
+			$ef_ch = isset($_POST['chapid']) && is_string($_POST['chapid']) && isNumber($_POST['chapid']) ? (int)$_POST['chapid'] : (isset($chapid) ? (int)$chapid : 0);
+			$chapid = 0;
+			if($ef_ch) list($chapid) = array_pad((array)dbrow(dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE chapid = '$ef_ch' AND sid = '".(int)$item."' AND validated > 0 LIMIT 1")), 1, 0);
+			if(!$chapid) list($chapid) = array_pad((array)dbrow(dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE sid = '".(int)$item."' AND validated > 0 ORDER BY inorder LIMIT 1")), 1, 0);
+			$chapid = (int)$chapid;
+		}
+		else if($type == "SE") {
+			if(empty($item) || !dbrow(dbquery("SELECT seriesid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '".(int)$item."' LIMIT 1"))) accessDenied( );
+		}
 	}
 	$tpl->assign("pagetitle", "<div id =\"pagetitle\">"._REVIEW."</div>");
 	if(isset($_POST['submit'])) {
 		$reviewer = isset($_POST['reviewer']) ? escapestring(descript(strip_tags($_POST['reviewer'], $allowed_tags))) : "";
-		$review = format_story(strip_tags(descript($_POST['review']), $allowed_tags));
+		$review = format_story(strip_tags(descript($_POST['review'] ?? ''), $allowed_tags));
 		$review = escapestring($review);
 		$rating = isset($_POST['rating']) && isNumber($_POST['rating']) ? $_POST['rating'] : -1;
 		if(!$review) $review = "No Review";
@@ -140,7 +175,6 @@ else if($action == "edit" || $action == "add") {
 				list($item, $type, $chapid) = dbrow($info);
 			}
 			else if($type == "ST") {
-				if(isset($_POST['chapid']) && isNumber($_POST['chapid'])) $chapid = $_POST['chapid'];
 				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_reviews (item, type, reviewer, review, rating, date, uid, chapid) VALUES ('$item', 'ST', '$reviewer', '$review', '$rating', '" . time() . "', '".(USERUID && isNumber(USERUID) ? USERUID : 0)."', '$chapid')");
 				$count =  dbquery("SELECT AVG(rating) as totalcount FROM ".TABLEPREFIX."fanfiction_reviews WHERE item = '$item' AND type = 'ST' AND rating != '-1'");
 				list($totalcount) = dbrow($count);
@@ -243,6 +277,8 @@ else {
 		list($type, $item) = dbrow(dbquery("SELECT type, item FROM ".TABLEPREFIX."fanfiction_reviews WHERE reviewid = '$reviewid' LIMIT 1"));
 	}
 	if($type == "ST") {
+		// reviews of a story nobody else can read stay hidden too
+		if(empty($item) || !ef_review_story_ok($item)) accessDenied( );
 		$storyquery = dbquery("SELECT s.title, s.uid, s.rid, s.sid, s.coauthors FROM ".TABLEPREFIX."fanfiction_stories as s WHERE s.sid = '$item' LIMIT 1");
 		$story = dbassoc($storyquery);
 		$title = title_link($story);
@@ -259,13 +295,14 @@ else {
 		$storyquery = dbquery("SELECT title, uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$item' LIMIT 1");
 		list($title, $authoruid) = dbrow($storyquery);
 		$titletext = $title;
-		$title = "<a href=\"series.php?seriesid=$item\">".stripslashes($title)."</a>";
+		$title = "<a href=\"series.php?seriesid=$item\">".stripslashes($title ?? '')."</a>";
 	}
 	else { 
 		$titlequery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_codeblocks WHERE code_type = 'revtitle'");
 		while($code = dbassoc($titlequery)) {
 			eval($code['code_text']);
 		}
+		if(!isset($title)) accessDenied( );
 	}
 	$tpl->assign("pagetitle", "<div id=\"pagetitle\">"._REVIEWSFOR." $title</div>");
 	if($type == "SE") {
@@ -351,6 +388,9 @@ else {
 			eval($code['code_text']);
 		}
 	}
+	if(empty($query) || empty($count)) {
+		accessDenied( );
+	}
 	if(isset($_GET['unresponded'])) {
 		$query .= "AND review.respond = '0' ";
 		$count .= "AND review.respond = '0' ";
@@ -402,7 +442,7 @@ else {
 	if(isMEMBER || $anonreviews)
 		$reviewslink = "<a href=\"reviews.php?action=add&amp;type=$type&amp;item=$item".(isset($chapid) ? "&amp;chapid=".$chapid : "")."\">"._SUBMITREVIEW."</a>";
 	else
-		$reviewslink = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link']), strtolower($pagelinks['register']['link'])));
+		$reviewslink = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link'] ?? ''), strtolower($pagelinks['register']['link'] ?? '')));
 	$tpl->assign("reviewslink", $reviewslink);
 	$form = "";
 	if($reviewsallowed) {
@@ -411,7 +451,7 @@ else {
 			$type = $type;
 			include("includes/reviewform.php");
 		}
-		else $form = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link']), strtolower($pagelinks['register']['link'])));
+		else $form = write_message(sprintf(_LOGINTOREVIEW, strtolower($pagelinks['login']['link'] ?? ''), strtolower($pagelinks['register']['link'] ?? '')));
 	}
 	$tpl->assign("reviewform", $form);
 

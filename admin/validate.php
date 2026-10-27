@@ -56,10 +56,7 @@ function preview_story($stories) {
 		if($store == "files")
 		{
 			$file = STORIESPATH."/$stories[uid]/$stories[chapid].txt";
-			$log_file = fopen($file, "r");
-			$file_contents = fread($log_file, filesize($file));
-			$storytext = $file_contents;
-			fclose($log_file);
+			$storytext = is_file($file) ? (string)@file_get_contents($file) : "";
 		}
 		else if($store == "mysql")
 		{
@@ -77,11 +74,11 @@ function preview_story($stories) {
 	if(isset($_GET['validate']) && $_GET['validate'] == "yes") {
 		$storyquery = dbquery("SELECT story.validated, story.catid, story.sid, story.title, story.summary, story.uid, "._PENNAMEFIELD." as penname, chapter.inorder, story.coauthors FROM ".TABLEPREFIX."fanfiction_stories as story, ".TABLEPREFIX."fanfiction_chapters  as chapter, "._AUTHORTABLE." WHERE "._UIDFIELD." = story.uid AND chapter.sid = story.sid AND chapter.chapid ='$_GET[chapid]' LIMIT 1");
 		list($storyvalid, $catid, $sid, $title, $summary, $authoruid, $author, $inorder, $coauthors) = dbrow($storyquery);
-		if(uLEVEL == 1 || (empty($admincats) || sizeof(array_intersect(explode(",", $catid), explode(",", $admincats))))) {
+		if(uLEVEL == 1 || (empty($admincats) || sizeof(array_intersect(explode(",", $catid ?? ''), explode(",", $admincats))))) {
 			include("includes/emailer.php");
 			if(!$storyvalid) {
 				dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET validated = '1', updated = '" . time() . "' WHERE sid = '$_GET[sid]'");
-				foreach(explode(",", $catid) as $cat) {
+				foreach(explode(",", $catid ?? "") as $cat) {
 					categoryitems($cat, 1);
 				}
 				$au[] = $authoruid;

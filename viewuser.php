@@ -110,8 +110,8 @@ while($panel = dbassoc($panelquery)) {
 		list($itemcount) = dbrow($countquery);
 	}
 	if(!empty($tabCounts[$panel['panel_name']])) $itemcount = $tabCounts[$panel['panel_name']];
-	$panellinkplus = "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname, stripslashes($panel['panel_title'])).(isset($itemcount) ? " [$itemcount]" : "")."</a>\n";
-	$panellink = "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname, stripslashes($panel['panel_title']))."</a>\n";
+	$panellinkplus = "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname ?? '', stripslashes($panel['panel_title'])).(isset($itemcount) ? " [$itemcount]" : "")."</a>\n";
+	$panellink = "<a href=\"viewuser.php?action=".$panel['panel_name']."&amp;uid=$uid\">".preg_replace("<\{author\}>", $penname ?? '', stripslashes($panel['panel_title']))."</a>\n";
 	$tpl->newBlock("paneltabs");
 	$tpl->assign("tabwidth", $tabwidth);
 	$tpl->assign("class", $action == $panel['panel_name'] || (empty($action) && $panel['panel_order'] == 1 && $panel['panel_type'] == "P") ? "id='active'" : "");

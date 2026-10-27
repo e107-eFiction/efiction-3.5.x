@@ -38,12 +38,12 @@ if(!empty($_GET['go'])) {
 }
 if(!empty($_GET['edit'])) {
 	if(!empty($_POST['submit'])) {
-		$panel_name = addslashes(strip_tags(descript($_POST['panel_name'])));
-		$panel_title = addslashes(strip_tags(descript($_POST['panel_title'])));
-		$panel_url = addslashes(strip_tags(descript($_POST['panel_url'])));
+		$panel_name = addslashes(strip_tags(descript($_POST['panel_name'] ?? '')));
+		$panel_title = addslashes(strip_tags(descript($_POST['panel_title'] ?? '')));
+		$panel_url = addslashes(strip_tags(descript($_POST['panel_url'] ?? '')));
 		$panel_level = (!empty($_POST['panel_level']) && isNumber($_POST['panel_level']) ? $_POST['panel_level'] : 0);
 		$panel_hidden = (!empty($_POST['panel_hidden']) ? 1 : 0);
-		$panel_type = strip_tags(descript($_POST['panel_type']));
+		$panel_type = strip_tags(descript($_POST['panel_type'] ?? ''));
 		if(!$panel_hidden) {
 			$oldinfo = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_panels WHERE panel_id = '".$_GET['edit']."'");
 			$panelinfo = dbassoc($oldinfo);

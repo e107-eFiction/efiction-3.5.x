@@ -27,7 +27,8 @@ else $current = "login";
 		include("user/logout.php");
 	}
 	
-	if(!empty($_POST['submit']) && $current == "login") {
+	// only a well-formed penname goes to the early login check; anything else just gets the login form
+	if(!empty($_POST['submit']) && $current == "login" && isset($_POST['penname']) && is_string($_POST['penname']) && preg_match("!^[-a-z0-9_ ]{3,30}$!i", $_POST['penname'])) {
 	session_start();
 	define("_LOGINCHECK", true);		
 		include("user/login.php");

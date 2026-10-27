@@ -48,8 +48,8 @@ $output .= "<div id=\"pagetitle\">"._RATINGS."</div>";
 		}
 	}
 	if (isset($_POST["submit"]) && ((isset($_GET['rid']) && isNumber($_GET['rid'])) || $_GET['rid'] == "new")) {
-		$newrate = escapestring(strip_tags(descript($_POST['rating'])));
-		$newtext = escapestring(strip_tags(descript($_POST['warningtext'])));
+		$newrate = escapestring(strip_tags(descript($_POST['rating'] ?? '')));
+		$newtext = escapestring(strip_tags(descript($_POST['warningtext'] ?? '')));
 		$ratingwarning = isset($_POST['ratingwarning']) ? 1 : 0;
 		if(isset($_POST['rusersonly'])) $ratingwarning = $ratingwarning + 4;
 		if(isset($_POST['ageconsent'])) $ratingwarning = $ratingwarning + 2;

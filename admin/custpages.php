@@ -32,14 +32,14 @@ if(isset($_GET['delete']) && isNumber($_GET['delete'])) {
 	else $output .= write_error(_ERROR);
 }
 if(isset($_POST['submit'])) {
-	if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['name'])) $output .= write_error(_BADVARNAME);
+	if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['name'] ?? '')) $output .= write_error(_BADVARNAME);
 	else {
 		$pagename = descript($_POST['name']);
-		$pagetitle = descript($_POST['title']);
+		$pagetitle = descript($_POST['title'] ?? '');
 		if(isset($_GET['edit']) && isNumber($_GET['edit'])) 
-			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_messages SET message_name = '".escapestring($pagename)."', message_title = '".escapestring($pagetitle)."', message_text = '".escapestring(descript($_POST['text']))."' WHERE message_id = ".$_GET['edit']." LIMIT 1");
+			$result = dbquery("UPDATE ".TABLEPREFIX."fanfiction_messages SET message_name = '".escapestring($pagename)."', message_title = '".escapestring($pagetitle)."', message_text = '".escapestring(descript($_POST['text'] ?? ''))."' WHERE message_id = ".$_GET['edit']." LIMIT 1");
 		else {
-			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_messages(`message_name`, `message_title`, `message_text`) VALUES( '".escapestring($pagename)."', '".escapestring($pagetitle)."', '".escapestring(descript($_POST['text']))."')");
+			$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_messages(`message_name`, `message_title`, `message_text`) VALUES( '".escapestring($pagename)."', '".escapestring($pagetitle)."', '".escapestring(descript($_POST['text'] ?? ''))."')");
 			if($result) $result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_pagelinks(`link_name`, `link_text`, `link_url`, `link_target`, `link_access`) VALUES('".escapestring($pagename)."_link', '".escapestring($pagetitle)."', 'viewpage.php?page=$pagename', '0', '0')");
 		}
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL."<br /><br /><a href='viewpage.php?page=$pagename'>$pagetitle</a>");
@@ -50,9 +50,9 @@ if(isset($_POST['submit'])) {
 if((isset($_GET['edit']) && isNumber($_GET['edit'])) || isset($_GET["new"]) || isset($_POST['preview'])) {
 	unset($message, $id, $name, $title, $text);
 	if(isset($_POST['preview'])) {
-		$name = descript($_POST['name']);
-		$title = descript($_POST['title']);
-		$thistext = descript($_POST['text']);
+		$name = descript($_POST['name'] ?? '');
+		$title = descript($_POST['title'] ?? '');
+		$thistext = descript($_POST['text'] ?? '');
 		$edit = isset($_GET['edit']) ? $_GET['edit'] : "";
 		if(strpos($thistext, "?>") === false) $output .= "<div id='pagetitle'>$title</div>\n\n$thistext";
 		else {

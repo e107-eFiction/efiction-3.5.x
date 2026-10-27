@@ -57,8 +57,18 @@ include("includes/storyform.php");
 					$array_coauthors[] = $c['uid'];
 				}
 			}
-			if($story['uid'] != USERUID && (is_array($array_coauthors) && !in_array(USERUID, $array_coauthors)) && !$story['rr']) accessDenied( );
+			if(!$story) accessDenied( );
+			$ef_own = $story['uid'] == USERUID || in_array(USERUID, $array_coauthors);
+			if(!$ef_own) {
+				// A round robin lets other members add chapters, and edit or delete the
+				// chapters they wrote. The story itself stays with its authors.
+				// (Before 3.5.74 any member could edit or delete a round robin story.)
+				if(!$story['rr']) accessDenied( );
+				$ef_rr_ok = $action == "newchapter" || (isset($chapid) && isset($author) && $author == USERUID && in_array($action, array("editchapter", "delete")));
+				if(!$ef_rr_ok) accessDenied( );
+			}
 		}
+		else if(isset($chapid)) accessDenied( );
 	}
 	else if(isADMIN && uLEVEL < 4 && isset($_GET['admin'])) {
 		$admin = 1;
@@ -137,9 +147,9 @@ function newstory( ) {
 	$title = isset($_POST['title']) ? descript(strip_tags($_POST['title'], $allowed_tags)) : "";
 	$summary = isset($_POST['summary']) ? replace_naughty(descript(strip_tags($_POST['summary'], $allowed_tags))) : "";
 	$storynotes = isset($_POST['storynotes']) ? descript(strip_tags($_POST['storynotes'], $allowed_tags)) : "";
-	$catid = isset($_POST['catid']) ? array_filter(explode(",", $_POST['catid']), "isNumber") : array( );
-	$charid = isset($_POST['charid']) ? array_filter($_POST['charid'], "isNumber") : array( );
-	$array_coauthors = isset($_POST['coauthors']) ? array_filter(explode(",", $_POST['coauthors']), "isNumber") : array( );
+	$catid = isset($_POST['catid']) ? array_filter(is_array($_POST['catid']) ? $_POST['catid'] : explode(",", $_POST['catid']), "isNumber") : array( );
+	$charid = isset($_POST['charid']) ? array_filter((array)$_POST['charid'], "isNumber") : array( );
+	$array_coauthors = isset($_POST['coauthors']) ? array_filter(is_array($_POST['coauthors']) ? $_POST['coauthors'] : explode(",", $_POST['coauthors']), "isNumber") : array( );
 	$classes = array( );
 	$classquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_classtypes");
 	while($type = dbassoc($classquery)) {
@@ -431,6 +441,12 @@ function viewstories( ) {
 	$go = isset($_GET['go']) ? $_GET['go'] : false;
 	$com = isset($_GET['com']) ? $_GET['com'] : false;
 	$hidechapters = isset($_GET["chapters"]) ? $_GET["chapters"] : false;
+	// reordering chapters and marking a story complete are for its authors (and admins)
+	if(($go || $com) && $sid && !isADMIN) {
+		$ef_o = dbassoc(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '".(int)$sid."' LIMIT 1"));
+		if(!$ef_o || ($ef_o['uid'] != USERUID && !dbnumrows(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_coauthors WHERE sid = '".(int)$sid."' AND uid = '".(int)USERUID."'")))) { $go = false; $com = false; }
+	}
+	if($chapid && $sid && !dbnumrows(dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE chapid = '".(int)$chapid."' AND sid = '".(int)$sid."'"))) $go = false;
 	if(($go || $com) && $sid) {
 		$inorder = isset($_GET['inorder']) && isNumber($_GET['inorder']) ? $_GET['inorder'] : false;
 		if($inorder && $chapid) {
@@ -483,9 +499,9 @@ function editchapter( $chapid ) {
 	$output = "<div id=\"pagetitle\">"._EDITCHAPTER."</div>";
 // get variables from $_POST
 	if(isset($_POST['submit'])) {
-		$chaptertitle = strip_tags(descript($_POST["chaptertitle"]), $allowed_tags);
-		$notes = strip_tags(descript($_POST["notes"]), $allowed_tags);
-		$endnotes = strip_tags(descript($_POST["endnotes"]), $allowed_tags);
+		$chaptertitle = strip_tags(descript($_POST["chaptertitle"] ?? ""), $allowed_tags);
+		$notes = strip_tags(descript($_POST["notes"] ?? ""), $allowed_tags);
+		$endnotes = strip_tags(descript($_POST["endnotes"] ?? ""), $allowed_tags);
 		if(!empty($_FILES['storyfile']['name'])) {
 			if ($_FILES['storyfile']['type'] != 'text/html' && $_FILES['storyfile']['type'] != 'text/plain') {
  				 $failed = _INVALIDUPLOAD;
@@ -500,7 +516,7 @@ function editchapter( $chapid ) {
 			}
 		}
 		else if(isset($_POST['storytext'])) $story = $_POST['storytext'];
-		$storytext = strip_tags(descript($story), $allowed_tags);
+		$storytext = strip_tags(descript($story ?? ""), $allowed_tags);
 		$inorder = $_POST["inorder"];
 		$words_to_count = strip_tags($storytext);
 		$pattern = "/[^(\w|\d|\'|\"|\.|\!|\?|;|,|\\|\/|\-\-|:|\&|@)]+/";
@@ -518,10 +534,14 @@ function editchapter( $chapid ) {
 				$user = dbassoc($result2);
 				$uid = $user['uid'];
 			}
-			else if(isset($_POST['uid']) && isNumber($_POST['uid'])) {
+			else if($admin && isset($_POST['uid']) && isNumber($_POST['uid'])) {
 				$uid = $_POST['uid'];
 			}
-			else $uid= USERUID;
+			else {
+				// keep the chapter with the member who wrote it (a co-author editing it doesn't take it over)
+				$ef_c = dbassoc(dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_chapters WHERE chapid = '".(int)$chapid."' LIMIT 1"));
+				$uid = $ef_c ? $ef_c['uid'] : USERUID;
+			}
 			if($store == "mysql") {
 				dbquery("UPDATE ".TABLEPREFIX."fanfiction_chapters SET uid = '$uid', title = '".addslashes($chaptertitle)."', notes = '".addslashes($notes)."', endnotes = '".addslashes($endnotes)."', wordcount = '$wordcount', storytext = '".addslashes($storytext)."' WHERE chapid = '$chapid' LIMIT 1");
 			}
@@ -575,13 +595,13 @@ function editchapter( $chapid ) {
 		$storyquery = dbquery("SELECT title, inorder, notes, endnotes, uid, storytext, sid FROM ".TABLEPREFIX."fanfiction_chapters WHERE chapid = '$chapid' LIMIT 1");
 		$story = dbassoc($storyquery);
 		$chaptertitle = stripslashes($story["title"]);
-		$storytext = $story["storytext"];
+		$storytext = $story["storytext"] ?? "";
 		$inorder = $story["inorder"];
-		$notes = stripslashes($story["notes"]);
-		$endnotes = stripslashes($story["endnotes"]);
+		$notes = stripslashes($story["notes"] ?? "");
+		$endnotes = stripslashes($story["endnotes"] ?? "");
 		$sid = $story["sid"];
 
-		if($store == "mysql") $storytext = $story['storytext'];
+		if($store == "mysql") $storytext = $story['storytext'] ?? "";
 		else {
 			if($out = fopen (STORIESPATH."/".$story['uid']."/$chapid.txt", "r"))
 				while (!feof($out)) {
@@ -633,9 +653,9 @@ function editstory($sid) {
 		$notes = isset($_POST['notes']) ? strip_tags(descript($_POST['notes']), $allowed_tags) : "";
 		$endnotes = isset($_POST['endnotes']) ? strip_tags(descript($_POST['endnotes']), $allowed_tags) : "";
 		$rid = isset($_POST['rid']) && isNumber($_POST['rid']) ? $_POST['rid'] : 0;
-		$catid = isset($_POST['catid']) ? array_filter(explode(",", $_POST['catid']), "isNumber") : array( );
-		$charid = isset($_POST['charid']) ? array_filter($_POST['charid'], "isNumber") : array( );
-		$array_coauthors = isset($_POST['coauthors']) ? array_filter(explode(",", $_POST['coauthors']), "isNumber") : array( );
+		$catid = isset($_POST['catid']) ? array_filter(is_array($_POST['catid']) ? $_POST['catid'] : explode(",", $_POST['catid']), "isNumber") : array( );
+		$charid = isset($_POST['charid']) ? array_filter((array)$_POST['charid'], "isNumber") : array( );
+		$array_coauthors = isset($_POST['coauthors']) ? array_filter(is_array($_POST['coauthors']) ? $_POST['coauthors'] : explode(",", $_POST['coauthors']), "isNumber") : array( );
 		if(isset($_POST['uid']) && isNumber($_POST['uid'])) $uid = $_POST['uid'];
 		else $uid = USERUID;
 		$classes = array( );
@@ -655,7 +675,7 @@ function editstory($sid) {
 		else $coauthors = 0;
 	}
 	if(isset($_POST['submit']) && $_POST['submit'] == _ADDSTORY) {
-		$oldcats = isset($_POST['oldcats']) ? array_filter(explode(",", $_POST['oldcats']), "isNumber") : array( );
+		$oldcats = isset($_POST['oldcats']) ? array_filter(is_array($_POST['oldcats']) ? $_POST['oldcats'] : explode(",", $_POST['oldcats']), "isNumber") : array( );
 		if (!$rid || !$title || !$summary || !$catid) {
 			$output .= write_error(_MISSINGFIELDS);
 			$submit = _PREVIEW;
@@ -670,24 +690,22 @@ function editstory($sid) {
 						$chapters = dbquery("SELECT chapid FROM ".TABLEPREFIX."fanfiction_chapters WHERE sid = '$sid' AND uid = '$olduid'");
 						while($chap = dbassoc($chapters)) {
 							$chapid = $chap['chapid'];
-							$storytext = "";
-							if($out = fopen (STORIESPATH."/$olduid/$chapid.txt", "r"))
-							while (!feof($out)) {
-								$storytext .= fgets($out, 10000);
-							}
-							fclose($out);
-							unlink(STORIESPATH."/$olduid/$chapid.txt"); 
-							if($storytext) {
+							$oldfile = STORIESPATH."/$olduid/$chapid.txt";
+							$storytext = is_file($oldfile) ? (string)@file_get_contents($oldfile) : "";
+							if($storytext !== "") {
 								if( !file_exists( STORIESPATH."/$uid/" ) ) {
-									mkdir(STORIESPATH."/$uid", 0755);
-									chmod(STORIESPATH."/$uid", 0777);
+									@mkdir(STORIESPATH."/$uid", 0755);
+									@chmod(STORIESPATH."/$uid", 0777);
 								}
-								$handle = fopen(STORIESPATH."/$uid/$chapid.txt", 'w');
-								if ($handle) {
-									fwrite($handle, $storytext);
-									fclose($handle);
+								// copy first, and only remove the old file once the new one is written
+								if(@file_put_contents(STORIESPATH."/$uid/$chapid.txt", $storytext) === strlen($storytext)) {
+									@chmod(STORIESPATH."/$uid/$chapid.txt", 0644);
+									@unlink($oldfile);
 								}
-								chmod(STORIESPATH."/$uid/$chapid.txt", 0644);
+								else {
+									$output .= write_error(_ERROR." ".STORIESPATH."/$uid/$chapid.txt");
+									continue;
+								}
 							}
 							dbquery("UPDATE ".TABLEPREFIX."fanfiction_chapters SET uid = '$uid' WHERE chapid = '$chapid' LIMIT 1");
 						}

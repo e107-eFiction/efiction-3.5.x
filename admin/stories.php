@@ -145,10 +145,7 @@ function validate( ) {
 			if($store == "files")
 			{
 				$file = "$storiespath/".$story['uid']."/".$story['chapid'].".txt";
-				$log_file = fopen($file, "r");
-				$file_contents = fread($log_file, filesize($file));
-				$storytext .= $file_contents;
-				fclose($log_file);
+				if(is_file($file)) $storytext .= (string)@file_get_contents($file);
 			}
 			else if($store == "mysql")
 			{

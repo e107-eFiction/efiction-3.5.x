@@ -24,7 +24,7 @@ if(!defined("_CHARSET")) exit( );
 
 
 $disablesorts = array("ratings");
-$rating = isset($_REQUEST['rating']) ? $_GET['rating'] : false;
+$rating = isset($_REQUEST['rating']) && isNumber($_REQUEST['rating']) ? $_REQUEST['rating'] : false;
 if($rating) {
 	$output .= "<div id='pagetitle'>"._RATING.": ".$ratingslist[$rating]['name']."</div>";
 	$storyquery .= " AND rid = '$rating'";
@@ -34,6 +34,7 @@ if($rating) {
 }
 else {
 	$output .= "<div id='pagetitle'>"._RATINGS."</div>";
+	if(empty($ratingslist) || !is_array($ratingslist)) $ratingslist = array( ); // a site with no ratings crashed here on PHP 8
 	$total = count($ratingslist);
 	$count = 0;
 	$column = 1;

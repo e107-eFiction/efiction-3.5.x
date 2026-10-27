@@ -26,10 +26,10 @@ if(!defined("_CHARSET")) exit( );
 
 
 $challengelinks = array( );
-if(isset($series['challenges'])) {
-	global $language;
-	if(file_exists(_BASEDIR."modules/challenges/languages/{$language}.php")) include_once(_BASEDIR."modules/challenges/languages/{$language}.php");
-	else include_once(_BASEDIR."modules/challenges/languages/en.php");
+global $language;
+if(file_exists(_BASEDIR."modules/challenges/languages/{$language}.php")) include_once(_BASEDIR."modules/challenges/languages/{$language}.php");
+else include_once(_BASEDIR."modules/challenges/languages/en.php");
+if(!empty($series['challenges'])) {
 	$chalinfo = dbquery("SELECT chalid, title FROM ".TABLEPREFIX."fanfiction_challenges WHERE FIND_IN_SET(chalid, '".$series['challenges']."') > 0");
 	while($c = dbassoc($chalinfo)) {
 		$challengelinks[]= "<a href='"._BASEDIR."modules/challenges/challenges.php?chalid=".$c['chalid']."'>".stripslashes($c['title'])."</a>";

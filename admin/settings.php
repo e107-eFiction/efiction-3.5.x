@@ -77,7 +77,7 @@ $sects = array("main", "submissions", "sitesettings", "display", "reviews", "use
 //if(!isset($_GET['sect'])) $sect = "main";
 //else $sect = $_GET['sect'];
 $sect = isset($_GET['sect']) ? $_GET['sect'] : "main";
-if(isset($_POST['testsmtp']) && $sect == "email") {
+if(isset($action) && $action == "settings" && isset($_POST['testsmtp']) && $sect == "email") {
 	// SMTP connection test. Runs only on POST (the Test button), never via a GET
 	// parameter. It verifies the SAVED settings loaded from fanfiction_settings
 	// (via header.php) -- NOT the unsaved form values -- by opening a real SMTP
@@ -189,21 +189,22 @@ if(isset($_POST['testsmtp']) && $sect == "email") {
 }
 else if(isset($_POST['submit'])) {
 	if($sect == "main") {
-		if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['newsitekey'])) $output .= write_error(_BADSITEKEY);
+		if(!preg_match("!^[a-z0-9_]{3,30}$!i", $_POST['newsitekey'] ?? '')) $output .= write_error(_BADSITEKEY);
 		else {
 			$oldsitekey = $sitekey;
 			$sitekey = descript($_POST['newsitekey']);
-			$sitename = escapestring(descript(strip_tags($_POST['newsitename'])));
-			$slogan = escapestring(descript(strip_tags($_POST['newslogan'])));
-			$url = escapestring(descript(strip_tags($_POST['newsiteurl'])));
-			// if the https:// is missing add it.
-			if(substr($url, 0, 8) != "https://" && substr($url, 0, 7) != "http://") $url = "https://".$url;
+			$sitename = escapestring(descript(strip_tags($_POST['newsitename'] ?? '')));
+			$slogan = escapestring(descript(strip_tags($_POST['newslogan'] ?? '')));
+			$url = escapestring(descript(strip_tags($_POST['newsiteurl'] ?? '')));
+			// add https:// only when no scheme was given, and undo an old "http://https://"
+			$url = preg_replace('#^(https?://)+(https?://)#i', '$2', trim($url));
+			if($url !== '' && !preg_match('#^https?://#i', $url)) $url = "https://".$url;
 			// we also want to check for a trailing slash.
 			if(substr($url, -1, 1) == "/") $url = substr($url, 0, strlen($url) - 1);
-			$tableprefix = escapestring(descript(strip_tags($_POST['newtableprefix'])));
-			$siteemail = escapestring(descript(strip_tags($_POST['newsiteemail'])));
-			$skin = escapestring(descript(strip_tags($_POST['newskin'])));
-			$language = escapestring(descript(strip_tags($_POST['newlanguage'])));
+			$tableprefix = escapestring(descript(strip_tags($_POST['newtableprefix'] ?? '')));
+			$siteemail = escapestring(descript(strip_tags($_POST['newsiteemail'] ?? '')));
+			$skin = escapestring(descript(strip_tags($_POST['newskin'] ?? '')));
+			$language = escapestring(descript(strip_tags($_POST['newlanguage'] ?? '')));
 			if(empty($sitekey)) $output .= write_message(_SITEKEYREQUIRED);
 			else {
 				if($sitekey != $oldsitekey) $output .= write_message(_SITEKEYCHANGED);
@@ -216,7 +217,7 @@ else if(isset($_POST['submit'])) {
 		$autovalidate = $_POST['newautovalidate'] == 1 ? 1 : 0;
 		$coauthallowed = $_POST['newcoauthallowed'] == 1 ? 1 : 0;
 		$store = !empty($_POST['newstore']) ? ($_POST['newstore'] == "files" ? "files" : "mysql" ) : $store;
-		$storiespath = descript($_POST['newstoriespath']);
+		$storiespath = descript($_POST['newstoriespath'] ?? '');
 		$minwords = isNumber($_POST['newminwords']) ? $_POST['newminwords'] : 0;
 		$maxwords = isNumber($_POST['newmaxwords']) ? $_POST['newmaxwords'] : 0;
 		$roundrobins = $_POST['newroundrobins'] == 1 ? 1 : 0;
@@ -245,8 +246,8 @@ else if(isset($_POST['submit'])) {
 		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET tinyMCE = '$tinyMCE', favorites = '$favorites', multiplecats = '$multiplecats', allowed_tags = '$allowed_tags', newscomments = '$newscomments', logging = '$logging', maintenance = '$maintenance', debug = '$debug', captcha = '$captcha' WHERE sitekey ='".SITEKEY."'");
 	}
 	else if($sect == "display") {
-		$dateformat = $_POST['newdateformat'] ? descript(strip_tags($_POST['newdateformat'])) : descript(strip_tags($_POST['customdateformat']));
-		$timeformat = $_POST['newtimeformat'] ? descript(strip_tags($_POST['newtimeformat'])) : descript(strip_tags($_POST['customtimeformat']));
+		$dateformat = $_POST['newdateformat'] ? descript(strip_tags($_POST['newdateformat'])) : descript(strip_tags($_POST['customdateformat'] ?? ''));
+		$timeformat = $_POST['newtimeformat'] ? descript(strip_tags($_POST['newtimeformat'])) : descript(strip_tags($_POST['customtimeformat'] ?? ''));
 		$extendcats = $_POST['newextendcats'] == 1 ? 1 : 0;
 		if(isset($_POST['newdisplaycolumns']) && isNumber($_POST['newdisplaycolumns'])) $displaycolumns = $_POST['newdisplaycolumns'];
 		if(isset($_POST['newitemsperpage']) && isNumber($_POST['newitemsperpage'])) $itemsperpage = $_POST['newitemsperpage'];
@@ -274,9 +275,9 @@ else if(isset($_POST['submit'])) {
 		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET alertson = '$alertson', disablepopups = '$disablepopups', agestatement = '$agestatement', pwdsetting = '$pwdsetting' WHERE sitekey ='".SITEKEY."'");
 	}
 	else if($sect == "email") {
-		$smtp_host = escapestring(descript(strip_tags($_POST['newsmtp_host'])));
-		$smtp_username = escapestring(descript(strip_tags($_POST['newsmtp_username'])));
-		$smtp_password = escapestring(descript(strip_tags($_POST['newsmtp_password'])));
+		$smtp_host = escapestring(descript(strip_tags($_POST['newsmtp_host'] ?? '')));
+		$smtp_username = escapestring(descript(strip_tags($_POST['newsmtp_username'] ?? '')));
+		$smtp_password = escapestring(descript(strip_tags($_POST['newsmtp_password'] ?? '')));
 		$smtp_port = !empty($_POST['newsmtp_port']) ? (int) $_POST['newsmtp_port'] : '';
 		$smtp_secure = in_array($_POST['newsmtp_secure'], array('', 'tls', 'ssl'), true) ? $_POST['newsmtp_secure'] : '';
 		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET smtp_host = '$smtp_host', smtp_username = '$smtp_username', smtp_password = '$smtp_password', smtp_port = '$smtp_port', smtp_secure = '$smtp_secure' WHERE sitekey ='".SITEKEY."'");
@@ -624,7 +625,7 @@ else if(isset($_POST['submit'])) {
 	// invalid HTML). It is its own POST mini-form -- a submit button, not a GET
 	// link -- so the outbound SMTP connection can't be triggered by a plain link
 	// or a browser prefetch. The existing testsmtp handler posts to the same URL.
-	if($sect == "email") {
+	if(isset($action) && $action == "settings" && $sect == "email") {
 		$output .= "<h2>"._TESTSMTP_HEADER."</h2>
 		<ul>
 			<li>

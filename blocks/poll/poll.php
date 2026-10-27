@@ -32,6 +32,9 @@ if(isset($_POST['cast_vote'])) {
 	$poll = isset($_POST['poll_id']) && isNumber($_POST['poll_id']) ? $_POST['poll_id'] : false;
 	$opt = isset($_POST['opt']) && isNumber($_POST['opt']) ? $_POST['opt'] : false;
 	if(!$poll || !$opt) accessDenied( ); // could only be a hack attempt.
+	// 3.5.78: only members, only the open poll, only one of its options (old polls could be voted in again)
+	if(!isMEMBER || !$currentpoll || (int)$poll !== (int)$currentpoll['poll_id'] || (int)$opt < 1 || (int)$opt > count(explode("|#|", $currentpoll['poll_opts']))) accessDenied( );
+	$poll = (int)$poll; $opt = (int)$opt;
 	$voted = dbquery("SELECT vote_id FROM ".TABLEPREFIX."fanfiction_poll_votes WHERE vote_poll = '".$currentpoll['poll_id']."' AND vote_user = '".USERUID."'");
 	list($voter) = dbrow($voted);
         if(!$voter) $cast = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_poll_votes(`vote_user`, `vote_opt`, `vote_poll`) VALUES('".USERUID."', '$opt', '$poll')");
@@ -48,7 +51,7 @@ else  {
 		list($voter) = dbrow($voted);
            }
 	   if(empty($voter) && isMEMBER) {
-		$content .= "<form name='poll' id='poll' method='POST' action='".$_SERVER['PHP_SELF'].($_SERVER['QUERY_STRING'] ? "?".$_SERVER['QUERY_STRING']  : "")."'>
+		$content .= "<form name='poll' id='poll' method='POST' action='".$_SERVER['PHP_SELF'].(($ef_q = ef_query_terms()) ? "?".substr($ef_q, 5) : "")."'>
 			<input type='hidden' name='poll_id' value='".$currentpoll['poll_id']."'>";
 		   $x = 1;
 		   foreach($pollopts as $opt) {

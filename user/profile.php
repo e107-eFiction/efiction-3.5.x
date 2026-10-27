@@ -65,14 +65,14 @@ while($field = dbassoc($result2)) {
 		if($fieldinfo['field_type'] == 1) { $thisfield = format_link($field['info']);
 		}
 		if($fieldinfo['field_type'] == 4) {
-			$thisfield = preg_replace("@\{info\}@", $field['info'], $fieldinfo['field_options']);
+			$thisfield = preg_replace("@\{info\}@", $field['info'], $fieldinfo['field_options'] ?? '');
 			$thisfield = format_link($thisfield);
 		}
 		if($fieldinfo['field_type'] == 2 || $fieldinfo['field_type'] == 6) {
-			$thisfield = stripslashes($field['info']);
+			$thisfield = htmlspecialchars(stripslashes($field['info']), ENT_QUOTES, 'UTF-8');
 		}
 		if($fieldinfo['field_type'] == 3) {
-			$thisfield = $field['info'];
+			$thisfield = htmlspecialchars($field['info'], ENT_QUOTES, 'UTF-8');
 		}
 		else eval($fieldinfo['field_code_out']);
 		$tpl->assign($fieldinfo['field_name'], $thisfield);

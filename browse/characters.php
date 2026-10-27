@@ -28,7 +28,7 @@ $charid = isset($_GET['charid']) && isNumber($_GET['charid']) ? $_GET['charid'] 
 if($charid > 0) {
 	$charquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_characters WHERE charid = '$charid' LIMIT 1");
 	$char = dbassoc($charquery);
-	$output = "<div id='pagetitle'>".stripslashes($char['charname'])."</div>\n<div id='story'>".format_story($char['bio'])."</div>";
+	$output = "<div id='pagetitle'>".stripslashes($char['charname'] ?? '')."</div>\n<div id='story'>".format_story($char['bio'])."</div>";
 	$numrows = search(_STORYQUERY.$storyquery._ORDERBY, _STORYCOUNT.$countquery, "browse.php?");
 }
 else {

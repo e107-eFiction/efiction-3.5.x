@@ -30,8 +30,9 @@ if(isset($charid)) {
 	if(!is_array($charid)) $charid = array($charid);
 	if(count($charid) > 0) {
 		foreach($charid as $c) {
-			$chars[] = "FIND_IN_SET('$c', characters) > 0";
+			if(is_scalar($c) && isNumber((string)$c)) $chars[] = "FIND_IN_SET('".(int)$c."', characters) > 0";
 		}
+		if(empty($chars)) $chars[] = "1 = 0";
 		$chalquery[] = implode(" OR ", $chars);
 	}
 }
@@ -45,14 +46,16 @@ if(is_array($catid) && count($catid) > 0) {
 	// Now format the SQL
 	$cats = array( );
 	foreach($categories as $cat) {
-		$cats[] = "FIND_IN_SET($cat, catid) > 0 ";
+		$cats[] = "FIND_IN_SET(".(int)$cat.", catid) > 0 ";
 	}
 	// Now implode the SQL list
 	if(!empty($cats)) $chalquery[] = "(".implode(" OR ", $cats).")";
 }
 if($searchterm) {
-	if($searchtype == "title") $chalquery[] = "title LIKE '%$searchterm%'";
-	if($searchtype == "summary") $chalquery[] = "summary LIKE '%$searchterm%'";
+	// the search page hands over the term escaped (3.5) or as typed (4.0): escape it here either way
+	$ef_st = escapestring(str_replace(array('\\', '%', '_'), array('\\\\', '\\%', '\\_'), stripslashes($searchterm)));
+	if($searchtype == "title") $chalquery[] = "title LIKE '%$ef_st%'";
+	if($searchtype == "summary") $chalquery[] = "summary LIKE '%$ef_st%'";
 }
 if(count($chalquery) > 0) {
 	$chalquery = "WHERE ".implode(" AND ", $chalquery);
