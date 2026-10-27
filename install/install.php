@@ -176,49 +176,27 @@ include(_BASEDIR . "includes/corefunctions.php");
 //  So I don't have to keep updating the version number in 3 different files.
 include("../version.php");
 
+// Short title of each installer step for the page heading and progress bar (step 0 is step 1)
+$steptitles = array(
+	1 => "Database connection",
+	2 => "Site settings",
+	3 => "Database tables",
+	4 => "Admin panels",
+	5 => "Navigation links",
+	6 => "Blocks",
+	7 => "Messages",
+	8 => "Author profile fields",
+	9 => "Admin account"
+);
+$stepnum = isset($_GET['step']) && is_string($_GET['step']) && isset($steptitles[(int)$_GET['step']]) ? (int)$_GET['step'] : 1;
+
 //make a new TemplatePower object
-echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\" \"http://www.w3.org/TR/html4/loose.dtd\">
-<html><head><title>eFiction {$version} Install</title>
-<style>
-LABEL { float: left; display: block; width: 45%; text-align: right; padding-right: 10px; clear: left;}
-.row { float: left; width: 99%; }
-#settingsform FORM { width: 80%; margin; 0 auto; }
-#settingsform LABEL { float: left; display: block; width: 30%; text-align: right; padding-right: 10px; clear: left; }
-#settingsform .fieldset SPAN { float: left; display: block; width: 30%; text-align: right; padding-right: 10px; clear: left;}
-#settingsform .fieldset LABEL { float: none; width: auto; display: inline; text-align: left; clear: none; }
-#settingsform .tinytoggle { text-align: center; }
-#settingsform .tinytoggle LABEL { float: none; display: inline; width: auto; text-align: center; padding: 0; clear: none; }
-#settingsform #submit { display: block; margin: 1ex auto; }
-a.pophelp{
-    position: relative; /* this is the key*/
-    z-index:24;
-    vertical-align: super;
-    text-decoration: none;
-}
-
-a.pophelp:hover{z-index:100; border: none; text-decoration: none;}
-
-a.pophelp span{display: none; position: absolute; text-decoration: none;}
-
-a.pophelp:hover span{ /*the span will display just on :hover state*/
-    display:block;
-    position: absolute;
-    top: 0; left: 8em; width: 225px;
-    border:1px solid #000;
-    background-color:#CCC; color:#000;
-    text-decoration: none;
-    text-align: left;
-    padding: 5px;
-    font-weight: normal;
-}
-.required { color: red; }
-</style>
-<link rel=\"stylesheet\" type=\"text/css\" href='../default_tpls/style.css'></head>";
-
-$tpl = new TemplatePower("../default_tpls/default.tpl");
-$tpl->assignInclude("header", "./../default_tpls/header.tpl");
-$tpl->assignInclude("footer", "./../default_tpls/footer.tpl");
+$tpl = new TemplatePower("install.tpl");
 $tpl->prepare();
+$tpl->assignGlobal("version", $version);
+$tpl->assignGlobal("step", $stepnum);
+$tpl->assignGlobal("percent", round($stepnum / 9 * 100));
+$tpl->assignGlobal("steptitle", $steptitles[$stepnum]);
 $tpl->newBlock("header");
 $tpl->assign("sitename", "eFiction $version Install");
 $tpl->gotoBlock("_ROOT");
@@ -251,19 +229,18 @@ switch ($_GET['step'])
 		}
 		else
 		{
-			$output .= "<div id='pagetitle'>" . _ADMINACCT . "</div><form method=\"POST\" class='tblborder' style='margin: 1em auto; width: 400px;' enctype=\"multipart/form-data\" action=\"install.php?step=9\">
-			<div class='row'><label for='newpenname'>" . _PENNAME . ":</label> 
-			<input name=\"newpenname\" type=\"text\" class=\"textbox\" maxlength=\"200\" value=\"" . $user['penname'] . "\"></div>
-		 	<div class='row'><label for='email'>" . _EMAIL . ":</label> <INPUT  type=\"text\" class=\"textbox=\" name=\"email\" value=\"" . $user['email'] .
+			$output .= "<form method=\"POST\" class='tblborder install-form' enctype=\"multipart/form-data\" action=\"install.php?step=9\">
+			<div class='form-row'><label for='newpenname'>" . _PENNAME . ":</label> 
+			<input name=\"newpenname\" id=\"newpenname\" type=\"text\" class=\"textbox\" maxlength=\"200\" value=\"" . $user['penname'] . "\"></div>
+		 	<div class='form-row'><label for='email'>" . _EMAIL . ":</label> <INPUT  type=\"text\" class=\"textbox\" name=\"email\" id=\"email\" value=\"" . $user['email'] .
 				"\" maxlength=\"200\"></div>
-			<div class='row'><label for='password'>" . _PASSWORD . ":</label>  <INPUT name=\"password\" class=\"textbox\" value=\"\" type=\"password\"></div> 
-			<div class='row'><label for='password2'>" . _PASSWORD2 . ":</label> <INPUT name=\"password2\" class=\"textbox=\" value=\"\" type=\"password\"></div>
-			<div style='text-align: center;'><INPUT type=\"submit\"class=\"button\" name=\"submit\" value=\"submit\"></div></form>";
+			<div class='form-row'><label for='password'>" . _PASSWORD . ":</label>  <INPUT name=\"password\" id=\"password\" class=\"textbox\" value=\"\" type=\"password\"></div> 
+			<div class='form-row'><label for='password2'>" . _PASSWORD2 . ":</label> <INPUT name=\"password2\" id=\"password2\" class=\"textbox\" value=\"\" type=\"password\"></div>
+			<div class='form-actions'><INPUT type=\"submit\" class=\"button\" name=\"submit\" value=\"submit\"></div></form>";
 		}
 		break;
 
 	case "8":
-		$output .= "<div id='pagetitle'>" . _AUTHORFIELDS . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -298,7 +275,6 @@ switch ($_GET['step'])
 		else $output .= write_message(_FIELDDATAINFO . "<br /><br /><a href='install.php?step=8&amp;install=automatic'>" . _AUTO . "</a> " . _OR . " <a href='install.php?step=8&amp;install=manual'>" . _MANUAL2 . "</a>");
 		break;
 	case "7":
-		$output .= "<div id='pagetitle'>" . _MESSAGEDATA . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -334,7 +310,6 @@ switch ($_GET['step'])
 
 		break;
 	case "6":
-		$output .= "<div id='pagetitle'>" . _BLOCKDATA . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -367,7 +342,6 @@ switch ($_GET['step'])
 		else $output .= write_message(_BLOCKDATANEW . "<br /><br /><a href='install.php?step=6&amp;install=automatic'>" . _AUTO . "</a> " . _OR . " <a href='install.php?step=6&amp;install=manual'>" . _MANUAL2 . "</a>");
 		break;
 	case "5":
-		$output .= "<div id='pagetitle'>" . _LINKDATA . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -418,7 +392,6 @@ switch ($_GET['step'])
 		else $output .= write_message(_LINKDATAINFO . "<br /><br />" . _LINKSETUP . " <a href='install.php?step=5&amp;install=automatic'>" . _AUTO . "</a> " . _OR . " <a href='install.php?step=5&amp;install=manual'>" . _MANUAL2 . "</a>");
 		break;
 	case "4":
-		$output .= "<div id='pagetitle'>" . _PANELDATA . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -521,7 +494,6 @@ switch ($_GET['step'])
 		else $output .= write_message(_PANELDATAINFO . "<br /><br />" . _PANELSETUP . " <a href='install.php?step=4&amp;install=automatic'>" . _AUTO . "</a> " . _OR . " <a href='install.php?step=4&amp;install=manual'>" . _MANUAL2 . "</a>");
 		break;
 	case "3":
-		$output .= "<div id='pagetitle'>" . _INSTALLTABLES . "</div>";
 		if (isset($_GET['install']))
 		{
 			if ($_GET['install'] == "automatic")
@@ -919,7 +891,6 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 			}
 			if ($sect == "email" && isset($_POST['submit']))
 			{
-				$output .= "<div id=\"pagetitle\">" . _SETTINGS . "</div>";
 				$smtp_host = $_POST['newsmtp_host'];
 				$smtp_username = $_POST['newsmtp_username'];
 				$smtp_password = $_POST['newsmtp_password'];
@@ -1016,7 +987,6 @@ CREATE TABLE IF NOT EXISTS `" . $tableprefix . "fanfiction_modules` (
 		}
 		break;
 	default:
-		$output .= "<div id='pagetitle'>" . _CONFIGDATA . "</div>";
 
 		if (isset($_POST['submit']))
 		{
@@ -1080,17 +1050,19 @@ if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbn
 		{
 			{
 				$output .=
-					"<form method='POST' enctype='multipart/form-data' action='install.php?step=1' class='tblborder' style='width: 350px; margin: 1em auto;'>
-						<div><label for='dbhost'>" . _DBHOST . "</label><input type='text'  name='dbhost' id='dbhost'" . (!empty($dbhost) ? "value='$dbhost'" : "value='localhost'") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBHOST . "</span></A></div>
-						<div><label for='dbname'>" . _DBNAME . "</label><input type='text' name='dbname' id='dbname'" . (!empty($dbname) ? "value='$dbname'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBNAME . "</span></A></div>
-						<div><label for='dbuser'>" . _DBUSER . "</label><input type='text' name='dbuser' id='dbuser'" . (!empty($dbuser) ? "value='$dbuser'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBUSER . "</span></A></div>
-						<div><label for='dbpass'>" . _DBPASS . "</label><input type='password' name='dbpass' id='dbpass'" . (!empty($dbpass) ? "value='$dbpass'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBPASS . "</span></A></div>
-						<div><label for='sitekey'>" . _SITEKEY . "</label><input type='text' name='sitekey' value='" . (!empty($sitekey) ? $sitekey : random_string($randomcharset, 10)) . "' id='sitekey'> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_INSTALL_SITEKEY . "</span></A></div>
-						<div><label for=\"language\">" . _LANGUAGE . ":</label> <select name=\"language\">";
+					"<form method='POST' enctype='multipart/form-data' action='install.php?step=1' class='tblborder install-form'>
+						<div class='form-row'><label for='dbhost'>" . _DBHOST . "</label><input type='text'  name='dbhost' id='dbhost'" . (!empty($dbhost) ? "value='$dbhost'" : "value='localhost'") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBHOST . "</span></A></div>
+						<div class='form-row'><label for='dbname'>" . _DBNAME . "</label><input type='text' name='dbname' id='dbname'" . (!empty($dbname) ? "value='$dbname'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBNAME . "</span></A></div>
+						<div class='form-row'><label for='dbuser'>" . _DBUSER . "</label><input type='text' name='dbuser' id='dbuser'" . (!empty($dbuser) ? "value='$dbuser'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBUSER . "</span></A></div>
+						<div class='form-row'><label for='dbpass'>" . _DBPASS . "</label><input type='password' name='dbpass' id='dbpass'" . (!empty($dbpass) ? "value='$dbpass'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_DBPASS . "</span></A></div>
+						<div class='form-row'><label for='sitekey'>" . _SITEKEY . "</label><input type='text' name='sitekey' value='" . (!empty($sitekey) ? $sitekey : random_string($randomcharset, 10)) . "' id='sitekey'> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_INSTALL_SITEKEY . "</span></A></div>
+						<div class='form-row'><label for=\"language\">" . _LANGUAGE . ":</label> <select name=\"language\" id=\"language\">";
 				$directory = opendir("../languages");
 				while ($filename = readdir($directory))
 				{
 					if ($filename == "." || $filename == ".." || substr($filename, 2) == "_admin.php") continue;
+					// only real language files, so folders such as mailer/ are not offered
+					if (substr($filename, -4) != ".php" || !is_file("../languages/" . $filename)) continue;
 					$output .= "<option value=\"" . substr($filename, 0, 2) . "\"" .
 						($language == substr($filename, 0, strpos($filename, ".php")) ? " selected" : "") . ">
 					" . substr($filename, 0, strpos($filename, ".php")) . "</option>";
@@ -1098,8 +1070,8 @@ if(!empty(\$sitekey)) \$dbconnect = dbconnect(\$dbhost, \$dbuser,\$dbpass, \$dbn
 				closedir($directory);
 				$output .=
 					"</select> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_LANGUAGE . "</span></A></div>
-						<label for='settingsprefix'>" . _SETTINGSPREFIX . "</label><input type='text' name='settingsprefix' id='settingsprefix'" . (isset($settingsprefix) ? "value='$settingsprefix'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_SETTINGSPREFIX . "</span></A><br />
-						<div style='text-align: center; margin: 1em;'><INPUT type=\"submit\"class=\"button\" name=\"submit\" value=\"submit\"></div>
+						<div class='form-row'><label for='settingsprefix'>" . _SETTINGSPREFIX . "</label><input type='text' name='settingsprefix' id='settingsprefix'" . (isset($settingsprefix) ? "value='$settingsprefix'" : "") . "> <A HREF=\"#\" class=\"pophelp\">[?]<span>" . _HELP_SETTINGSPREFIX . "</span></A></div>
+						<div class='form-actions'><INPUT type=\"submit\" class=\"button\" name=\"submit\" value=\"submit\"></div>
 					</form>";
 			}
 		}
