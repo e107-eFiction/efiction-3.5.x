@@ -70,7 +70,7 @@
 	else {
 
 		if($let == _OTHER) $letter= _PENNAMEFIELD." REGEXP '^[^a-z]'";
-		else $letter .= _PENNAMEFIELD." LIKE '".$_GET['let']."%'";
+		else $letter .= _PENNAMEFIELD." LIKE '".escapestring($_GET['let'] ?? '')."%'";
 		$output .= "<div class='sectionheader'>"._MEMLOCK."</div>";
 		$pagelink = "<a href=\"admin.php?action=lock&let=";
 		$countquery = "SELECT count("._UIDFIELD.") FROM "._AUTHORTABLE." LEFT JOIN ".TABLEPREFIX."fanfiction_authorprefs as ap ON ap.uid = "._UIDFIELD." WHERE ap.level = -1";

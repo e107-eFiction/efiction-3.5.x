@@ -42,7 +42,7 @@ function deleteStory($story) {
 	if($logging) {
 		$authorquery = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '".$story['uid']."' LIMIT 1");
 		list($penname) = dbrow($authorquery);
-		dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL, USERPENNAME, USERUID, $story['title'], $sid, $penname, $story['uid']))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR'].
+		dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL, USERPENNAME, USERUID, $story['title'], $sid, $penname, $story['uid']))."', '".USERUID. "', INET6_ATON('".ef_remote_ip().
 		"'), 'DL', " . time() . ")");
 	}
 	dbquery("DELETE FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$sid' LIMIT 1");
@@ -187,7 +187,7 @@ function deleteSeries($seriesid) {
 			eval($code['code_text']);
 	}
 	if($logging && isADMIN) {
-		if($uid != USERUID) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL_SERIES, USERPENNAME, USERUID, $title))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'DL', " . time() . ")");
+		if($uid != USERUID) dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL_SERIES, USERPENNAME, USERUID, $title))."', '".USERUID. "', INET6_ATON('".ef_remote_ip()."'), 'DL', " . time() . ")");
 	}
 }
 ?>

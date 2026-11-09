@@ -43,10 +43,10 @@ while($t = dbrow($logtypelist)) {
 	$output .= "<option value='admin.php?action=viewlog&amp;type=$t[0]'".($type == $t[0] ? " selected" : "").">$t[0] - ".(isset($logtypes[$t[0]]) ? $logtypes[$t[0]] : "???")."</option>";
 }
 $output .= "</select></form></div>";
-$countquery = dbquery("SELECT COUNT(log_id) FROM ".TABLEPREFIX."fanfiction_log".($type ? " WHERE log_type = '$type'" : ""));
+$countquery = dbquery("SELECT COUNT(log_id) FROM ".TABLEPREFIX."fanfiction_log".($type ? " WHERE log_type = '".escapestring($type)."'" : ""));
 list($count) = dbrow($countquery);
 if($count > 0) {
-	$result = dbquery("SELECT log_action, INET6_NTOA(log_ip) as log_ip,  log_timestamp as log_timestamp FROM ".TABLEPREFIX."fanfiction_log".($type ? " WHERE log_type = '$type'" : "")." ORDER BY log_timestamp DESC LIMIT $offset, $itemsperpage");
+	$result = dbquery("SELECT log_action, INET6_NTOA(log_ip) as log_ip,  log_timestamp as log_timestamp FROM ".TABLEPREFIX."fanfiction_log".($type ? " WHERE log_type = '".escapestring($type)."'" : "")." ORDER BY log_timestamp DESC LIMIT $offset, $itemsperpage");
 	$output .= "<table class=\"tblborder\" cellspacing=\"0\" cellpadding=\"3\" style=\"width: 90%; margin: 0 auto;\"><tr class=\"tblborder\"><th>"._ACTION."</th><th>"._IP."</th><th>"._DATE."</th></tr>";
 	while ($item = dbassoc($result)) {
 			$output .= "<tr class=\"tblborder\">

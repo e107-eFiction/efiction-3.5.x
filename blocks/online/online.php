@@ -7,7 +7,7 @@ if(!defined("_CHARSET")) exit( );
 	if(file_exists(_BASEDIR."blocks/online/{$language}.php")) include_once(_BASEDIR."blocks/online/{$language}.php");
 	else include_once(_BASEDIR."blocks/online/en.php");
 
-	$where = "online_uid=" . (USERUID ? USERUID : "0 AND online_ip = INET6_ATON('" . $_SERVER['REMOTE_ADDR'] . "')");
+	$where = "online_uid=" . (USERUID ? USERUID : "0 AND online_ip = INET6_ATON('" . ef_remote_ip() . "')");
  
 	$result = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_online WHERE $where");
  
@@ -16,14 +16,7 @@ if(!defined("_CHARSET")) exit( );
 			dbquery("UPDATE ".TABLEPREFIX."fanfiction_online SET online_timestamp = '".time( )."' WHERE $where");
 	}
 	else {
-		$ip = $_SERVER['REMOTE_ADDR'];
-		if (filter_var($ip, FILTER_VALIDATE_IP, array(FILTER_FLAG_IPV4, FILTER_FLAG_IPV6)))
-		{
-
-		} 
-		else {
-			$ip = "0";	
-		}
+		$ip = ef_remote_ip();
 		
 		dbquery("INSERT INTO " . TABLEPREFIX . "fanfiction_online(online_uid, online_ip, online_timestamp)
 		 VALUES('" . (USERUID ? USERUID : 0) . "', INET6_ATON('" . $ip . "'), '" . time() . "')");

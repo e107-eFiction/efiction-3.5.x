@@ -66,6 +66,7 @@ if(!defined("USERPENNAME")) define("USERPENNAME", false);
 if(!defined("uLEVEL")) define("uLEVEL", 0);
 if(!defined("isMEMBER")) define("isMEMBER", false);
 if(!defined("isADMIN")) define("isADMIN", false);
-if(empty($siteskin)) $siteskin = $defaultskin;
+// a skin from the preferences or the session that is no longer (or never was) a folder in skins/ falls back to the default
+if(empty($siteskin) || !ef_valid_skin($siteskin)) $siteskin = $defaultskin;
 
 ?>

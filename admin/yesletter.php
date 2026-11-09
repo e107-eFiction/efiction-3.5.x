@@ -47,7 +47,7 @@ $chapid = isset($_GET['chapid']) && isNumber($_GET['chapid']) ? $_GET['chapid'] 
 			list($letter, $subject) = dbrow($letterquery);
 			$letter = stripslashes($letter ?? "");
 			$search = array("@\{sitename\}@", "@\{adminname\}@",  "@\{author\}@", "@\{storytitle\}@",  "@\{chaptertitle\}@", "@\{rules\}@");
-			$replace = array( $sitename, $adminname, $story['penname'], $story['title'], $story['chapter'], "<a href=\"$url/viewpage.php?id=rules\">"._RULES."</a>");
+			$replace = array( $sitename, $adminname, $story['penname'], $story['title'], $story['chapter'], "<a href=\"$url/viewpage.php?page=rules\">"._RULES."</a>");
 			$letter = preg_replace($search, $replace, $letter);
 			$subject = preg_replace($search, $replace, $subject ?? "");
 			echo "<body>

@@ -5,7 +5,7 @@ global $language, $pagelinks;
 $linkquery = dbquery("SELECT * from ".TABLEPREFIX."fanfiction_pagelinks ORDER BY link_access ASC");
 if(!isset($current)) $current = "";
 
-		$blockquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_blocks WHERE block_name = '$admin'");
+		$blockquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_blocks WHERE block_name = '".escapestring($admin)."'");
 		while($block = dbassoc($blockquery)) {
 			if ($block['block_variables'])
 			{
@@ -52,7 +52,7 @@ else include("blocks/menu/en.php");
 		save_blocks( $blocks );
 	}
 	if($admin){
-		$blockquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_blocks WHERE block_name = '$admin'");
+		$blockquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_blocks WHERE block_name = '".escapestring($admin)."'");
 		while($block = dbassoc($blockquery)) {
 			$blocks[$block['block_name']] = unserialize($block['block_variables']);
 			$blocks[$block['block_name']]['title'] = $block['block_title'];

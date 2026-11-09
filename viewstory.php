@@ -381,7 +381,7 @@ else {
 	if(isADMIN && uLEVEL < 3) 
 		$adminlinks = "<div class=\"adminoptions\"><span class='label'>"._ADMINOPTIONS.":</span> "._EDIT." - <a href=\"stories.php?action=editstory&amp;sid=$sid&amp;admin=1\">"._STORY."</a> "._OR." <a href=\"stories.php?action=editchapter&amp;chapid=$chapid&amp;admin=1\">"._CHAPTER."</a> | "._DELETE." - <a href=\"stories.php?action=delete&amp;sid=$sid&amp;admin=1\">"._STORY."</a> "._OR." <a href=\"stories.php?action=delete&amp;chapid=$chapid&amp;sid=$sid&amp;admin=1\">"._CHAPTER."</a></div>";
 	if(isMEMBER && $favorites) {
-		$jumpmenu2 .= "<option value=\"user.php?action=favst&amp;add=1&amp;sid=$sid\">"._ADDSTORY2FAVES."</option><option value=\"user.php?action=favau&amp;add=1&amp;author=".$stories['uid'].(count($storyinfo['coauthors_array']) ? ",".implode(",", array_keys($storyinfo['coauthors_array'])) : "")."\">"._ADDAUTHOR2FAVES."</option>";
+		$jumpmenu2 .= "<option value=\"user.php?action=favst&amp;add=1&amp;sid=$sid\">"._ADDSTORY2FAVES."</option><option value=\"user.php?action=favau&amp;add=".(int)$stories['uid'].(count($storyinfo['coauthors_array']) ? ",".implode(",", array_keys($storyinfo['coauthors_array'])) : "")."\">"._ADDAUTHOR2FAVES."</option>";
 	}
 	if($reviewsallowed ) {
 		if(isMEMBER || $anonreviews) {

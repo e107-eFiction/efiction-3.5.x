@@ -36,6 +36,15 @@ if(empty($favorites)) accessDenied( );
 	$edit = isset($_GET['edit']) && isNumber($_GET['edit']) ? $_GET['edit'] : false;
 	$author = explode(",", $add);
 	$author = array_filter($author, "isNumber");
+	// only members that exist (every caller sends add=<uid>[,<uid>...]; the jump menu used to send add=1&author=...)
+	$author = array_map('intval', $author);
+	if(count($author)) {
+		$ef_found = array( );
+		$ef_q = dbquery("SELECT "._UIDFIELD." as uid FROM "._AUTHORTABLE." WHERE ".findclause(_UIDFIELD, $author));
+		while($ef_r = dbassoc($ef_q)) $ef_found[] = (int)$ef_r['uid'];
+		$author = array_values(array_intersect($author, $ef_found));
+		unset($ef_found, $ef_q, $ef_r);
+	}
 	$array_pennames = array();
 	$pennames = '';
 	if(($add || $edit || $delete) && !isMEMBER) accessDenied( );
@@ -48,6 +57,7 @@ if(empty($favorites)) accessDenied( );
 		}
 		if($add && isset($_POST['submit'])) {
 			$comment = escapestring(descript(strip_tags(replace_naughty($_POST['comments'] ?? ''), $allowed_tags)));
+			$result = false;
 			foreach($author AS $a) {
 				$result = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_favorites(uid, item, type, comments) VALUES('".USERUID."', '$a', 'AU', '$comment') ON DUPLICATE KEY UPDATE comments = '$comment'");
 			}
@@ -61,14 +71,9 @@ if(empty($favorites)) accessDenied( );
 		}
 		if(($add || $edit) && !isset($_POST['submit'])) {
 			if($add) {
-				$check = dbquery("SELECT item FROM ".TABLEPREFIX."fanfiction_favorites WHERE uid = '".USERUID."' AND ".findclause("item", $author)." AND type = 'AU'");
-				if(dbnumrows($check)) {
-					while($c = dbassoc($check)) {
-						$edit[] = $c['item'];
-					}
-					$edit = array_diff($author, $edit);
-				}
-				else {
+				// authors that are already favourites get their comment replaced on submit (INSERT ... ON DUPLICATE KEY UPDATE),
+				// so all of them are listed; $edit stays false here (it used to become an array and the query below got 'Array')
+				if(count($author)) {
 					$pQuery = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE ".findclause(_UIDFIELD, $author));
 					while($pRes = dbassoc($pQuery)) {
 						$array_pennames[] = $pRes['penname'];

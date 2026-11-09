@@ -318,6 +318,20 @@ elseif ($oldVersion[0] == 3 && $oldVersion[1] == 5 && $oldVersion[2] < 9)  // 3.
 	else $output .= write_message("Are you ready to update? <a href='update.php?confirm=yes'>"._YES."</a> "._OR." <a href='update.php?confirm=no'>"._NO."</a>");
 }
 
+// 3.5.9 -> 3.5.9.1: fixes ported from official eFiction 3.5.79-3.5.84, no database change.
+// A 3.5.9 database without the 3.5.9 columns was already set back to 3.5.8 above, so it
+// takes the 3.5.8 step instead and lands on the new version directly.
+elseif ($oldVersion[0] == 3 && $oldVersion[1] == 5 && $oldVersion[2] == 9 && (!isset($oldVersion[3]) || (int)$oldVersion[3] < 1))
+{
+	if ($confirm == "yes")
+	{
+		$update = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET version = '".escapestring($version)."' WHERE sitekey = '".SITEKEY."'");
+		if ($update) $output .= write_message(_ACTIONSUCCESSFUL);
+	}
+	else if ($confirm == "no") $output .= write_message(_ACTIONCANCELLED);
+	else $output .= write_message("Are you ready to update? <a href='update.php?confirm=yes'>"._YES."</a> "._OR." <a href='update.php?confirm=no'>"._NO."</a>");
+}
+
 else $output .= write_message(_ALREADYUPDATED);
 
 /* until database is fully fixed, not update efiction version */

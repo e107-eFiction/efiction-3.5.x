@@ -34,20 +34,22 @@ function save_blocks( $blocks ) {
 		}
 		$tmp_title = isset($value['title']) ? escapestring($value['title']) : "";
 		$tmp_file  = isset($value['file']) ?  $value['file'] : "";
-		dbquery("UPDATE ".TABLEPREFIX."fanfiction_blocks SET block_name = '$block', block_title = '". $tmp_title."', block_file = '". $tmp_file."', block_status = '".$value['status']."', block_variables =  '".(isset($blockvars) ? addslashes(serialize($blockvars)) : "")."' WHERE block_name = '$block'");
+		dbquery("UPDATE ".TABLEPREFIX."fanfiction_blocks SET block_name = '$block', block_title = '". $tmp_title."', block_file = '". $tmp_file."', block_status = '".escapestring($value['status'])."', block_variables =  '".(isset($blockvars) ? addslashes(serialize($blockvars)) : "")."' WHERE block_name = '$block'");
 	}
 }
-if(isset($_GET['admin'])) $admin = $_GET['admin'];
+// only the name of an existing block folder (it is put into SQL and into include paths)
+if(isset($_GET['admin']) && is_string($_GET['admin']) && preg_match('/^[A-Za-z0-9_]+$/', $_GET['admin']) && is_dir(_BASEDIR."blocks/".$_GET['admin'])) $admin = $_GET['admin'];
 else $admin = false;
+$init = isset($_GET['init']) && is_string($_GET['init']) && preg_match('/^[A-Za-z0-9_]+$/', $_GET['init']) && is_dir(_BASEDIR."blocks/".$_GET['init']) ? $_GET['init'] : false;
 $content = "";
 
 	if($admin) {
-		$output .= "<div id='pagetitle'>"._ADMIN." - ".(isset($blocks[$_GET['admin']]['title']) ? $blocks[$_GET['admin']]['title'] : "")."</div>";
-		include("blocks/".$_GET['admin']."/admin.php");
+		$output .= "<div id='pagetitle'>"._ADMIN." - ".(isset($blocks[$admin]['title']) ? $blocks[$admin]['title'] : "")."</div>";
+		include("blocks/".$admin."/admin.php");
 		save_blocks( $blocks );
 	}
 	if(isset($_GET['init'])) {
-		if(file_exists("blocks/".$_GET['init']."/init.php")) include("blocks/".$_GET['init']."/init.php");
+		if($init && file_exists("blocks/".$init."/init.php")) include("blocks/".$init."/init.php");
 		else return _ERROR;
 		save_blocks( $blocks );
 	}

@@ -294,6 +294,60 @@ function ef_query_terms($skip = array()) {
 	return $out;
 }
 
+// A search term for "LIKE '%...%' ESCAPE '!'": the %, _ and ! the visitor typed are matched
+// literally (before 3.5.82 '%%%' matched everything), then the result is quoted for SQL.
+// Use it only together with ESCAPE '!' in the query.
+function ef_like_term($term) {
+	return escapestring(strtr((string)$term, array("!" => "!!", "%" => "!%", "_" => "!_")));
+}
+
+// True only for the name of a folder directly inside skins/. Skin names reach include paths
+// ($skindir/extra_header.php, variables.php...), so "../x", "a/b" or a folder elsewhere must never pass.
+// The list comes from scandir(), not from is_dir() on the joined path.
+function ef_valid_skin($name) {
+	static $skins = null;
+	if(!is_string($name) || $name === "" || basename($name) !== $name) return false;
+	if($skins === null) {
+		$skins = array( );
+		$list = @scandir(_BASEDIR."skins");
+		if(is_array($list)) {
+			foreach($list as $f) {
+				if($f !== "." && $f !== ".." && is_dir(_BASEDIR."skins/".$f)) $skins[] = $f;
+			}
+		}
+	}
+	return in_array($name, $skins, true);
+}
+
+// The visitor's IP address for INET6_ATON('...') in SQL: REMOTE_ADDR only when it is a valid IPv4 or IPv6
+// address (a proxy setup can copy a forwarded header into it), otherwise '0.0.0.0'.
+function ef_remote_ip() {
+	$ip = isset($_SERVER['REMOTE_ADDR']) ? (string)$_SERVER['REMOTE_ADDR'] : "";
+	return filter_var($ip, FILTER_VALIDATE_IP) !== false ? $ip : "0.0.0.0";
+}
+
+// The locked categories (fanfiction_categories.locked = 1, set in Admin > Categories) among the given ids.
+// New stories cannot be added to them; the story form refuses them in includes/categories.php and addCat().
+function ef_locked_categories($catids) {
+	$ids = array_values(array_filter(array_map('intval', (array)$catids)));
+	$locked = array( );
+	if(!count($ids)) return $locked;
+	$result = dbquery("SELECT catid FROM ".TABLEPREFIX."fanfiction_categories WHERE locked = '1' AND FIND_IN_SET(catid, '".implode(",", $ids)."') > 0");
+	while($row = dbassoc($result)) $locked[] = (string)$row['catid'];
+	return $locked;
+}
+
+// A list of ids from a search or browse form (array) or a continuation link (comma list).
+// Anything that is not a number stops the page instead of being dropped, so a malformed
+// classification list can't silently widen the results.
+function ef_search_ids($value) {
+	$values = is_array($value) ? $value : explode(",", (string)$value);
+	foreach($values as $v) {
+		if(!is_string($v) || ($v !== "" && !isNumber($v))) errorExit( );
+	}
+	return array_values(array_filter($values, "isNumber"));
+}
+
 // Function to format a URL into a clickable link
 // Only http://, https:// and mailto: are links; a bare host (example.org/page) gets https://.
 // Anything else (javascript:, data:...) is shown as text. Both the address and the title are escaped.

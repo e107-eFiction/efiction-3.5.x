@@ -95,12 +95,13 @@ if(!defined("_CHARSET")) exit( );
 		}
 		if(USERUID == $user['uid'] || (!empty($user['coauthors']) && in_array(USERUID, $array_coauthors))) {
 			if($type == "ST") {
-				$storyquery = dbquery("SELECT s.title, s.uid, r.rid, r.rating, r.ratingwarning, r.warningtext, s.sid FROM ".TABLEPREFIX."fanfiction_stories as s, ".TABLEPREFIX."fanfiction_ratings as r WHERE s.sid = '".$reviews['item']."' AND s.rid = r.rating LIMIT 1");
+				$storyquery = dbquery("SELECT s.title, s.uid, r.rid, r.rating, r.ratingwarning, r.warningtext, s.sid FROM ".TABLEPREFIX."fanfiction_stories as s, ".TABLEPREFIX."fanfiction_ratings as r WHERE s.sid = '".$reviews['item']."' AND s.rid = r.rid LIMIT 1");
 				$story = dbassoc($storyquery);
 				$authoruid = $story['uid'];
 				$title = title_link($story);
 			}
 			else if($type == "SE") {
+				$item = (int)$reviews['item']; // the reviewed series ($item was never set on this path)
 				$storyquery = dbquery("SELECT title, uid FROM ".TABLEPREFIX."fanfiction_series WHERE seriesid = '$item' LIMIT 1");
 				list($title, $authoruid) = dbrow($storyquery);
 				$title = stripslashes($title ?? "");
@@ -127,7 +128,7 @@ if(!defined("_CHARSET")) exit( );
 			$revlist->newBlock("reviewsblock");
 			$revlist->assign("reviewer"   , $reviewer );
 			$revlist->assign("review"   , $reviews['review']);
-			$revlist->assign("chapter", (isset($chaptitle) ? _CHAPTER." $chapnum: $chaptitle" : ($story['title'] ? $story['title'] : _NONE)) );
+			$revlist->assign("chapter", (isset($chaptitle) ? _CHAPTER." $chapnum: $chaptitle" : (!empty($story['title']) ? $story['title'] : _NONE)) );
 			$revlist->assign("reviewdate", date("$dateformat", $reviews['date']) );
 			$revlist->assign("rating", ratingpics($reviews['rating']) );
 			$revlist->assign("member", $member );

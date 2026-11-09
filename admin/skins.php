@@ -27,8 +27,8 @@ if(!defined("_CHARSET")) exit( );
 $output .= "<div class='sectionheader'>"._HIDDENSKINS."</div>";
 
 if(isset($_POST['submit'])) {
-	$hiddenskins = isset($_POST['hiddenskins']) ? implode(",", $_POST['hiddenskins']) : "";
-	$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET hiddenskins = '$hiddenskins' WHERE sitekey ='".SITEKEY."' LIMIT 1");
+	$hiddenskins = isset($_POST['hiddenskins']) && is_array($_POST['hiddenskins']) ? implode(",", array_filter($_POST['hiddenskins'], "ef_valid_skin")) : "";
+	$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET hiddenskins = '".escapestring($hiddenskins)."' WHERE sitekey ='".SITEKEY."' LIMIT 1");
 	if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 	else $output .= write_error(_ERROR);
 }

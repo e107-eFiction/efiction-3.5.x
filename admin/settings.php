@@ -203,7 +203,10 @@ else if(isset($_POST['submit'])) {
 			if(substr($url, -1, 1) == "/") $url = substr($url, 0, strlen($url) - 1);
 			$tableprefix = escapestring(descript(strip_tags($_POST['newtableprefix'] ?? '')));
 			$siteemail = escapestring(descript(strip_tags($_POST['newsiteemail'] ?? '')));
-			$skin = escapestring(descript(strip_tags($_POST['newskin'] ?? '')));
+			$skin = descript(strip_tags($_POST['newskin'] ?? ''));
+			// only a folder in skins/; otherwise the current default skin is kept
+			if(!ef_valid_skin($skin)) $skin = isset($defaultskin) ? $defaultskin : (isset($settings['skin']) ? $settings['skin'] : "");
+			$skin = escapestring($skin);
 			$language = escapestring(descript(strip_tags($_POST['newlanguage'] ?? '')));
 			if(empty($sitekey)) $output .= write_message(_SITEKEYREQUIRED);
 			else {
@@ -225,7 +228,7 @@ else if(isset($_POST['submit'])) {
 		$imageupload = $_POST['newimageupload'] == 1 ? 1 : 0;
 		$imageheight = isNumber($_POST['newimageheight']) ? $_POST['newimageheight'] : 0;
 		$imagewidth = isNumber($_POST['newimagewidth']) ? $_POST['newimagewidth'] : 0;
-		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET submissionsoff = '$submissionsoff', autovalidate = '$autovalidate', coauthallowed = '$coauthallowed', store = '$store', storiespath = '$storiespath', minwords = '$minwords', maxwords = '$maxwords', imageupload = '$imageupload', imageheight = '$imageheight', imagewidth = '$imagewidth', roundrobins = '$roundrobins', allowseries = '$allowseries' WHERE sitekey ='".SITEKEY."'");
+		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET submissionsoff = '$submissionsoff', autovalidate = '$autovalidate', coauthallowed = '$coauthallowed', store = '$store', storiespath = '".escapestring($storiespath)."', minwords = '$minwords', maxwords = '$maxwords', imageupload = '$imageupload', imageheight = '$imageheight', imagewidth = '$imagewidth', roundrobins = '$roundrobins', allowseries = '$allowseries' WHERE sitekey ='".SITEKEY."'");
 		if($action == "settings") {
 			dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_hidden = '".($imageupload ? "0" : "1")."' WHERE panel_name LIKE 'manageimages'");
 			dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_hidden = '".($allowseries ? "0" : "1")."' WHERE (panel_name LIKE '%series%' OR panel_title LIKE '%series%') AND panel_type != 'A' AND panel_type != 'B'");
@@ -234,7 +237,7 @@ else if(isset($_POST['submit'])) {
 
 	}
 	else if($sect == "sitesettings") {
-		$tinyMCE = ($_POST['newtinyMCE'] == 1  OR $_POST['newtinyMCE'] == 2) ? $_POST['newtinyMCE'] : 0;
+		$tinyMCE = ($_POST['newtinyMCE'] == 1  OR $_POST['newtinyMCE'] == 2) ? (int)$_POST['newtinyMCE'] : 0;
 		$allowed_tags = $_POST['newallowed_tags'];
 		$favorites = $_POST['newfavorites'] == 1 ? 1 : 0;
 		$multiplecats = $_POST['newmultiplecats'] == 1 ? 1 : 0;
@@ -243,7 +246,7 @@ else if(isset($_POST['submit'])) {
 		$maintenance = $_POST['newmaint'] == 1 ? 1 : 0;
 		$debug = $_POST['newdebug'] == 1 ? 1 : 0;
 		$captcha = $_POST['newcaptcha'] == 1 ? 1 : 0;
-		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET tinyMCE = '$tinyMCE', favorites = '$favorites', multiplecats = '$multiplecats', allowed_tags = '$allowed_tags', newscomments = '$newscomments', logging = '$logging', maintenance = '$maintenance', debug = '$debug', captcha = '$captcha' WHERE sitekey ='".SITEKEY."'");
+		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET tinyMCE = '$tinyMCE', favorites = '$favorites', multiplecats = '$multiplecats', allowed_tags = '".escapestring($allowed_tags)."', newscomments = '$newscomments', logging = '$logging', maintenance = '$maintenance', debug = '$debug', captcha = '$captcha' WHERE sitekey ='".SITEKEY."'");
 	}
 	else if($sect == "display") {
 		$dateformat = $_POST['newdateformat'] ? descript(strip_tags($_POST['newdateformat'])) : descript(strip_tags($_POST['customdateformat'] ?? ''));
@@ -257,7 +260,7 @@ else if(isset($_POST['submit'])) {
 		$displayprofile = $_POST['newdisplayprofile'] == 1 ? 1 : 0;
 		$defaultsort = $_POST['newdefaultsort'] == 1 ? 1 : 0;
 		if(isNumber($_POST['newrecentdays'])) $recentdays = $_POST['newrecentdays'];
-		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET dateformat = '$dateformat', timeformat = '$timeformat', extendcats = '$extendcats', displaycolumns = '$displaycolumns', itemsperpage = '$itemsperpage', displayindex = '$displayindex', defaultsort = '$defaultsort', recentdays = '$recentdays', displayprofile = '$displayprofile', linkstyle = '$linkstyle', linkrange = '$linkrange' WHERE sitekey ='".SITEKEY."'");
+		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET dateformat = '".escapestring($dateformat)."', timeformat = '".escapestring($timeformat)."', extendcats = '$extendcats', displaycolumns = '$displaycolumns', itemsperpage = '$itemsperpage', displayindex = '$displayindex', defaultsort = '$defaultsort', recentdays = '$recentdays', displayprofile = '$displayprofile', linkstyle = '$linkstyle', linkrange = '$linkrange' WHERE sitekey ='".SITEKEY."'");
 	}
 	else if($sect == "reviews") {
 		$reviewsallowed = $_POST['newreviewsallowed'] == 1 ? 1 : 0;

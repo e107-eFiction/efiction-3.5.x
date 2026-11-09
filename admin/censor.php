@@ -32,7 +32,7 @@ if(!defined("_CHARSET")) exit( );
 				if(strlen($word) > 0) $newwords[] = $word;
 			}
 		}
-		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET words = '".(is_array($newwords) ? implode(", ", $newwords) : "")."' WHERE sitekey = '".SITEKEY."'");
+		$result = dbquery("UPDATE ".$settingsprefix."fanfiction_settings SET words = '".(is_array($newwords) ? escapestring(implode(", ", $newwords)) : "")."' WHERE sitekey = '".SITEKEY."'");
 		if($result) $output .= write_message(_ACTIONSUCCESSFUL);
 		else $output .= write_error(_ERROR);
 	}

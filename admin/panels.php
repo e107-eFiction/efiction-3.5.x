@@ -30,11 +30,11 @@ if(isset($_GET['type'])) $type = $_GET['type'];
 else $type = false;
 if(!empty($_GET['go'])) {
 	$go = $_GET['go'];
-	$order = $_GET['order'];
+	$order = isset($_GET['order']) && isNumber($_GET['order']) ? $_GET['order'] : 0;
 	if($go == "up") $oneabove = $order - 1;
 	else $oneabove = $order + 1;
-	dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_order = '$order' WHERE panel_type = '$type' and panel_order = '$oneabove'");
-	dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_order = '$oneabove' WHERE panel_id = '".$_GET['panel']."'");	
+	dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_order = '$order' WHERE panel_type = '".escapestring($type)."' and panel_order = '$oneabove'");
+	dbquery("UPDATE ".TABLEPREFIX."fanfiction_panels SET panel_order = '$oneabove' WHERE panel_id = '".(int)$_GET['panel']."'");	
 }
 if(!empty($_GET['edit'])) {
 	if(!empty($_POST['submit'])) {
@@ -43,7 +43,7 @@ if(!empty($_GET['edit'])) {
 		$panel_url = addslashes(strip_tags(descript($_POST['panel_url'] ?? '')));
 		$panel_level = (!empty($_POST['panel_level']) && isNumber($_POST['panel_level']) ? $_POST['panel_level'] : 0);
 		$panel_hidden = (!empty($_POST['panel_hidden']) ? 1 : 0);
-		$panel_type = strip_tags(descript($_POST['panel_type'] ?? ''));
+		$panel_type = escapestring(strip_tags(descript($_POST['panel_type'] ?? '')));
 		if(!$panel_hidden) {
 			$oldinfo = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_panels WHERE panel_id = '".$_GET['edit']."'");
 			$panelinfo = dbassoc($oldinfo);
@@ -112,7 +112,7 @@ else {
 		$output .= "</select>";
 	}
 	$output .= "</div></form>";
-	$list = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_panels".($type ? " WHERE panel_type = '$type'".($type == "A" && !empty($_GET['level']) ? " AND panel_level = '".$_GET['level']."'" : "") : "")." ORDER BY panel_type, panel_hidden DESC, ".($type == "A" ? "panel_level DESC,  " : "")."panel_order ASC");
+	$list = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_panels".($type ? " WHERE panel_type = '".escapestring($type)."'".($type == "A" && !empty($_GET['level']) ? " AND panel_level = '".$_GET['level']."'" : "") : "")." ORDER BY panel_type, panel_hidden DESC, ".($type == "A" ? "panel_level DESC,  " : "")."panel_order ASC");
 	$num = dbnumrows($list);
 	if($num > 0) $output .= "<table class='tblborder' style='margin: 0 auto;'><tr><th class='tblborder'>"._NAME."</th>".(!$type || ($type == "A" && empty($_GET['level'])) ? "<th class='tblborder'>"._TYPE."</th>" : "<th class='tblborder'>"._ORDER."</th>")."<th class='tblborder'>"._OPTIONS."</th></tr><tr><td class='tblborder' colspan='3' align='center'><a href='admin.php?action=panels&amp;edit=new'>"._ADDNEWPANEL."</a></td></tr>";
 	$count = 0;

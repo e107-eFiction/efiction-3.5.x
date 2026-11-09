@@ -87,7 +87,8 @@ while($link = dbassoc($linkquery)) {
 if($action != "printable") $tpl->newBlock("header");
 $tpl->assignGlobal("sitename", $sitename);
 $tpl->assignGlobal("slogan", $slogan);
-$tpl->assignGlobal("page_id", $current);
+// viewpage.php sets $current from ?page=, so it is escaped for the template
+$tpl->assignGlobal("page_id", htmlspecialchars((string)$current, ENT_QUOTES, 'UTF-8'));
 $tpl->assignGlobal("basedir", _BASEDIR);
 $tpl->assignGlobal("skindir", $skindir);	
 if(isset($pagelinks['rss']))  {

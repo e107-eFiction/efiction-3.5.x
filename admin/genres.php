@@ -64,13 +64,13 @@ function genres( ) {
 	}
 	if ($_POST[submit]) {
 		if($_GET[genre] == "new") dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_genres (genre) VALUES ('".addslashes(stripinput(strip_tags($_POST[genre])))."')") or die(_FATALERROR."<br />Error: (".mysql_errno( ).") ".mysql_error( ));
-		else dbquery("UPDATE ".TABLEPREFIX."fanfiction_genres set genre = '".addslashes(stripinput(strip_tags($_POST[genre])))."' WHERE gid = '$_GET[genre]'") or die(_FATALERROR."<br />Error: (".mysql_errno( ).") ".mysql_error( ));
+		else dbquery("UPDATE ".TABLEPREFIX."fanfiction_genres set genre = '".addslashes(stripinput(strip_tags($_POST[genre])))."' WHERE gid = '".escapestring($_GET['genre'])."'") or die(_FATALERROR."<br />Error: (".mysql_errno( ).") ".mysql_error( ));
 			$output .= "<center>"._ACTIONSUCCESSFUL."</center>";
 	}
 	else {
 		if(isset($_GET[genre])) {
 			if($_GET[genre] != "new") {
-				$genrequery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_genres WHERE gid = '$_GET[genre]' LIMIT 1") or die(_FATALERROR."<br />Error: (".mysql_errno( ).") ".mysql_error( ));
+				$genrequery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_genres WHERE gid = '".escapestring($_GET['genre'])."' LIMIT 1") or die(_FATALERROR."<br />Error: (".mysql_errno( ).") ".mysql_error( ));
 				$genre = dbassoc($genrequery);
 			}
 			$output .= "<form method=\"POST\" enctype=\"multipart/form-data\" action=\"admin.php?action=genres&genre=$_GET[genre]\">

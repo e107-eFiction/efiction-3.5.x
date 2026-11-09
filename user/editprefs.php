@@ -34,8 +34,11 @@ if(!defined("_CHARSET")) exit( );
 		$storyindex = isset($_POST['storyindex']) && $_POST['storyindex'] == "on" ? 1 : 0;
 		$sortby = isset($_POST['sortby']) && $_POST['sortby'] == 1 ? 1 : 0;
 		$skinnew = descript(strip_tags($_POST['skinnew'] ?? ''));
-		if($skinnew != $skin) $_SESSION[$sitekey."_skin"] = $skinnew;
-		dbquery("UPDATE ".TABLEPREFIX."fanfiction_authorprefs SET alertson = '$useralertson', newreviews = '$newreviews', newrespond = '$newrespond', ageconsent = '$ageconsent', tinyMCE ='$tinyMCE', userskin = '$skinnew', storyindex = '$storyindex', sortby = '$sortby' WHERE uid = '".USERUID."'");
+		// only a folder in skins/; anything else saves the site default
+		if(!ef_valid_skin($skinnew)) $skinnew = $defaultskin;
+		// always update the session skin, also when switching back to the site default (3.5.79)
+		$_SESSION[SITEKEY."_skin"] = $skinnew;
+		dbquery("UPDATE ".TABLEPREFIX."fanfiction_authorprefs SET alertson = '$useralertson', newreviews = '$newreviews', newrespond = '$newrespond', ageconsent = '$ageconsent', tinyMCE ='$tinyMCE', userskin = '".escapestring($skinnew)."', storyindex = '$storyindex', sortby = '$sortby' WHERE uid = '".USERUID."'");
 		$output .= write_message(_ACTIONSUCCESSFUL." "._BACK2ACCT);
 	}
 	else {

@@ -58,5 +58,7 @@ CREATE TABLE `fanfiction_settings` (
   `smtp_host` varchar(200) default NULL,
   `smtp_username` varchar(50) default NULL,
   `smtp_password` varchar(50) default NULL,
+  `smtp_port` varchar(5) NOT NULL default '',
+  `smtp_secure` varchar(3) NOT NULL default '',
   PRIMARY KEY  (`sitekey`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

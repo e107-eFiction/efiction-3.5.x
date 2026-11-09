@@ -30,41 +30,8 @@ $output .= "<div id=\"pagetitle\">"._SERIES.($let ? " - $let" : "")."</div>".bui
 if($let) {
 	$seriesquery .= (empty($seriesquery) ? "" : " AND ").($let == _OTHER ? " series.title REGEXP '^[^a-z]'" : "series.title LIKE '$let%'");
 }
-	if($searchterm) {
-		if($searchtype == "title") $scountquery[] = "series.title LIKE '%$searchterm%'";
-		if($searchtype == "summary") $scountquery[] = "series.summary LIKE '%$searchterm%'";
-		if(!empty($authorlist)) $scountquery[] = "FIND_IN_SET(series.uid, '".implode(",",$authorlist)."') > 0";
-		if($searchtype == "advanced" || !$searchtype) $scountquery[] = "(summary LIKE '%$searchterm%' OR title LIKE '%$searchterm%') ";
-	}
-	$ef_sauthors = isset($_REQUEST['authors']) ? array_filter(array_map('trim', is_array($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", (string)$_REQUEST['authors'])), "isNumber") : array( );
-	if($ef_sauthors) $scountquery[] = "FIND_IN_SET(series.uid, '".implode(",", array_map('intval', $ef_sauthors))."') > 0";
-	foreach($categories as $cat) {
-		$catseries[] = "FIND_IN_SET($cat, series.catid) > 0 ";
-	}
-	// Now implode the SQL list
-	if(!empty($catstories)) {
-		$scountquery[] = "(".implode(" OR ", $catseries).")";
-	}
-	if($charid) {
-		foreach($charid as $c) {
-			if(empty($c)) continue;
-			$charseries[] = "FIND_IN_SET($c, series.characters) > 0 ";
-		}
-		if(!empty($charseries)) {
-			$scountquery[] = "(".implode(" OR ", $charseries).")";
-		}
-	}
-	if($classin) {
-		foreach($classin as $class) {
-			if(empty($class)) continue;
-			$scountquery[] = "FIND_IN_SET($class, series.classes) > 0";
-		}
-	}
-	if($classex) {
-		foreach($classex as $class) {
-			$scountquery[] = "FIND_IN_SET($class, series.classes) = 0";
-		}
-	}
+// browse.php has already built $seriesquery from the search term (with its mode, matched literally)
+// and every series filter; the predicates rebuilt here were added too late and never used (3.5.83).
 
 $count = dbquery(_SERIESCOUNT.(!empty($seriesquery) ? " WHERE ".$seriesquery : ""));
 $query = _SERIESQUERY.(!empty($seriesquery) ? " AND ".$seriesquery : "")." ORDER BY series.title LIMIT $offset, $itemsperpage";

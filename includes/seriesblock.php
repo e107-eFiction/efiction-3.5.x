@@ -75,7 +75,7 @@ if(!defined("_CHARSET")) exit( );
 	if(isMEMBER && $favorites) {
 		$addtofaves = "[<a href=\"user.php?action=favse&amp;uid=".USERUID."&amp;add=".$stories['seriesid']."\">"._ADDSERIES2FAVES."</a>]";
 		if($stories['isopen'] < 2) {
-			$addtofaves .= " [<a href=\"viewuser.php?action=favau&amp;uid=".USERUID."&amp;author=".$stories['uid']."\">"._ADDAUTHOR2FAVES."</a>]";
+			$addtofaves .= " [<a href=\"user.php?action=favau&amp;uid=".USERUID."&amp;add=".(int)$stories['uid']."\">"._ADDAUTHOR2FAVES."</a>]";
 		}
 		$tpl->assign("addtofaves", $addtofaves);
 	}

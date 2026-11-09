@@ -56,7 +56,7 @@ $output .= "<div id=\"pagetitle\">"._RATINGS."</div>";
 		if($_GET["rid"] == "new") $ratingquery = "INSERT INTO ".TABLEPREFIX."fanfiction_ratings (rating, ratingwarning, warningtext) VALUES ('$newrate', '$ratingwarning', '$newtext')";
 		else $ratingquery = "UPDATE ".TABLEPREFIX."fanfiction_ratings SET rating = '$newrate', ratingwarning = '$ratingwarning', warningtext = '$newtext' WHERE rid = '".$_GET['rid']."'";
 		dbquery($ratingquery);
-		if($_GET["rid"] != "new" && $newrate != $_POST['oldrating']) dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET rid = '$newrate' WHERE rid = '".$_POST['oldrating']."'");
+		if($_GET["rid"] != "new" && $newrate != $_POST['oldrating']) dbquery("UPDATE ".TABLEPREFIX."fanfiction_stories SET rid = '$newrate' WHERE rid = '".escapestring($_POST['oldrating'] ?? '')."'");
 		$output .= write_message(_ACTIONSUCCESSFUL);
 	}
 	else if(isset($_GET["rid"])) {

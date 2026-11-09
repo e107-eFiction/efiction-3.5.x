@@ -131,11 +131,12 @@ function preview_story($stories) {
 // function to add new story to archives.
 function newstory( ) {
 
-	global $autovalidate, $sid, $action, $sid, $store, $tpl, $admin, $sitename, $siteemail, $allowed_tags, $admincats, $alertson, $dateformat, $url, $minwords, $maxwords, $charlist, $catlist, $classtypelist;
+	global $autovalidate, $sid, $action, $sid, $store, $tpl, $admin, $sitename, $siteemail, $allowed_tags, $admincats, $alertson, $dateformat, $url, $minwords, $maxwords, $charlist, $catlist, $classtypelist, $roundrobins, $coauthallowed;
 	$newchapter = $action == "newchapter";
 	$output = "<div id=\"pagetitle\">".($newchapter ? _ADDNEWCHAPTER : _ADDNEWSTORY)."</div>";
 // to avoid problems with register globals and hackers declare variables and do some clean up.
-	if(isset($admin) && isset($_POST['uid']) && isNumber($_POST['uid'])) {
+	// only an admin working with ?admin=1 may file a story under another member ($admin is 0, not unset, for members)
+	if(!empty($admin) && isset($_POST['uid']) && isNumber($_POST['uid'])) {
 		$uid = $_POST['uid'];
 		$author = dbquery("SELECT "._PENNAMEFIELD." FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 		list($penname) = dbrow($author);
@@ -158,11 +159,20 @@ function newstory( ) {
 			$classes = array_merge($opts, $classes);
 		}
 	}
-	$rid = isset($_POST['rid']) ? descript($_POST['rid']) : "";
+	$rid = isset($_POST['rid']) && isNumber($_POST['rid']) ? $_POST['rid'] : "";
 	$rr = isset($_POST['rr']) && isNumber($_POST['rr']) ? $_POST['rr'] : 0;
-	$feat = isset($_POST['feature']) && isNumber($_POST['feature']) ? $_POST['feature'] : 0;
+	// featured and validated come from the form only for staff (the fields are shown only to them in includes/storyform.php);
+	// for members validation follows the site setting and the author's trusted flag below
+	$ef_staff = isADMIN && uLEVEL < 4;
+	$feat = $ef_staff && isset($_POST['feature']) && isNumber($_POST['feature']) ? $_POST['feature'] : 0;
 	$complete = isset($_POST['complete']) && isNumber($_POST['complete']) ? $_POST['complete'] : 0;
-	$validated = isset($_POST['validated']) && isNumber($_POST['validated']) ? $_POST['validated'] : 0;
+	$validated = $ef_staff && isset($_POST['validated']) && isNumber($_POST['validated']) ? $_POST['validated'] : 0;
+	// the form hides these when the site setting is off; enforce the settings on save as well
+	if(!$roundrobins) $rr = 0;
+	if(!$coauthallowed) $array_coauthors = array( );
+	// new stories cannot be added to locked categories (includes/categories.php and addCat() refuse them in the form);
+	// staff (the admin levels that get the moderation fields) are not limited here
+	$ef_locked = $ef_staff ? array( ) : ef_locked_categories($catid);
 	$chaptertitle = isset($_POST['chaptertitle']) ? descript(strip_tags($_POST['chaptertitle'], $allowed_tags)) : "";
 	$notes = isset($_POST['notes']) ? strip_tags(descript($_POST['notes']), $allowed_tags) : "";
 	$endnotes = isset($_POST['endnotes']) ? strip_tags(descript($_POST['endnotes']), $allowed_tags) : "";
@@ -201,6 +211,7 @@ function newstory( ) {
 		if(empty($failed)) $failed = "";
 		if(!$storytext) $failed .= "<br />"._NOSTORYTEXT;
 		if(!$newchapter && ($rid == "" || $title == "" || $summary == "" || !$catid)) $failed .= "<br />". _MISSINGFIELDS;
+		if(!$newchapter && count($ef_locked)) $failed .= "<br />"._CATLOCKED;
 		if(find_naughty($title)) $failed .= "<br />"._NAUGHTYWORDS;
 		if(($minwords && $wordcount < $minwords) || ($maxwords && $wordcount > $maxwords)) $failed .= "<br />"._WORDCOUNTFAILED;
 		$storyvalid = 0;
@@ -239,7 +250,7 @@ function newstory( ) {
 				$inorder = 1;
 			}
 			else {
-				$inorder = $_GET['inorder'] + 1;
+				$inorder = (int)($_GET['inorder'] ?? 0) + 1;
 			}
 			$query2 = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_chapters (title, inorder, notes, endnotes, validated, wordcount, sid, uid, storytext) VALUES('".addslashes(($chaptertitle != "" ? $chaptertitle : $title))."', '$inorder', '".addslashes(format_story($notes))."', '".addslashes(format_story($endnotes))."', '$validated', '$wordcount', '$sid', '$uid', '".addslashes($storytext)."')");
 			if(!$admin) $output = write_message(_STORYADDED).viewstories( );
@@ -253,7 +264,7 @@ function newstory( ) {
 				$inorder = 1;
 			}
 			else {
-				$inorder = $_GET['inorder'] + 1;
+				$inorder = (int)($_GET['inorder'] ?? 0) + 1;
 			}
 			$insertchapter = dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_chapters (title, inorder, notes, endnotes, validated, wordcount, sid, uid) VALUES('".addslashes(($chaptertitle != "" ? $chaptertitle : $title))."', '$inorder', '".addslashes(format_story($notes))."', '".addslashes(format_story($endnotes))."', '".($validated ? 1 : 0)."', '$wordcount', '$sid', '$uid')");
 			$chapid = dbinsertid( );
@@ -517,7 +528,7 @@ function editchapter( $chapid ) {
 		}
 		else if(isset($_POST['storytext'])) $story = $_POST['storytext'];
 		$storytext = strip_tags(descript($story ?? ""), $allowed_tags);
-		$inorder = $_POST["inorder"];
+		$inorder = (int)($_POST["inorder"] ?? 0); // chapter number, echoed back into the form
 		$words_to_count = strip_tags($storytext);
 		$pattern = "/[^(\w|\d|\'|\"|\.|\!|\?|;|,|\\|\/|\-\-|:|\&|@)]+/";
 		$words_to_count = preg_replace ($pattern, " ", $words_to_count);
@@ -579,7 +590,7 @@ function editchapter( $chapid ) {
 			if($admin && $logging && USERUID != $uid) {
 				$storyinfo = dbquery("SELECT story.title, story.sid, chapter.uid, chapter.inorder, "._PENNAMEFIELD." as penname FROM ".TABLEPREFIX."fanfiction_stories as story, ".TABLEPREFIX."fanfiction_chapters as chapter, "._AUTHORTABLE." WHERE "._UIDFIELD." = chapter.uid AND story.sid = chapter.sid AND chapter.chapid = $chapid");
 				list($title, $sid, $chapuid, $inorder, $chappenname) = dbrow($storyinfo);
-				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT_CHAPTER, USERPENNAME, USERUID, $title, $sid, $chappenname, $chapuid, $inorder))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'ED', " . time() . ")");
+				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT_CHAPTER, USERPENNAME, USERUID, $title, $sid, $chappenname, $chapuid, $inorder))."', '".USERUID. "', INET6_ATON('".ef_remote_ip()."'), 'ED', " . time() . ")");
 			}
 			unset($_POST['submit']);
 			$output = write_message(_STORYUPDATED).editstory($sid);
@@ -627,10 +638,11 @@ function editchapter( $chapid ) {
 // end editchapter function
 
 function editstory($sid) {
-	global $tpl, $storiespath, $store, $allowed_tags, $uid, $admin, $tinyMCE, $up, $down, $dateformat, $classtypelist, $logging, $alertson;
+	global $tpl, $storiespath, $store, $allowed_tags, $uid, $admin, $tinyMCE, $up, $down, $dateformat, $classtypelist, $logging, $alertson, $roundrobins, $coauthallowed;
 
 	$output = "<div id=\"pagetitle\">"._EDITSTORY."</div>";
-	if(isset($admin) && isset($uid)) {
+	// $admin and $uid are always set (0 / USERUID for members), so isset() made every edit an "admin edit" with a trusted author
+	if(!empty($admin) && isset($uid)) {
 		$author = dbquery("SELECT "._PENNAMEFIELD." FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 		$authorvalid = 1; // It's an admin edit so it's valid.
 		list($penname) = dbrow($author);
@@ -646,9 +658,11 @@ function editstory($sid) {
 		$summary = isset($_POST['summary']) ? strip_tags(descript($_POST['summary']), $allowed_tags) : "";
 		$storynotes = isset($_POST['storynotes']) ?  strip_tags(descript($_POST['storynotes']), $allowed_tags) : "";
 		$rr = isset($_POST['rr']) && isNumber($_POST['rr']) ? $_POST['rr'] : 0;
-		$feat = isset($_POST['feature']) && isNumber($_POST['feature']) ? $_POST['feature'] : 0;
+		// featured and validated come from the form only for staff (see newstory())
+		$ef_staff = isADMIN && uLEVEL < 4;
+		$feat = $ef_staff && isset($_POST['feature']) && isNumber($_POST['feature']) ? $_POST['feature'] : 0;
 		$complete = isset($_POST['complete']) && isNumber($_POST['complete']) ? $_POST['complete'] : 0;
-		$validated = isset($_POST['validated']) && isNumber($_POST['validated']) ? $_POST['validated'] : 0;
+		$validated = $ef_staff && isset($_POST['validated']) && isNumber($_POST['validated']) ? $_POST['validated'] : 0;
 		$chaptertitle = isset($_POST['chaptertitle']) ? descript(strip_tags($_POST['chaptertitle'], $allowed_tags)) : "";
 		$notes = isset($_POST['notes']) ? strip_tags(descript($_POST['notes']), $allowed_tags) : "";
 		$endnotes = isset($_POST['endnotes']) ? strip_tags(descript($_POST['endnotes']), $allowed_tags) : "";
@@ -656,7 +670,8 @@ function editstory($sid) {
 		$catid = isset($_POST['catid']) ? array_filter(is_array($_POST['catid']) ? $_POST['catid'] : explode(",", $_POST['catid']), "isNumber") : array( );
 		$charid = isset($_POST['charid']) ? array_filter((array)$_POST['charid'], "isNumber") : array( );
 		$array_coauthors = isset($_POST['coauthors']) ? array_filter(is_array($_POST['coauthors']) ? $_POST['coauthors'] : explode(",", $_POST['coauthors']), "isNumber") : array( );
-		if(isset($_POST['uid']) && isNumber($_POST['uid'])) $uid = $_POST['uid'];
+		// a new author only through an admin edit (?admin=1); members always edit as themselves
+		if(!empty($admin) && isset($_POST['uid']) && isNumber($_POST['uid'])) $uid = $_POST['uid'];
 		else $uid = USERUID;
 		$classes = array( );
 		$classquery = dbquery("SELECT * FROM ".TABLEPREFIX."fanfiction_classtypes");
@@ -667,6 +682,23 @@ function editstory($sid) {
 			}
 		}
 		if(!$admin && $authorvalid && !$validated) $validated = 2;
+		// round robin and co-authors are hidden in the form when the site setting is off: an edit then keeps
+		// what the story has (emptying the list here would delete its existing co-authors below)
+		if(!$roundrobins || !$coauthallowed) {
+			list($ef_oldrr) = dbrow(dbquery("SELECT rr FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '".(int)$sid."' LIMIT 1"));
+			if(!$roundrobins) $rr = (int)$ef_oldrr;
+			if(!$coauthallowed) {
+				$array_coauthors = array( );
+				$ef_co = dbquery("SELECT uid FROM ".TABLEPREFIX."fanfiction_coauthors WHERE sid = '".(int)$sid."'");
+				while($ef_c = dbassoc($ef_co)) $array_coauthors[] = $ef_c['uid'];
+			}
+		}
+		// a story keeps the locked categories it already had, but a member cannot add one
+		$ef_locked = array( );
+		if(!$ef_staff) {
+			list($ef_oldcats) = dbrow(dbquery("SELECT catid FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '".(int)$sid."' LIMIT 1"));
+			$ef_locked = array_diff(ef_locked_categories($catid), explode(",", (string)$ef_oldcats));
+		}
 		$au[] = $uid;
 		if(count($array_coauthors)) {
 			$au = array_merge($au, $array_coauthors);
@@ -678,6 +710,10 @@ function editstory($sid) {
 		$oldcats = isset($_POST['oldcats']) ? array_filter(is_array($_POST['oldcats']) ? $_POST['oldcats'] : explode(",", $_POST['oldcats']), "isNumber") : array( );
 		if (!$rid || !$title || !$summary || !$catid) {
 			$output .= write_error(_MISSINGFIELDS);
+			$submit = _PREVIEW;
+		}
+		else if(!empty($ef_locked)) {
+			$output .= write_error(_CATLOCKED);
 			$submit = _PREVIEW;
 		}
 		else {
@@ -717,7 +753,7 @@ function editstory($sid) {
 						list($oldpenname) = dbrow($authorquery);
 						$author2query = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 						list($newpenname) = dbrow($author2query);
-						dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT_AUTHOR, USERPENNAME, USERUID, $title, $sid, $newpenname, $uid, $oldpenname, $olduid))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'ED', " . time() . ")");
+						dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT_AUTHOR, USERPENNAME, USERUID, $title, $sid, $newpenname, $uid, $oldpenname, $olduid))."', '".USERUID. "', INET6_ATON('".ef_remote_ip()."'), 'ED', " . time() . ")");
 					}
 				}
 
@@ -725,6 +761,8 @@ function editstory($sid) {
 			// End change author of story
 			$oldinfo = dbquery("SELECT title, validated, featured, catid FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$sid' LIMIT 1");
 			list($storytitle, $oldvalid, $oldfeat, $oldcats ) = dbrow($oldinfo);
+			// a member who is not a trusted author neither validates nor unvalidates a story by editing it
+			if(!$ef_staff && !$validated) $validated = (int)$oldvalid;
 			$oldcats = explode(",", $oldcats);
 			if($validated) {
 				if(!$oldvalid) {
@@ -840,7 +878,7 @@ function editstory($sid) {
 				if(USERUID != $uid) { // If you're editing your own story, don't log it.
 					$authorquery = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 					list($penname) = dbrow($authorquery);
-					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT, USERPENNAME, USERUID, $title, $sid, $penname, $uid))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'ED', " . time() . ")");
+					dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_EDIT, USERPENNAME, USERUID, $title, $sid, $penname, $uid))."', '".USERUID. "', INET6_ATON('".ef_remote_ip()."'), 'ED', " . time() . ")");
 				}
 			}
 			$output .= write_message(_STORYUPDATED."  ".($admin ? _BACK2ADMIN : _BACK2ACCT));
@@ -857,9 +895,10 @@ function editstory($sid) {
 
 	if(isset($_POST['submit']) && $_POST['submit'] != _PREVIEW) {
 		$submit = _PREVIEW;
-		$storyquery = dbquery("SELECT title, summary, storynotes,  rr, completed, rid, classes, charid, catid, featured, uid, coauthors, date as date FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$sid' LIMIT 1");
+		// the form is shown again after a refused save; validated is read by storyform() and $preview was never set here
+		$storyquery = dbquery("SELECT title, summary, storynotes,  rr, completed, rid, classes, charid, catid, featured, uid, coauthors, validated, date as date FROM ".TABLEPREFIX."fanfiction_stories WHERE sid = '$sid' LIMIT 1");
 		$story = dbassoc($storyquery);
-		$output .= $formbegin.storyform($story, $preview);
+		$output .= $formbegin.storyform($story, 0);
 		$output .= "<input type=\"hidden\" name=\"oldcats\" value =\"".$story['catid']."\">";
 	}
 	else {
@@ -952,7 +991,7 @@ function delete( ) {
 			if($logging && $admin) {
 				$authorquery = dbquery("SELECT "._PENNAMEFIELD." as penname FROM "._AUTHORTABLE." WHERE "._UIDFIELD." = '$uid' LIMIT 1");
 				list($penname) = dbrow($authorquery);
-				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL_CHAPTER, USERPENNAME, USERUID, $story['title'], $sid, $penname, $uid, $inorder))."', '".USERUID. "', INET6_ATON('".$_SERVER['REMOTE_ADDR']."'), 'DL', " . time() . ")");
+				dbquery("INSERT INTO ".TABLEPREFIX."fanfiction_log (`log_action`, `log_uid`, `log_ip`, `log_type`, `log_timestamp`) VALUES('".escapestring(sprintf(_LOG_ADMIN_DEL_CHAPTER, USERPENNAME, USERUID, $story['title'], $sid, $penname, $uid, $inorder))."', '".USERUID. "', INET6_ATON('".ef_remote_ip()."'), 'DL', " . time() . ")");
 			}
 			return "<center>"._ACTIONSUCCESSFUL."</center>".editstory( $sid );
 		}

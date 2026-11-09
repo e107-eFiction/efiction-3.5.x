@@ -145,7 +145,8 @@ $agecontsent = false; $viewed = array();
 
 require_once("includes/get_session_vars.php");
 
-if(isset($_GET['skin'])) {
+// ?skin= is used (and remembered) only when it names a folder in skins/; anything else is ignored
+if(isset($_GET['skin']) && ef_valid_skin($_GET['skin'])) {
 	$siteskin = $_GET['skin'];
 	$_SESSION[SITEKEY."_skin"] = $siteskin;
 }
@@ -155,7 +156,9 @@ include("version.php");
 $newV = explode(".", $version);
 //if($v[0] == $newV[0] && ($v[1] < $newV[1] || (isset($newV[2]) && $v[2] < $newV[2]))) {
 foreach($newV AS $k => $l) {
-	if($newV[$k] > $v[$k] || (!empty($newV[$k]) && empty($v[$k]))) {
+	// a stored version can have fewer parts than the code's (3.5.9 vs 3.5.9.1): a missing part counts as empty
+	$ov = isset($v[$k]) ? $v[$k] : "";
+	if($newV[$k] > $ov || (!empty($newV[$k]) && empty($ov))) {
 		if(isADMIN && basename($_SERVER['PHP_SELF']) != "update.php") {
 			header("Location: update.php");
 			exit( );
@@ -167,7 +170,7 @@ foreach($newV AS $k => $l) {
 	}
 }
 
-if(!empty($_SESSION[SITEKEY."_skin"])) $siteskin = $_SESSION[SITEKEY."_skin"];
+if(!empty($_SESSION[SITEKEY."_skin"]) && ef_valid_skin($_SESSION[SITEKEY."_skin"])) $siteskin = $_SESSION[SITEKEY."_skin"];
 if($maintenance && !isADMIN && basename($_SERVER['PHP_SELF']) != "maintenance.php" && !(isset($_GET['action']) && $_GET['action'] == "login")) {
 	header("Location: maintenance.php");
 	exit( );
@@ -177,16 +180,15 @@ $blockquery = dbquery("SELECT * FROM " . TABLEPREFIX . "fanfiction_blocks");
 while ($block = dbassoc($blockquery))
 {
 
+	// empty, broken or non-array block variables count as empty settings (a string here crashed PHP 8 below)
+	$blocks[$block['block_name']] = array( );
 	if (!empty($block['block_variables']))
 	{
 		
 		$block_vars = @unserialize($block['block_variables']);
-		if ($block_vars)
+		if (is_array($block_vars))
 		{
 			$blocks[$block['block_name']] = $block_vars;
-		}
-		else {
-		 	// print_r($block);
 		}
 	}
 	$blocks[$block['block_name']]['title'] = $block['block_title'];
@@ -202,8 +204,9 @@ if(isset($_GET['ageconsent'])) $_SESSION[SITEKEY."_ageconsent"] = 1;
 if(isset($_GET['warning'])) $_SESSION[SITEKEY."_warned"][$_GET['warning']] = 1;
 
 
-if(is_dir(_BASEDIR."skins/$siteskin")) $skindir = _BASEDIR."skins/$siteskin";
-else if(is_dir(_BASEDIR."skins/".$settings['skin'])) $skindir = _BASEDIR."skins/".$defaultskin;
+// $skindir is used in include paths: only folders inside skins/ (a stale or broken name falls back silently)
+if(!ef_valid_skin($siteskin)) $siteskin = $defaultskin;
+if(ef_valid_skin($siteskin)) $skindir = _BASEDIR."skins/$siteskin";
 else $skindir = _BASEDIR."default_tpls";
 if(USERUID) {
 	$prefs = dbquery("SELECT sortby, storyindex, tinyMCE FROM ".TABLEPREFIX."fanfiction_authorprefs WHERE uid = '".USERUID."'");

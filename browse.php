@@ -41,23 +41,28 @@ if($type) {
 	$countquery = array();
 	$scountquery = array();
 	$searchtype = (isset($_REQUEST['searchtype']) ? $_REQUEST['searchtype'] : "simple");
-	$searchterm =  (isset($_REQUEST['searchterm']) && is_string($_REQUEST['searchterm']) ? descript($_REQUEST['searchterm']) : false);
-	// escape for the LIKE queries below (it used to go in as typed)
-	if($searchterm !== false) $searchterm = str_replace(array('%', '_'), array('\\%', '\\_'), escapestring($searchterm));
+	// malformed modes and terms are refused rather than broadening the results (3.5.83)
+	if(!is_string($searchtype) || (isset($_REQUEST['searchterm']) && !is_string($_REQUEST['searchterm']))) errorExit( );
+	if(!in_array($searchtype, array("simple", "title", "summary", "penname", "advanced", "fulltext"), true)) errorExit( );
+	$searchterm = isset($_REQUEST['searchterm']) && $_REQUEST['searchterm'] !== "" ? descript($_REQUEST['searchterm']) : false;
+	if($searchtype == "fulltext" || ($searchtype == "simple" && $searchterm !== false)) errorExit( );
+	if(($searchtype != "simple" && $searchtype != "advanced" && ($searchterm === false || trim($searchterm) === "")) || ($searchterm !== false && strlen($searchterm) < 3)) errorExit(_SEARCHTERMTOOSHORT);
+	// %, _ and ! are matched literally (3.5.82): every LIKE below uses ESCAPE '!'
+	if($searchterm !== false) $searchterm = ef_like_term($searchterm);
 	$disablesorts = array( );
-	if($searchterm) {
+	if($searchterm !== false) {
 		if($searchtype == "title") {
-			$query[] = "stories.title LIKE '%$searchterm%'";
-			$countquery[] = "stories.title LIKE '%$searchterm%'";
-			$scountquery[] = "series.title LIKE '%$searchterm%'";
+			$query[] = "stories.title LIKE '%$searchterm%' ESCAPE '!'";
+			$countquery[] = "stories.title LIKE '%$searchterm%' ESCAPE '!'";
+			$scountquery[] = "series.title LIKE '%$searchterm%' ESCAPE '!'";
 		}
 		if($searchtype == "summary") {
-			$query[] = "stories.summary LIKE '%$searchterm%'";
-			$countquery[] = "stories.summary LIKE '%$searchterm%'";
-			$scountquery[] = "series.summary LIKE '%$searchterm%'";
+			$query[] = "stories.summary LIKE '%$searchterm%' ESCAPE '!'";
+			$countquery[] = "stories.summary LIKE '%$searchterm%' ESCAPE '!'";
+			$scountquery[] = "series.summary LIKE '%$searchterm%' ESCAPE '!'";
 		}
 		if($searchtype == "penname") {
-			$authorquery = dbquery(_MEMBERLIST." WHERE "._PENNAMEFIELD." LIKE '%$searchterm%' GROUP BY "._UIDFIELD);
+			$authorquery = dbquery(_MEMBERLIST." WHERE "._PENNAMEFIELD." LIKE '%$searchterm%' ESCAPE '!' GROUP BY "._UIDFIELD);
 			$authorlist = array();
 			while($auth = dbassoc($authorquery)) {
 				$authorlist[] = $auth['uid'];
@@ -73,9 +78,9 @@ if($type) {
 			}
 		}
 		if($searchtype == "advanced" || !$searchtype) {
-			$query[] = "(stories.summary LIKE '%$searchterm%' OR stories.title LIKE '%$searchterm%') ";
-			$countquery[] = "(stories.summary LIKE '%$searchterm%' OR stories.title LIKE '%$searchterm%') ";
-			$scountquery[] = "(summary LIKE '%$searchterm%' OR title LIKE '%$searchterm%') ";
+			$query[] = "(stories.summary LIKE '%$searchterm%' ESCAPE '!' OR stories.title LIKE '%$searchterm%' ESCAPE '!') ";
+			$countquery[] = "(stories.summary LIKE '%$searchterm%' ESCAPE '!' OR stories.title LIKE '%$searchterm%' ESCAPE '!') ";
+			$scountquery[] = "(summary LIKE '%$searchterm%' ESCAPE '!' OR title LIKE '%$searchterm%' ESCAPE '!') ";
 		}
 	}
 	$ef_authors = isset($_REQUEST['authors']) ? array_filter(array_map('trim', is_array($_REQUEST['authors']) ? $_REQUEST['authors'] : explode(",", (string)$_REQUEST['authors'])), "isNumber") : array( );
@@ -127,11 +132,11 @@ if($type) {
 				$charseries[] = "FIND_IN_SET($c, series.characters) > 0 ";
 			}
 		}
-		if(count($charstories) > 0) {
+		if(!empty($charstories)) {
 			$query[] = "(".implode(" AND ", $charstories).")";
 			$countquery[] = "(".implode(" AND ", $charstories).")";
 		}
-		if(count($charseries) > 0) $scountquery[] = "(".implode(" AND ", $charseries).")";
+		if(!empty($charseries)) $scountquery[] = "(".implode(" AND ", $charseries).")";
 	}
 	$rid = array( ); $rating = array( );
 	if(!empty($_REQUEST['rid'])) $rid = is_array($_REQUEST['rid']) ? $_REQUEST['rid'] : explode(",", (string)$_REQUEST['rid']);
@@ -154,23 +159,17 @@ if($type) {
 			$complete = 0;
 		} 
 	}
-	if(isset($_REQUEST['classin'])) $classin = is_array($_REQUEST['classin']) ? $_REQUEST['classin'] : array($_REQUEST['classin']);
+	// form lists and comma lists from continuation pages; a malformed list is refused (3.5.83)
+	if(isset($_REQUEST['classin'])) $classin = ef_search_ids($_REQUEST['classin']);
 	else $classin = array( );
-	if(isset($_REQUEST['classex'])) $classex = is_array($_REQUEST['classex']) ? $_REQUEST['classex'] : array($_REQUEST['classex']);
+	if(isset($_REQUEST['classex'])) $classex = ef_search_ids($_REQUEST['classex']);
 	else $classex = array( );
-	$opts = array();
-	$exopts = array( );
 	foreach($classtypelist as $id => $vars) {
-		if(!empty($_POST[$vars['name']])) $opts[] = $_POST[$vars['name']];
-		else if(isset($_GET["class_".$id])) {
-			$opts = !empty($opts) ? array_merge($opts, explode(",", $_GET["class_".$id])) : array($_GET["class_".$id]);
-		}
-		else if(!empty($_REQUEST[$vars["name"]])) $opts = is_array($_REQUEST[$vars["name"]]) ? $_REQUEST[$vars["name"]] : array($_REQUEST[$vars["name"]]);
+		$opts = array( ); $exopts = array( );
+		if(isset($_REQUEST["class_".$id])) $opts = ef_search_ids($_REQUEST["class_".$id]);
+		else if(isset($_REQUEST[$vars["name"]])) $opts = ef_search_ids($_REQUEST[$vars["name"]]);
 		if(!empty($opts)) $classin = array_merge($classin, $opts);
-		if(isset($_POST["exclass_".$id])) $exopts = $_POST["exclass_".$id];
-		else if(isset($_GET["exclass_".$id])) {
-			$exopts = !empty($exopts) ? array_merge($exopts, explode(",", $_GET["exclass_".$id])) : array($_GET["exclass_".$id]);
-		}
+		if(isset($_REQUEST["exclass_".$id])) $exopts = ef_search_ids($_REQUEST["exclass_".$id]);
 		if(!empty($exopts)) $classex = array_merge($classex, $exopts);
 		unset($opts, $exopts);
 	}
@@ -198,7 +197,7 @@ if($type) {
 	if($wordlow != "-500") $wordcount = "stories.wordcount > ".$wordlow;
 	if($wordhigh != "1000000") 
 	{
-		if($wordcount) $wordcount .= " AND stories.wordcount < ".$wordhigh;
+		if(!empty($wordcount)) $wordcount .= " AND stories.wordcount < ".$wordhigh;
 		else $wordcount = "stories.wordcount < ".$wordhigh;
 	}
 	if($wordhigh < $wordlow) $wordcount = "stories.wordcount < ".$wordlow;

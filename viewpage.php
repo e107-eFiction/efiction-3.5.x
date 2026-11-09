@@ -20,7 +20,8 @@
 // To read the license please visit http://www.gnu.org/copyleft/gpl.html
 // ----------------------------------------------------------------------
 
-$current = $_GET['page'];
+// the page name is looked up escaped below and printed only through pagesetup.php's escaped {page_id}
+$current = isset($_GET['page']) && is_string($_GET['page']) ? $_GET['page'] : "";
 
 include ("header.php");
 
@@ -32,9 +33,14 @@ else $tpl = new TemplatePower("default_tpls/default.tpl");
 
 include("includes/pagesetup.php");
 
-$page = dbquery("SELECT message_title, message_text FROM ".TABLEPREFIX."fanfiction_messages WHERE ".($current ? "message_name = '".escapestring($current)."'" : "message_id = '".(isNumber($_GET['id']) ? $_GET[id] : "0")."'")." LIMIT 1");
+$page = dbquery("SELECT message_title, message_text FROM ".TABLEPREFIX."fanfiction_messages WHERE ".($current ? "message_name = '".escapestring($current)."'" : "message_id = '".(isset($_GET['id']) && is_string($_GET['id']) && isNumber($_GET['id']) ? (int)$_GET['id'] : 0)."'")." LIMIT 1");
 if(dbnumrows($page)) list($title, $text) = dbrow($page);
-else $text = write_message(_ERROR);
+else {
+	// no such page (missing, non-numeric or unknown id or name)
+	http_response_code(404);
+	$title = "";
+	$text = write_message(_ERROR);
+}
 if(strpos($text, "?>") === false) $tpl->assign("output", "<div id='pagetitle'>$title</div>\n\n$text");
 else {
 	eval("?>".$text."<?php ");
