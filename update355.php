@@ -112,6 +112,15 @@ CREATE TABLE `".TABLEPREFIX."fanfiction_stats` (
 		dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_series` ADD `numstories` INT NOT NULL DEFAULT '0'");
 		dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_pagelinks` ADD `link_key` CHAR( 1 ) NULL AFTER `link_text`");
 		if(!isset($allowseries)) dbquery("ALTER TABLE `".$settingsprefix."fanfiction_settings` ADD `allowseries` TINYINT NOT NULL DEFAULT '2' AFTER `roundrobins`");
+		// A signed log_ip column can hold negative values: 32-bit PHP builds
+		// return negative ip2long() results for addresses at or above 128.0.0.0.
+		// On strict-mode servers the direct signed-to-unsigned CHANGE fails with
+		// error 1264 while any negative row remains, dbquery() dies, and the
+		// whole update strand stops with the version row untouched. Walk the
+		// conversion through BIGINT and lift the negatives into their unsigned
+		// equivalents so every stored address survives.
+		dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_log` CHANGE `log_ip` `log_ip` BIGINT NULL DEFAULT NULL");
+		dbquery("UPDATE ".TABLEPREFIX."fanfiction_log SET log_ip = log_ip + 4294967296 WHERE log_ip < 0");
 		dbquery("ALTER TABLE `".TABLEPREFIX."fanfiction_log` CHANGE `log_ip` `log_ip` INT( 11 ) UNSIGNED NULL DEFAULT NULL");
 		dbquery("UPDATE ".TABLEPREFIX."fanfiction_inseries SET confirmed = 1");
 		$serieslist = dbquery("SELECT seriesid FROM ".TABLEPREFIX."fanfiction_series");
